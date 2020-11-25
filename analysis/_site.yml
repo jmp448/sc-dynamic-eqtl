@@ -1,7 +1,7 @@
-name: "sc-dynamic-eqtl"
+name: sc-dynamic-eqtl
 output_dir: ../docs
 navbar:
-  title: "sc-dynamic-eqtl"
+  title: sc-dynamic-eqtl
   left:
   - text: Home
     href: index.html
@@ -9,6 +9,10 @@ navbar:
     href: about.html
   - text: License
     href: license.html
+  right:
+  - icon: fa-github
+    text: Source code
+    href: https://github.com/jmp448/sc-dynamic-eqtl
 output:
   workflowr::wflow_html:
     toc: yes
