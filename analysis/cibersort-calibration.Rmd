@@ -1,0 +1,132 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(Seurat)
+library(patchwork)
+```
+
+Get true cell type fraction labels for this test data
+```{r, warning=FALSE, message=FALSE}
+day.ind <- read_tsv("data/cibersort/pseudobulk_samples.tsv")
+cell.types <- read_tsv("data/cibersort/pseudobulk_labels.all.tsv")
+pb.fracs <- inner_join(day.ind, cell.types, by="cell") %>% `colnames<-`(c("cell", "sample", "cell.type"))
+for (s in unique(pb.fracs$sample)) {
+  s.fracs <- pb.fracs %>% filter(sample==s) %>% .$cell.type %>% 
+              table %>% as.matrix %>% t %>% as_tibble %>%
+              mutate("sample"=s)
+  if (s == unique(pb.fracs$sample)[1]) {
+    ct.counts <- s.fracs
+  } else {
+    ct.counts <- bind_rows(ct.counts, s.fracs)
+  }
+}
+mix <- ct.counts$sample
+ct.counts <- ct.counts %>% select(!sample)
+ct.proportions <- ct.counts / rowSums(ct.counts, na.rm=T)
+ct.proportions[is.na(ct.proportions)] <- 0
+ct.proportions <- ct.proportions %>% mutate(sample=mix) %>% relocate(sample) %>% arrange(sample)
+```
+
+```{r, warning=FALSE, message=FALSE}
+pb.cibersort <- read_tsv("data/cibersort/outputs/seurat_sig_all.txt") %>%
+                  select(!c(`P-value`, Correlation, RMSE))
+```
+
+```{r, warning=FALSE, message=FALSE}
+stopifnot(sum(pb.cibersort$Mixture != ct.proportions$sample) == 0)
+type.order <- c("iPSC", "meso", "EMT", "cardiomes", "prog", "CM", "EPDC")
+ct.proportions <- ct.proportions %>% relocate(c("sample", all_of(type.order)))
+pb.cibersort <- pb.cibersort %>% relocate(c("Mixture", all_of(type.order))) %>% rename(sample=Mixture)
+colnames(ct.proportions) <- c("sample", paste0(colnames(ct.proportions)[-c(1)], "_true"))
+colnames(pb.cibersort) <- c("sample", paste0(colnames(pb.cibersort)[-c(1)], "_ciber"))
+ct.proportions <- inner_join(ct.proportions, pb.cibersort, by="sample")
+```
+
+```{r, warning=FALSE, message=FALSE}
+p1 <- ct.proportions %>% mutate(day=str_extract(sample, "[^_]+$")) %>%
+        mutate(ind=str_extract(sample, "[^_]+")) %>% 
+        gather(!c(sample, day, ind), key="type", value="fraction") %>% 
+        mutate(celltype=str_extract(type, "[^_]+")) %>%
+        mutate(inference=str_extract(type, "[^_]+$")) %>%
+        select(!type)
+p1$day <- as.numeric(p1$day)
+p1$celltype <- factor(p1$celltype, levels=c("iPSC", "meso", "EMT", "cardiomes", "prog", "CM", "EPDC"))
+p1$inference <- factor(p1$inference, levels=c("true", "ciber"))
+```
+
+## Comparison of true vs inferred cell type proportions
+First, let's look at three individuals with varying changes in 
+```{r, warning=FALSE, message=FALSE}
+p1.sub <- filter(p1, ind %in% c("18499", "18505", "18508"))
+ggplot(p1.sub, aes(x=day, y=fraction, fill=celltype)) +
+  geom_area(alpha=0.6 , size=1, colour="black") +
+  facet_grid(rows=vars(ind), cols=vars(inference)) +
+  theme_classic() + theme(axis.ticks.y = element_blank(), axis.text.y=element_blank())
+```
+
+```{r, fig.width=15, fig.height=10, warning=FALSE, message=FALSE}
+ggplot(p1, aes(x=day, y=fraction, fill=celltype)) +
+  geom_area(alpha=0.6 , size=1, colour="black") +
+  facet_grid(rows=vars(ind), cols=vars(inference))+
+  theme_classic() + theme(axis.ticks.y = element_blank(), axis.text.y=element_blank())
+```
+
+```{r, warning=FALSE, message=FALSE}
+cell.types <- read_tsv("data/cibersort/pseudobulk_labels.4.tsv")
+pb.fracs <- inner_join(day.ind, cell.types, by="cell") %>% `colnames<-`(c("cell", "sample", "cell.type"))
+for (s in unique(pb.fracs$sample)) {
+  s.fracs <- pb.fracs %>% filter(sample==s) %>% .$cell.type %>% 
+              table %>% as.matrix %>% t %>% as_tibble %>%
+              mutate("sample"=s)
+  if (s == unique(pb.fracs$sample)[1]) {
+    ct.counts <- s.fracs
+  } else {
+    ct.counts <- bind_rows(ct.counts, s.fracs)
+  }
+}
+mix <- ct.counts$sample
+ct.counts <- ct.counts %>% select(!sample)
+ct.proportions.sub <- ct.counts / rowSums(ct.counts, na.rm=T)
+ct.proportions.sub[is.na(ct.proportions.sub)] <- 0
+ct.proportions.sub <- ct.proportions.sub %>% mutate(sample=mix) %>% relocate(sample) %>% arrange(sample)
+pb.cibersort.4 <- read_tsv("data/cibersort/outputs/seurat_sig_4.txt") %>%
+                  select(!c(`P-value`, Correlation, RMSE))
+stopifnot(sum(pb.cibersort.4$Mixture != ct.proportions.sub$sample) == 0)
+type.order <- c("iPSC", "mes", "CM", "EPDC")
+ct.proportions.sub <- ct.proportions.sub %>% relocate(c("sample", all_of(type.order)))
+pb.cibersort.4 <- pb.cibersort.4 %>% relocate(c("Mixture", all_of(type.order))) %>% rename(sample=Mixture)
+colnames(ct.proportions.sub) <- c("sample", paste0(colnames(ct.proportions.sub)[-c(1)], "_true"))
+colnames(pb.cibersort.4) <- c("sample", paste0(colnames(pb.cibersort.4)[-c(1)], "_ciber"))
+ct.proportions.sub <- inner_join(ct.proportions.sub, pb.cibersort.4, by="sample")
+```
+
+```{r, warning=FALSE, message=FALSE}
+p2 <- ct.proportions.sub %>% mutate(day=str_extract(sample, "[^_]+$")) %>%
+        mutate(ind=str_extract(sample, "[^_]+")) %>% 
+        gather(!c(sample, day, ind), key="type", value="fraction") %>% 
+        mutate(celltype=str_extract(type, "[^_]+")) %>%
+        mutate(inference=str_extract(type, "[^_]+$")) %>%
+        select(!type)
+p2$day <- as.numeric(p2$day)
+p2$celltype <- factor(p2$celltype, levels=c("iPSC", "mes", "CM", "EPDC"))
+p2$inference <- factor(p2$inference, levels=c("true", "ciber"))
+```
+
+```{r, warning=FALSE, message=FALSE}
+p2.sub <- filter(p2, ind %in% c("18499", "18505", "18508"))
+ggplot(p2.sub, aes(x=day, y=fraction, fill=celltype)) +
+  geom_area(alpha=0.6 , size=1, colour="black") +
+  facet_grid(rows=vars(ind), cols=vars(inference)) +
+  theme_classic() + theme(axis.ticks.y = element_blank(), axis.text.y=element_blank())
+```
+
+```{r, fig.width=15, fig.height=10, warning=FALSE, message=FALSE}
+ggplot(p2, aes(x=day, y=fraction, fill=celltype)) +
+  geom_area(alpha=0.6 , size=1, colour="black") +
+  facet_grid(rows=vars(ind), cols=vars(inference))+
+  theme_classic() + theme(axis.ticks.y = element_blank(), axis.text.y=element_blank())
+```
+

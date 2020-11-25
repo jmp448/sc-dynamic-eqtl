@@ -1,0 +1,82 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(Seurat)
+library(Nebulosa)
+library(tidyverse)
+```
+```{r}
+sc <- readRDS("/project2/gilad/jpopp/sc3/data/mitofilt_singlets.full.leiden.cc.rds")
+```
+
+We can look at marker genes to get an idea for what cell types we are seeing here
+```{r}
+plot_density(sc, "POU5F1") # iPSC marker
+plot_density(sc, "MIXL1") # mesoderm marker
+plot_density(sc, "MESP1") # cardiac mesoderm marker
+plot_density(sc, "NKX2-5") # cardiac progenitor marker
+plot_density(sc, "MYL4") # CM marker
+plot_density(sc, "DDR2") # EPDC marker
+```
+
+```{r}
+DimPlot(sc, group.by="leiden")
+table(sc$leiden)
+```
+
+We subset to those leiden clusters with at least 5000 cells
+```{r}
+sc <- sc[,sc$leiden %in% c(0, 1, 2, 3, 4, 5, 6)]
+DimPlot(sc, group.by="leiden")
+```
+
+Next, we'd like to measure cell type proportions in our samples. Let's look at how proportions of cardiomyocyte cells for each individual change over our collection time course. Note that in this plot, we are averaging over biological replicates
+```{r}
+altpaths <- tibble("sample"=sc$sample, "cm"=(sc$leiden==4), "epdc"=(sc$leiden==0), "diffday"=sc$diffday, "individual"=sc$individual)
+counts <- tibble("sample"=names(table(altpaths$sample)), "cells"=as.numeric(table(altpaths$sample)))
+sample2diffday <- unique(select(altpaths, c(sample, diffday, individual)))
+
+proportions <- altpaths %>% group_by(sample) %>%
+  summarize(cm.counts=sum(cm), epdc.counts=sum(epdc))
+proportions <- proportions %>% inner_join(counts, by="sample") %>% 
+  mutate(cm.frac=cm.counts/cells) %>%
+  mutate(epdc.frac=epdc.counts/cells) %>%
+  inner_join(sample2diffday, by="sample") %>%
+  mutate(diffday=as.numeric(str_sub(diffday, 5))) %>%
+  gather(`cm.frac`, `epdc.frac`, key="cell.type", value="proportion")
+
+ggplot(proportions, aes(x=diffday, y=proportion, color=individual)) + 
+  geom_line() +
+  facet_grid(cols=vars(cell.type))
+```
+
+Next question, do cells from the same cell line seem to share a consistent rate of differentiation?
+```{r}
+pseudotimes <- tibble("sample"=sc$sample, "cm"=sc$CM_PC1, "epdc"=sc$EPDC_PC1, "diffday"=sc$diffday, "individual"=sc$individual)
+sample2diffday <- unique(select(pseudotimes, c(sample, diffday, individual)))
+
+proportions <-pseudotimes %>% group_by(sample) %>%
+  summarize(cm.mean=mean(cm, na.rm=T), cm.sd=sd(cm, na.rm=T), epdc.mean=mean(epdc, na.rm=T), epdc.sd=sd(epdc, na.rm=T))
+proportions <- proportions %>%  
+  inner_join(sample2diffday, by="sample") %>%
+  mutate(diffday=as.numeric(str_sub(diffday, 5))) %>%
+  gather(`cm.mean`, `cm.sd`, `epdc.mean`, `epdc.sd`, key="quantity", value="value") %>%
+  mutate(type=str_extract(quantity, "[^.]+"), quantity=str_extract(quantity, "[^.]+$")) %>% 
+  spread(quantity, value)
+  
+ggplot(proportions, aes(x=diffday, color=individual)) +
+  geom_line(aes(y=mean)) +
+  facet_grid(cols=vars(type)) + 
+  ylab("Average Pseudotime") +
+  xlab("Collection Day")
+ggplot(proportions, aes(x=diffday, color=individual)) +
+  geom_line(aes(y=mean)) +
+  geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd)) +
+  facet_grid(cols=vars(type)) + 
+  ylab("Average Pseudotime") +
+  xlab("Collection Day")
+```
+
