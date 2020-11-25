@@ -10,17 +10,17 @@ editor_options:
 
 This project uses single-cell RNA sequencing data to find dynamic eQTLs 
 
-1. Cell Type Annotation
+1. [Cell Type Annotation](annotation.html)
   - Code for quality control is at `tbd`
   - Code for preprocessing is at `tbd`
-2. [Static eQTL Calling](static_eqtl.Rmd)
+2. [Static eQTL Calling](static_eqtl.html)
   - Code for pseudobulk aggregation (by collection day and by cell type) is at `code/pseudobulk_aggregation.R`
   - Code for eQTL calling is at `code/eqtl_static.R`
   - Code for multiple testing correction is at `code/mtc_static.R`
 3. Cell Type Deconvolution
-  - [Signature matrix](cell-deconvolution.Rmd) generation 
-  - [Cibersort calibration](cibersort-calibration.Rmd) analysis
-  - [Deconvolution results](deconvolution-results.Rmd) 
+  - [Signature matrix](cell-deconvolution.html) generation 
+  - [Cibersort calibration](cibersort-calibration.html) analysis
+  - [Deconvolution results](deconvolution-results.html) 
 4. Trajectory Inference
   - Code for trajectory inference is at `tbd`
 5. Dynamic eQTL Calling
