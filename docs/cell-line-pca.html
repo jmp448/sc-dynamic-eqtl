@@ -11,7 +11,7 @@
 
 
 
-<title>Home</title>
+<title>Cell Line PCA</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -19,6 +19,9 @@
 <script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
@@ -267,6 +270,69 @@ $(document).ready(function () {
 
 
 
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
 
 </head>
 
@@ -274,6 +340,16 @@ $(document).ready(function () {
 
 
 <div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
 
 
 
@@ -317,14 +393,14 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Home</h1>
+<h1 class="title toc-ignore">Cell Line PCA</h1>
 
 </div>
 
 
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-report" data-toggle="collapse" data-target="#workflowr-report">
-<span class="glyphicon glyphicon-list" aria-hidden="true"></span> workflowr <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
+<span class="glyphicon glyphicon-list" aria-hidden="true"></span> workflowr <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span>
 </button>
 </p>
 <div id="workflowr-report" class="collapse">
@@ -333,7 +409,7 @@ $(document).ready(function () {
 <a data-toggle="tab" href="#summary">Summary</a>
 </li>
 <li>
-<a data-toggle="tab" href="#checks"> Checks <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> </a>
+<a data-toggle="tab" href="#checks"> Checks <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> </a>
 </li>
 <li>
 <a data-toggle="tab" href="#versions">Past versions</a>
@@ -345,7 +421,7 @@ $(document).ready(function () {
 <strong>Last updated:</strong> 2021-01-10
 </p>
 <p>
-<strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 2 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 0
+<strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 6 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 1
 </p>
 <p>
 <strong>Knit directory:</strong> <code>sc-dynamic-eqtl/</code> <span class="glyphicon glyphicon-question-sign" aria-hidden="true" title="This is the local directory in which the code in this file was executed."> </span>
@@ -357,7 +433,7 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 <hr>
 </div>
 <div id="checks" class="tab-pane fade">
-<div id="workflowr-checks" class="panel-group">
+<div class="panel-group" id="workflowr-checks">
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
@@ -367,6 +443,90 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 <div id="strongRMarkdownfilestronguptodate" class="panel-collapse collapse">
 <div class="panel-body">
 <p>Great! Since the R Markdown file has been committed to the Git repository, you know the exact version of the code that produced these results.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongEnvironmentstrongempty"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Environment:</strong> empty </a>
+</p>
+</div>
+<div id="strongEnvironmentstrongempty" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! The global environment was empty. Objects defined in the global environment can affect the analysis in your R Markdown file in unknown ways. For reproduciblity it’s best to always run the code in an empty environment.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSeedstrongcodesetseed20201027code"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Seed:</strong> <code>set.seed(20201027)</code> </a>
+</p>
+</div>
+<div id="strongSeedstrongcodesetseed20201027code" class="panel-collapse collapse">
+<div class="panel-body">
+<p>The command <code>set.seed(20201027)</code> was run prior to running the code in the R Markdown file. Setting a seed ensures that any results that rely on randomness, e.g. subsampling or permutations, are reproducible.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSessioninformationstrongrecorded"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Session information:</strong> recorded </a>
+</p>
+</div>
+<div id="strongSessioninformationstrongrecorded" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Recording the operating system, R version, and package versions is critical for reproducibility.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongCachestrongnone"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Cache:</strong> none </a>
+</p>
+</div>
+<div id="strongCachestrongnone" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Nice! There were no cached chunks for this analysis, so you can be confident that you successfully produced the results during this run.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongFilepathsstrongabsolute"> <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> <strong>File paths:</strong> absolute </a>
+</p>
+</div>
+<div id="strongFilepathsstrongabsolute" class="panel-collapse collapse">
+<div class="panel-body">
+<p>
+Using absolute paths to the files within your workflowr project makes it difficult for you and others to run your code on a different machine. Change the absolute path(s) below to the suggested relative path(s) to make your code more reproducible.
+</p>
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th style="text-align:left;">
+absolute
+</th>
+<th style="text-align:left;">
+relative
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+/project2/gilad/jpopp/sc-dynamic-eqtl/data/cibersort/outputs/pseudobulk_labels.true.tsv
+</td>
+<td style="text-align:left;">
+data/cibersort/outputs/pseudobulk_labels.true.tsv
+</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 </div>
@@ -480,7 +640,7 @@ Note that any generated files, e.g. HTML, png, CSS, etc., are not included in t
 <div id="versions" class="tab-pane fade">
 
 <p>
-These are the previous versions of the repository in which changes were made to the R Markdown (<code>analysis/index.Rmd</code>) and HTML (<code>docs/index.html</code>) files. If you’ve configured a remote Git repository (see <code>?wflow_git_remote</code>), click on the hyperlinks in the table below to view the files as they were in that past version.
+These are the previous versions of the repository in which changes were made to the R Markdown (<code>analysis/cell-line-pca.Rmd</code>) and HTML (<code>docs/cell-line-pca.html</code>) files. If you’ve configured a remote Git repository (see <code>?wflow_git_remote</code>), click on the hyperlinks in the table below to view the files as they were in that past version.
 </p>
 <div class="table-responsive">
 <table class="table table-condensed table-hover">
@@ -509,7 +669,7 @@ Message
 Rmd
 </td>
 <td>
-<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/28a4a9e5c51ead1abb2cf8c9f8ff5ccc28ed7116/analysis/index.Rmd" target="_blank">28a4a9e</a>
+<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/28a4a9e5c51ead1abb2cf8c9f8ff5ccc28ed7116/analysis/cell-line-pca.Rmd" target="_blank">28a4a9e</a>
 </td>
 <td>
 jmp448
@@ -521,91 +681,6 @@ jmp448
 Updated results with replication
 </td>
 </tr>
-<tr>
-<td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/jmp448/sc-dynamic-eqtl/f0b0516d1fb3891c90d9eb911aad6648260c58ab/docs/index.html" target="_blank">f0b0516</a>
-</td>
-<td>
-jmp448
-</td>
-<td>
-2020-11-25
-</td>
-<td>
-Build site.
-</td>
-</tr>
-<tr>
-<td>
-Rmd
-</td>
-<td>
-<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/64172fa7a4d7d374ffee71d6ee5e174f49a29d74/analysis/index.Rmd" target="_blank">64172fa</a>
-</td>
-<td>
-jmp448
-</td>
-<td>
-2020-11-25
-</td>
-<td>
-wflow_publish(“analysis/index.Rmd”)
-</td>
-</tr>
-<tr>
-<td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/jmp448/sc-dynamic-eqtl/2c8c0eb51d37c0f9198b2f4f6344d7ce08cc2f4a/docs/index.html" target="_blank">2c8c0eb</a>
-</td>
-<td>
-jmp448
-</td>
-<td>
-2020-11-25
-</td>
-<td>
-Build site.
-</td>
-</tr>
-<tr>
-<td>
-Rmd
-</td>
-<td>
-<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/6924587582bf9b383adacf480aba3e1aae40adad/analysis/index.Rmd" target="_blank">6924587</a>
-</td>
-<td>
-jmp448
-</td>
-<td>
-2020-11-25
-</td>
-<td>
-wflow_publish(c(“analysis/index.Rmd”, “analysis/annotation.Rmd”,
-</td>
-</tr>
-<tr>
-<td>
-Rmd
-</td>
-<td>
-<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/7b807d466b3f16a28a3bf4b07822247ee7549c61/analysis/index.Rmd" target="_blank">7b807d4</a>
-</td>
-<td>
-jmp448
-</td>
-<td>
-2020-10-27
-</td>
-<td>
-Start workflowr project.
-</td>
-</tr>
 </tbody>
 </table>
 </div>
@@ -613,52 +688,171 @@ Start workflowr project.
 </div>
 </div>
 </div>
-<p>This project uses single-cell RNA sequencing data to find dynamic and cell type interaction eQTLs</p>
-<ol style="list-style-type: decimal">
-<li><a href="annotation.html">Cell Type Annotation</a></li>
-</ol>
-<ul>
-<li>Code for quality control is at <code>tbd</code></li>
-<li>Code for preprocessing is at <code>tbd</code></li>
-</ul>
-<ol start="2" style="list-style-type: decimal">
-<li><a href="static_eqtl.html">Static eQTL Calling</a></li>
-</ol>
-<ul>
-<li>Code for pseudobulk aggregation (by collection day and by cell type) is at <code>code/preprocessing.R</code></li>
-<li>Code for eQTL calling is at <code>code/eqtl_static.R</code></li>
-<li>Code for multiple testing correction is at <code>code/mtc_static.R</code></li>
-</ul>
-<ol start="3" style="list-style-type: decimal">
-<li><a href="deconvolution.html">Cell Type Deconvolution</a></li>
-</ol>
-<ul>
-<li>Code for preprocessing is at <code>code/cibersort.R</code></li>
-<li>The program used for deconvolution can be found at <a href="https://cibersortx.stanford.edu/">https://cibersortx.stanford.edu/</a></li>
-</ul>
-<ol start="4" style="list-style-type: decimal">
-<li>Trajectory Inference</li>
-</ol>
-<ul>
-<li>Code for trajectory inference is at <code>tbd</code></li>
-</ul>
-<ol start="5" style="list-style-type: decimal">
-<li><a href="dynamic-eqtl.html">Dynamic eQTLs</a></li>
-</ol>
-<ul>
-<li>Cell line PCA and some correlation analysis at <a href="cell-line-pca.html">cell-line-pca.html</a></li>
-<li>Code for preprocessing is at <code>code/preprocessing.R</code></li>
-<li>Code for eQTL calling is at <code>code/eqtl_dynamic.R</code></li>
-<li>Code for multiple testing/ false discovery correction is at <code>code/mtc_dynamic.R</code></li>
-</ul>
-<ol start="6" style="list-style-type: decimal">
-<li><a href="interaction-qtl.html">Cell Type Interaction eQTLs</a></li>
-</ol>
-<ul>
-<li>Code for preprocessing is at <code>code/preprocessing.R</code></li>
-<li>Code for eQTL calling is at <code>code/eqtl_dynamic.R</code></li>
-<li>Code for multiple testing/ false discovery correction is at <code>code/mtc_dynamic.R</code></li>
-</ul>
+<pre class="r"><code>library(tidyverse)
+library(patchwork)
+library(scales)
+source(&quot;code/cell_line_pca.R&quot;)</code></pre>
+<div id="regular-pca" class="section level2">
+<h2>Regular PCA</h2>
+<pre class="r"><code>pseudobulk &lt;- read_tsv( &quot;data/pseudobulk_logcpm.day.full.tsv&quot;)
+bulk &lt;- read_tsv(&quot;data/bulk_logtpm.full.tsv&quot;)</code></pre>
+<p>Run PCA on both datasets</p>
+<pre class="r"><code>pb.pca &lt;- regular.pca(pseudobulk)</code></pre>
+<pre><code>Warning: The `x` argument of `as_tibble.matrix()` must have unique column names if `.name_repair` is omitted as of tibble 2.0.0.
+Using compatibility `.name_repair`.
+This warning is displayed once every 8 hours.
+Call `lifecycle::last_warnings()` to see where this warning was generated.</code></pre>
+<pre class="r"><code>pb.loadings &lt;- pb.pca$u %&gt;% mutate(day=as.numeric(str_extract(sample, &quot;[^_]+$&quot;)))
+ggplot(pb.loadings, aes(x=PC1, y=PC2, color=day)) + geom_point() + theme_classic()</code></pre>
+<p><img src="figure/cell-line-pca.Rmd/unnamed-chunk-3-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>bulk.pca &lt;- regular.pca(bulk)
+bulk.loadings &lt;- bulk.pca$u %&gt;% mutate(day=as.numeric(str_extract(sample, &quot;[^_]+$&quot;)))
+ggplot(bulk.loadings, aes(x=PC1, y=PC2, color=day)) + geom_point() + theme_classic()</code></pre>
+<p><img src="figure/cell-line-pca.Rmd/unnamed-chunk-3-2.png" width="672" style="display: block; margin: auto;" /></p>
+<!-- Pseudobulk covariates -->
+</div>
+<div id="cell-line-pca" class="section level2">
+<h2>Cell Line PCA</h2>
+<pre class="r"><code>bulk.clpca &lt;- cell.line.pca(bulk)
+pseudobulk.clpca &lt;- cell.line.pca(pseudobulk)</code></pre>
+<div id="scree-plots" class="section level3">
+<h3>Scree Plots</h3>
+<pre class="r"><code>plot(bulk.clpca$pve, main=&quot;Bulk Cell Line PVE&quot;, ylab=&quot;PVE&quot;, xlab=&quot;Cell Line PC&quot;)</code></pre>
+<p><img src="figure/cell-line-pca.Rmd/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>plot(pseudobulk.clpca$pve, main=&quot;Pseudobulk Cell Line PVE&quot;, ylab=&quot;PVE&quot;, xlab=&quot;Cell Line PC&quot;)</code></pre>
+<p><img src="figure/cell-line-pca.Rmd/unnamed-chunk-6-2.png" width="672" style="display: block; margin: auto;" /></p>
+<p>We see that the first bulk cell line PC appears to sort cell lines by differentiation speed</p>
+<pre><code>Parsed with column specification:
+cols(
+  Mixture = col_character(),
+  iPSC = col_double(),
+  meso = col_double(),
+  cardiomes = col_double(),
+  prog = col_double(),
+  CM = col_double(),
+  EPDC = col_double(),
+  EMT = col_double(),
+  `P-value` = col_double(),
+  Correlation = col_double(),
+  RMSE = col_double()
+)</code></pre>
+<p><img src="figure/cell-line-pca.Rmd/unnamed-chunk-7-1.png" width="1440" style="display: block; margin: auto;" /></p>
+<p>This trend appears with pseudobulk as well</p>
+<pre><code>Parsed with column specification:
+cols(
+  sample = col_character(),
+  iPSC = col_double(),
+  meso = col_double(),
+  cardiomes = col_double(),
+  prog = col_double(),
+  CM = col_double(),
+  EPDC = col_double(),
+  EMT = col_double()
+)</code></pre>
+<p><img src="figure/cell-line-pca.Rmd/unnamed-chunk-8-1.png" width="1440" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+<div id="correlation-analysis" class="section level2">
+<h2>Correlation Analysis</h2>
+<p>Looking within each time point, do bulk samples from a specific cell line look more similar to pseudobulk samples from the same cell line than they do others? (Looking across all genes)</p>
+<pre class="r"><code>p &lt;- read_tsv(&quot;results/eqtl_static/correlation.tsv&quot;)</code></pre>
+<pre><code>Parsed with column specification:
+cols(
+  rho = col_double(),
+  cl1 = col_double(),
+  cl2 = col_double(),
+  npcs = col_double(),
+  day = col_character()
+)</code></pre>
+<pre class="r"><code>p &lt;- p %&gt;% mutate(sim=if_else(cl1==cl2, &quot;same&quot;, &quot;diff&quot;))
+ggplot(p, aes(x=sim, y=rho, fill=sim)) +
+  geom_boxplot() +
+  facet_grid(rows=vars(day), cols=vars(npcs))</code></pre>
+<p><img src="figure/cell-line-pca.Rmd/unnamed-chunk-9-1.png" width="672" style="display: block; margin: auto;" /> Focus on one example and perform Wilcoxon’s Rank Sum Test</p>
+<pre class="r"><code>p1 &lt;- p %&gt;% filter((day==&quot;day0&quot;) &amp; (npcs==3))
+alt &lt;- p1 %&gt;% filter(sim==&quot;same&quot;) %&gt;% .$rho
+null &lt;- p1 %&gt;% filter(sim==&quot;diff&quot;) %&gt;% .$rho
+wilcox.test(alt, null, &#39;g&#39;)</code></pre>
+<pre><code>
+    Wilcoxon rank sum test with continuity correction
+
+data:  alt and null
+W = 6360, p-value = 1.067e-12
+alternative hypothesis: true location shift is greater than 0</code></pre>
+<p>Now look at a different metric, where each point corresponds to a single gene’s correlation between</p>
+<pre class="r"><code>p.gene &lt;- read_tsv(&quot;results/eqtl_static/correlation2.tsv&quot;)</code></pre>
+<pre><code>Parsed with column specification:
+cols(
+  rho = col_double(),
+  permuted = col_logical(),
+  day = col_character(),
+  npcs = col_double()
+)</code></pre>
+<pre class="r"><code>ggplot(p.gene, aes(x=permuted, y=rho, fill=permuted)) +
+  geom_boxplot() +
+  facet_grid(rows=vars(day), cols=vars(npcs))</code></pre>
+<pre><code>Warning: Removed 2892 rows containing non-finite values (stat_boxplot).</code></pre>
+<p><img src="figure/cell-line-pca.Rmd/unnamed-chunk-11-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Focus on one example and perform Wilcoxon’s Rank Sum Test</p>
+<pre class="r"><code>p.gene1 &lt;- p.gene %&gt;% filter((day==&quot;day0&quot;) &amp; (npcs==0))
+alt &lt;- p.gene1 %&gt;% filter(permuted==FALSE) %&gt;% .$rho
+null &lt;- p.gene1 %&gt;% filter(permuted==TRUE) %&gt;% .$rho
+wilcox.test(alt, null, &#39;g&#39;)</code></pre>
+<pre><code>
+    Wilcoxon rank sum test with continuity correction
+
+data:  alt and null
+W = 314281508, p-value &lt; 2.2e-16
+alternative hypothesis: true location shift is greater than 0</code></pre>
+<br>
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
+<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span> Session information
+</button>
+</p>
+<div id="workflowr-sessioninfo" class="collapse">
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>R version 4.0.0 (2020-04-24)
+Platform: x86_64-pc-linux-gnu (64-bit)
+Running under: Scientific Linux 7.4 (Nitrogen)
+
+Matrix products: default
+BLAS/LAPACK: /software/openblas-0.2.19-el7-x86_64/lib/libopenblas_haswellp-r0.2.19.so
+
+locale:
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+ [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+ [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+ [1] scales_1.1.1    patchwork_1.0.1 forcats_0.5.0   stringr_1.4.0  
+ [5] dplyr_1.0.2     purrr_0.3.4     readr_1.3.1     tidyr_1.1.2    
+ [9] tibble_3.0.3    ggplot2_3.3.2   tidyverse_1.3.0 workflowr_1.6.2
+
+loaded via a namespace (and not attached):
+ [1] tidyselect_1.1.0 xfun_0.18        haven_2.3.1      colorspace_1.4-1
+ [5] vctrs_0.3.4      generics_0.0.2   htmltools_0.5.0  yaml_2.2.1      
+ [9] blob_1.2.1       rlang_0.4.7      later_1.1.0.1    pillar_1.4.6    
+[13] withr_2.3.0      glue_1.4.2       DBI_1.1.0        dbplyr_1.4.4    
+[17] modelr_0.1.8     readxl_1.3.1     lifecycle_0.2.0  cellranger_1.1.0
+[21] munsell_0.5.0    gtable_0.3.0     rvest_0.3.6      evaluate_0.14   
+[25] labeling_0.3     knitr_1.30       httpuv_1.5.4     fansi_0.4.1     
+[29] highr_0.8        broom_0.7.0      Rcpp_1.0.5       promises_1.1.1  
+[33] backports_1.1.10 jsonlite_1.7.1   farver_2.0.3     fs_1.5.0        
+[37] hms_0.5.3        digest_0.6.25    stringi_1.5.3    rprojroot_1.3-2 
+[41] grid_4.0.0       cli_2.0.2        tools_4.0.0      magrittr_1.5    
+[45] crayon_1.3.4     whisker_0.4      pkgconfig_2.0.3  ellipsis_0.3.1  
+[49] xml2_1.3.2       reprex_0.3.0     lubridate_1.7.9  assertthat_0.2.1
+[53] rmarkdown_2.4    httr_1.4.2       rstudioapi_0.11  R6_2.4.1        
+[57] git2r_0.27.1     compiler_4.0.0  </code></pre>
+</div>
+</div>
 
 
 <!-- Adjust MathJax settings so that all math formulae are shown using
@@ -674,6 +868,8 @@ footer is added to webpages before the MathJax javascript. -->
 </script>
 
 
+</div>
+</div>
 
 </div>
 
@@ -706,6 +902,32 @@ $(document).ready(function () {
 
 <!-- code folding -->
 
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
 
 <!-- dynamically load mathjax for compatibility with self-contained -->
 <script>

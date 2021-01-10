@@ -22,6 +22,8 @@
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
 
 <link rel="icon" href="https://github.com/workflowr/workflowr-assets/raw/master/img/reproducible.png">
 <!-- Add a small amount of space between sections. -->
@@ -299,7 +301,13 @@ $(document).ready(function () {
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
-        
+        <li>
+  <a href="https://github.com/jmp448/sc-dynamic-eqtl">
+    <span class="fa fa-github"></span>
+     
+    Source code
+  </a>
+</li>
       </ul>
     </div><!--/.nav-collapse -->
   </div><!--/.container -->
@@ -334,7 +342,7 @@ $(document).ready(function () {
 <div class="tab-content">
 <div id="summary" class="tab-pane fade in active">
 <p>
-<strong>Last updated:</strong> 2020-11-25
+<strong>Last updated:</strong> 2021-01-10
 </p>
 <p>
 <strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 2 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 0
@@ -365,16 +373,16 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrong6924587"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> 6924587 </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomjmp448scdynamiceqtltree28a4a9e5c51ead1abb2cf8c9f8ff5ccc28ed7116targetblank28a4a9ea"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/jmp448/sc-dynamic-eqtl/tree/28a4a9e5c51ead1abb2cf8c9f8ff5ccc28ed7116" target="_blank">28a4a9e</a> </a>
 </p>
 </div>
-<div id="strongRepositoryversionstrong6924587" class="panel-collapse collapse">
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomjmp448scdynamiceqtltree28a4a9e5c51ead1abb2cf8c9f8ff5ccc28ed7116targetblank28a4a9ea" class="panel-collapse collapse">
 <div class="panel-body">
 <p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility.
 </p>
 <p>
-The results in this page were generated with repository version 6924587. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
+The results in this page were generated with repository version <a href="https://github.com/jmp448/sc-dynamic-eqtl/tree/28a4a9e5c51ead1abb2cf8c9f8ff5ccc28ed7116" target="_blank">28a4a9e</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
 </p>
 <p>
 Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
@@ -383,23 +391,24 @@ Note that you need to be careful to ensure that all relevant files for the analy
 Ignored files:
     Ignored:    analysis/.Rhistory
     Ignored:    analysis/annotation.nb.html
-    Ignored:    analysis/cell-deconvolution.nb.html
-    Ignored:    analysis/cibersort-calibration.nb.html
-    Ignored:    analysis/deconvolution-results.nb.html
+    Ignored:    analysis/cell-line-pca.nb.html
+    Ignored:    analysis/deconvolution.nb.html
+    Ignored:    analysis/dynamic-eqtl.nb.html
+    Ignored:    analysis/interaction-qtl.nb.html
     Ignored:    analysis/static_eqtl.nb.html
     Ignored:    code/.Rhistory
-    Ignored:    data/CM/
-    Ignored:    data/EMT/
-    Ignored:    data/EPDC/
-    Ignored:    data/cardiomes/
+    Ignored:    data/bulk_counts.full.tsv
+    Ignored:    data/bulk_counts.overlap.tsv
+    Ignored:    data/bulk_cpm.full.tsv
+    Ignored:    data/bulk_cpm.overlap.tsv
+    Ignored:    data/bulk_logtpm.full.tsv
+    Ignored:    data/bulk_logtpm.overlap.tsv
+    Ignored:    data/bulk_rpkm.full.tsv
+    Ignored:    data/bulk_rpkm.overlap.tsv
+    Ignored:    data/bulk_tpm.full.tsv
+    Ignored:    data/bulk_tpm.overlap.tsv
     Ignored:    data/cibersort/
-    Ignored:    data/day0/
-    Ignored:    data/day1/
-    Ignored:    data/day11/
-    Ignored:    data/day15/
-    Ignored:    data/day3/
-    Ignored:    data/day5/
-    Ignored:    data/day7/
+    Ignored:    data/dynamic/
     Ignored:    data/gene_locs.filtered.tsv
     Ignored:    data/genotypes.filtered.tsv
     Ignored:    data/gv_pairs.filtered.100k.tsv
@@ -407,28 +416,56 @@ Ignored files:
     Ignored:    data/gv_pairs.filtered.25k.tsv
     Ignored:    data/gv_pairs.filtered.50k.tsv
     Ignored:    data/gv_pairs.filtered.tsv
-    Ignored:    data/iPSC/
-    Ignored:    data/meso/
-    Ignored:    data/prog/
+    Ignored:    data/pseudobulk_counts.col.full.tsv
+    Ignored:    data/pseudobulk_counts.col.overlap.tsv
+    Ignored:    data/pseudobulk_counts.day.full.tsv
+    Ignored:    data/pseudobulk_counts.day.overlap.tsv
+    Ignored:    data/pseudobulk_counts.type.full.tsv
+    Ignored:    data/pseudobulk_counts.type.overlap.tsv
+    Ignored:    data/pseudobulk_cpm.col.full.tsv
+    Ignored:    data/pseudobulk_cpm.col.overlap.tsv
+    Ignored:    data/pseudobulk_cpm.day.full.tsv
+    Ignored:    data/pseudobulk_cpm.day.overlap.tsv
+    Ignored:    data/pseudobulk_cpm.type.full.tsv
+    Ignored:    data/pseudobulk_cpm.type.overlap.tsv
+    Ignored:    data/pseudobulk_logcpm.col.full.tsv
+    Ignored:    data/pseudobulk_logcpm.col.overlap.tsv
+    Ignored:    data/pseudobulk_logcpm.day.full.tsv
+    Ignored:    data/pseudobulk_logcpm.day.overlap.tsv
+    Ignored:    data/pseudobulk_logcpm.type.full.tsv
+    Ignored:    data/pseudobulk_logcpm.type.overlap.tsv
+    Ignored:    data/seurat/
     Ignored:    data/snp_locs.filtered.tsv
+    Ignored:    data/static/
     Ignored:    results/
 
 Untracked files:
-    Untracked:  analysis/static_eqtl.Rmd
+    Untracked:  analysis/dynamic-eqtl.Rmd
+    Untracked:  analysis/interaction-qtl.Rmd
     Untracked:  code/cell_line_pca.R
     Untracked:  code/cibersort.R
+    Untracked:  code/correlation.R
     Untracked:  code/debug.R
+    Untracked:  code/eqtl_dynamic.R
+    Untracked:  code/eqtl_interaction.R
     Untracked:  code/eqtl_static.R
     Untracked:  code/helpers.R
     Untracked:  code/list_tests.R
     Untracked:  code/mashr.R
-    Untracked:  code/mtc_ashr_static.R
-    Untracked:  code/pseudobulk_aggregation.R
+    Untracked:  code/mtc_dynamic.R
+    Untracked:  code/mtc_interaction.R
+    Untracked:  code/mtc_static.R
+    Untracked:  code/prediction_clusters.R
+    Untracked:  code/prediction_lasso.R
+    Untracked:  code/preprocessing.R
     Untracked:  figs/
     Untracked:  wrappers/
 
 Unstaged changes:
     Modified:   .gitignore
+    Deleted:    analysis/cell-deconvolution.Rmd
+    Deleted:    analysis/cibersort-calibration.Rmd
+    Deleted:    analysis/deconvolution-results.Rmd
 
 </code></pre>
 <p>
@@ -469,10 +506,27 @@ Message
 <tbody>
 <tr>
 <td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/jmp448/sc-dynamic-eqtl/2c8c0eb51d37c0f9198b2f4f6344d7ce08cc2f4a/docs/license.html" target="_blank">2c8c0eb</a>
+</td>
+<td>
+jmp448
+</td>
+<td>
+2020-11-25
+</td>
+<td>
+Build site.
+</td>
+</tr>
+<tr>
+<td>
 Rmd
 </td>
 <td>
-7b807d4
+<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/7b807d466b3f16a28a3bf4b07822247ee7549c61/analysis/license.Rmd" target="_blank">7b807d4</a>
 </td>
 <td>
 jmp448

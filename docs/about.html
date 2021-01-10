@@ -11,7 +11,7 @@
 
 
 
-<title>Home</title>
+<title>About</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -317,7 +317,7 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Home</h1>
+<h1 class="title toc-ignore">About</h1>
 
 </div>
 
@@ -480,7 +480,7 @@ Note that any generated files, e.g. HTML, png, CSS, etc., are not included in t
 <div id="versions" class="tab-pane fade">
 
 <p>
-These are the previous versions of the repository in which changes were made to the R Markdown (<code>analysis/index.Rmd</code>) and HTML (<code>docs/index.html</code>) files. If you’ve configured a remote Git repository (see <code>?wflow_git_remote</code>), click on the hyperlinks in the table below to view the files as they were in that past version.
+These are the previous versions of the repository in which changes were made to the R Markdown (<code>analysis/about.Rmd</code>) and HTML (<code>docs/about.html</code>) files. If you’ve configured a remote Git repository (see <code>?wflow_git_remote</code>), click on the hyperlinks in the table below to view the files as they were in that past version.
 </p>
 <div class="table-responsive">
 <table class="table table-condensed table-hover">
@@ -509,92 +509,7 @@ Message
 Rmd
 </td>
 <td>
-<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/28a4a9e5c51ead1abb2cf8c9f8ff5ccc28ed7116/analysis/index.Rmd" target="_blank">28a4a9e</a>
-</td>
-<td>
-jmp448
-</td>
-<td>
-2021-01-10
-</td>
-<td>
-Updated results with replication
-</td>
-</tr>
-<tr>
-<td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/jmp448/sc-dynamic-eqtl/f0b0516d1fb3891c90d9eb911aad6648260c58ab/docs/index.html" target="_blank">f0b0516</a>
-</td>
-<td>
-jmp448
-</td>
-<td>
-2020-11-25
-</td>
-<td>
-Build site.
-</td>
-</tr>
-<tr>
-<td>
-Rmd
-</td>
-<td>
-<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/64172fa7a4d7d374ffee71d6ee5e174f49a29d74/analysis/index.Rmd" target="_blank">64172fa</a>
-</td>
-<td>
-jmp448
-</td>
-<td>
-2020-11-25
-</td>
-<td>
-wflow_publish(“analysis/index.Rmd”)
-</td>
-</tr>
-<tr>
-<td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/jmp448/sc-dynamic-eqtl/2c8c0eb51d37c0f9198b2f4f6344d7ce08cc2f4a/docs/index.html" target="_blank">2c8c0eb</a>
-</td>
-<td>
-jmp448
-</td>
-<td>
-2020-11-25
-</td>
-<td>
-Build site.
-</td>
-</tr>
-<tr>
-<td>
-Rmd
-</td>
-<td>
-<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/6924587582bf9b383adacf480aba3e1aae40adad/analysis/index.Rmd" target="_blank">6924587</a>
-</td>
-<td>
-jmp448
-</td>
-<td>
-2020-11-25
-</td>
-<td>
-wflow_publish(c(“analysis/index.Rmd”, “analysis/annotation.Rmd”,
-</td>
-</tr>
-<tr>
-<td>
-Rmd
-</td>
-<td>
-<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/7b807d466b3f16a28a3bf4b07822247ee7549c61/analysis/index.Rmd" target="_blank">7b807d4</a>
+<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/7b807d466b3f16a28a3bf4b07822247ee7549c61/analysis/about.Rmd" target="_blank">7b807d4</a>
 </td>
 <td>
 jmp448
@@ -613,52 +528,7 @@ Start workflowr project.
 </div>
 </div>
 </div>
-<p>This project uses single-cell RNA sequencing data to find dynamic and cell type interaction eQTLs</p>
-<ol style="list-style-type: decimal">
-<li><a href="annotation.html">Cell Type Annotation</a></li>
-</ol>
-<ul>
-<li>Code for quality control is at <code>tbd</code></li>
-<li>Code for preprocessing is at <code>tbd</code></li>
-</ul>
-<ol start="2" style="list-style-type: decimal">
-<li><a href="static_eqtl.html">Static eQTL Calling</a></li>
-</ol>
-<ul>
-<li>Code for pseudobulk aggregation (by collection day and by cell type) is at <code>code/preprocessing.R</code></li>
-<li>Code for eQTL calling is at <code>code/eqtl_static.R</code></li>
-<li>Code for multiple testing correction is at <code>code/mtc_static.R</code></li>
-</ul>
-<ol start="3" style="list-style-type: decimal">
-<li><a href="deconvolution.html">Cell Type Deconvolution</a></li>
-</ol>
-<ul>
-<li>Code for preprocessing is at <code>code/cibersort.R</code></li>
-<li>The program used for deconvolution can be found at <a href="https://cibersortx.stanford.edu/">https://cibersortx.stanford.edu/</a></li>
-</ul>
-<ol start="4" style="list-style-type: decimal">
-<li>Trajectory Inference</li>
-</ol>
-<ul>
-<li>Code for trajectory inference is at <code>tbd</code></li>
-</ul>
-<ol start="5" style="list-style-type: decimal">
-<li><a href="dynamic-eqtl.html">Dynamic eQTLs</a></li>
-</ol>
-<ul>
-<li>Cell line PCA and some correlation analysis at <a href="cell-line-pca.html">cell-line-pca.html</a></li>
-<li>Code for preprocessing is at <code>code/preprocessing.R</code></li>
-<li>Code for eQTL calling is at <code>code/eqtl_dynamic.R</code></li>
-<li>Code for multiple testing/ false discovery correction is at <code>code/mtc_dynamic.R</code></li>
-</ul>
-<ol start="6" style="list-style-type: decimal">
-<li><a href="interaction-qtl.html">Cell Type Interaction eQTLs</a></li>
-</ol>
-<ul>
-<li>Code for preprocessing is at <code>code/preprocessing.R</code></li>
-<li>Code for eQTL calling is at <code>code/eqtl_dynamic.R</code></li>
-<li>Code for multiple testing/ false discovery correction is at <code>code/mtc_dynamic.R</code></li>
-</ul>
+<p>Describe your project.</p>
 
 
 <!-- Adjust MathJax settings so that all math formulae are shown using
