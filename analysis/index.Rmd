@@ -8,19 +8,26 @@ editor_options:
   chunk_output_type: console
 ---
 
-This project uses single-cell RNA sequencing data to find dynamic eQTLs 
+This project uses single-cell RNA sequencing data to find dynamic and cell type interaction eQTLs 
 
 1. [Cell Type Annotation](annotation.html)
   - Code for quality control is at `tbd`
   - Code for preprocessing is at `tbd`
 2. [Static eQTL Calling](static_eqtl.html)
-  - Code for pseudobulk aggregation (by collection day and by cell type) is at `code/pseudobulk_aggregation.R`
+  - Code for pseudobulk aggregation (by collection day and by cell type) is at `code/preprocessing.R`
   - Code for eQTL calling is at `code/eqtl_static.R`
   - Code for multiple testing correction is at `code/mtc_static.R`
-3. Cell Type Deconvolution
-  - [Signature matrix](cell-deconvolution.html) generation 
-  - [Cibersort calibration](cibersort-calibration.html) analysis
-  - [Deconvolution results](deconvolution-results.html) 
+3. [Cell Type Deconvolution](deconvolution.html)
+  - Code for preprocessing is at `code/cibersort.R`
+  - The program used for deconvolution can be found at [https://cibersortx.stanford.edu/](https://cibersortx.stanford.edu/)
 4. Trajectory Inference
   - Code for trajectory inference is at `tbd`
-5. Dynamic eQTL Calling
+5. [Dynamic eQTLs](dynamic-eqtl.html)
+  - Cell line PCA and some correlation analysis at [cell-line-pca.html](cell-line-pca.html)
+  - Code for preprocessing is at `code/preprocessing.R`
+  - Code for eQTL calling is at `code/eqtl_dynamic.R`
+  - Code for multiple testing/ false discovery correction is at `code/mtc_dynamic.R`
+6. [Cell Type Interaction eQTLs](interaction-qtl.html)
+  - Code for preprocessing is at `code/preprocessing.R`
+  - Code for eQTL calling is at `code/eqtl_dynamic.R`
+  - Code for multiple testing/ false discovery correction is at `code/mtc_dynamic.R`

@@ -1,0 +1,138 @@
+---
+title: "Cell Line PCA"
+output: html_notebook
+---
+```{r warning=FALSE, message=FALSE}
+library(tidyverse)
+library(patchwork)
+library(scales)
+source("code/cell_line_pca.R")
+```
+
+## Regular PCA
+```{r, warning=FALSE, message=FALSE}
+pseudobulk <- read_tsv( "data/pseudobulk_logcpm.day.full.tsv")
+bulk <- read_tsv("data/bulk_logtpm.full.tsv")
+```
+
+Run PCA on both datasets
+```{r}
+pb.pca <- regular.pca(pseudobulk)
+pb.loadings <- pb.pca$u %>% mutate(day=as.numeric(str_extract(sample, "[^_]+$")))
+ggplot(pb.loadings, aes(x=PC1, y=PC2, color=day)) + geom_point() + theme_classic()
+
+bulk.pca <- regular.pca(bulk)
+bulk.loadings <- bulk.pca$u %>% mutate(day=as.numeric(str_extract(sample, "[^_]+$")))
+ggplot(bulk.loadings, aes(x=PC1, y=PC2, color=day)) + geom_point() + theme_classic()
+```
+
+<!-- Pseudobulk covariates -->
+```{r include=FALSE}
+metadata_pb <- read_tsv("/project2/gilad/reem/singlecellCM/SingleCellCMMetadataAllRounds-LineInfo.txt")
+metadata_pb <- metadata_pb[,1:18] %>% mutate(Line=str_replace(Line, "NA", "")) %>%
+  mutate(sample=paste(Line, `Differentiation Day`, sep="_"))
+# fix cell type for some columns
+metadata_pb <- metadata_pb %>% 
+  mutate(`Experiment Batch`=factor(`Experiment Batch`)) %>% 
+  mutate(`Diff Start Batch`=factor(`Diff Start Batch`)) %>%
+  mutate(`Beating on day of collection Y 1/N 0`=as.logical(`Beating on day of collection Y 1/N 0`))
+ct.proportions <- read_tsv("/project2/gilad/jpopp/sc-dynamic-eqtl/data/cibersort/outputs/pseudobulk_labels.true.tsv")
+covars <- left_join(metadata_pb, ct.proportions, by="sample") %>% left_join(pb.loadings, by="sample") %>% select(!c(day, sample))
+
+for (pc in 1:10) {
+  for (cv in colnames(select(covars, !starts_with("PC")))) {
+    fit.mod <- lm(as.formula(paste0("PC", pc, " ~ `", cv, "`")), data=covars)
+    rval <- summary(fit.mod)$adj.r.squared
+    if (pc==1 & cv=="Line") {
+      adj.rs <- tibble("PC"=pc, "Covariate"=cv, "Adj.R"=rval)
+    } else {
+      adj.rs <- bind_rows(adj.rs, tibble("PC"=pc, "Covariate"=cv, "Adj.R"=rval))
+    }
+  }
+}
+
+ggplot(adj.rs, aes(x=PC, y=Covariate, fill=Adj.R)) + geom_tile()
+```
+
+
+## Cell Line PCA
+```{r warning=FALSE, message=FALSE}
+bulk.clpca <- cell.line.pca(bulk)
+pseudobulk.clpca <- cell.line.pca(pseudobulk)
+```
+
+### Scree Plots
+```{r warning=FALSE, message=FALSE}
+plot(bulk.clpca$pve, main="Bulk Cell Line PVE", ylab="PVE", xlab="Cell Line PC")
+plot(pseudobulk.clpca$pve, main="Pseudobulk Cell Line PVE", ylab="PVE", xlab="Cell Line PC")
+```
+
+We see that the first bulk cell line PC appears to sort cell lines by differentiation speed
+```{r, fig.width=15, fig.height=10, echo=FALSE}
+bulk.clpc1.order <- bulk.clpca$cell.line.pcs %>% select(c(ind, PC_1)) %>% arrange(PC_1) %>% .$ind
+cell.types <- c("iPSC", "meso", "EMT", "cardiomes", "prog", "CM", "EPDC")
+bulk.props <- read_tsv("results/cibersort/bulk.inferred.tsv") %>% 
+  select(!c(`P-value`, Correlation, RMSE)) %>%
+  rename(sample=Mixture) %>%
+  gather(!sample, key="type", value="frac") %>% 
+  mutate(day=str_extract(sample, "[^_]+$")) %>%
+  mutate(ind=str_extract(sample, "[^_]+")) %>%
+  mutate(type=factor(type, levels=cell.types)) %>%
+  mutate(day=as.numeric(day)) %>%
+  mutate(ind=factor(ind, levels=bulk.clpc1.order)) %>%
+  mutate(exp="bulk")
+ggplot(bulk.props, aes(x=day, y=frac, fill=type)) +
+  geom_area(alpha=0.6 , size=1, colour="black") +
+  facet_grid(rows=vars(ind)) +
+  theme_classic() + theme(axis.ticks.y = element_blank(), axis.text.y=element_blank())
+```
+
+This trend appears with pseudobulk as well
+```{r, fig.width=15, fig.height=10, echo=FALSE}
+pseudobulk.clpc1.order <- pseudobulk.clpca$cell.line.pcs %>% select(c(ind, PC_1)) %>% arrange(PC_1) %>% .$ind
+pseudobulk.props <- read_tsv("results/cibersort/pseudobulk_fracs.indday.full.true.tsv") %>% 
+  gather(!sample, key="type", value="frac") %>% 
+  mutate(day=str_extract(sample, "[^_]+$")) %>%
+  mutate(ind=str_extract(sample, "[^_]+")) %>%
+  mutate(type=factor(type, levels=cell.types)) %>%
+  mutate(day=as.numeric(day)) %>%
+  mutate(ind=factor(ind, levels=pseudobulk.clpc1.order)) %>%
+  mutate(exp="bulk")
+ggplot(pseudobulk.props, aes(x=day, y=frac, fill=type)) +
+  geom_area(alpha=0.6 , size=1, colour="black") +
+  facet_grid(rows=vars(ind)) +
+  theme_classic() + theme(axis.ticks.y = element_blank(), axis.text.y=element_blank())
+```
+
+## Correlation Analysis
+Looking within each time point, do bulk samples from a specific cell line look more similar to pseudobulk samples from the same cell line than they do others? (Looking across all genes)
+```{r}
+p <- read_tsv("results/eqtl_static/correlation.tsv")
+p <- p %>% mutate(sim=if_else(cl1==cl2, "same", "diff"))
+ggplot(p, aes(x=sim, y=rho, fill=sim)) +
+  geom_boxplot() +
+  facet_grid(rows=vars(day), cols=vars(npcs))
+```
+Focus on one example and perform Wilcoxon's Rank Sum Test
+```{r, warning=FALSE, message=FALSE}
+p1 <- p %>% filter((day=="day0") & (npcs==3))
+alt <- p1 %>% filter(sim=="same") %>% .$rho
+null <- p1 %>% filter(sim=="diff") %>% .$rho
+wilcox.test(alt, null, 'g')
+```
+
+Now look at a different metric, where each point corresponds to a single gene's correlation between 
+```{r}
+p.gene <- read_tsv("results/eqtl_static/correlation2.tsv")
+ggplot(p.gene, aes(x=permuted, y=rho, fill=permuted)) +
+  geom_boxplot() +
+  facet_grid(rows=vars(day), cols=vars(npcs))
+```
+
+Focus on one example and perform Wilcoxon's Rank Sum Test
+```{r, warning=FALSE, message=FALSE}
+p.gene1 <- p.gene %>% filter((day=="day0") & (npcs==0))
+alt <- p.gene1 %>% filter(permuted==FALSE) %>% .$rho
+null <- p.gene1 %>% filter(permuted==TRUE) %>% .$rho
+wilcox.test(alt, null, 'g')
+```

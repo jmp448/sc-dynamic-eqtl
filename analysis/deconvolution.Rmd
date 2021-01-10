@@ -1,0 +1,109 @@
+---
+title: "Cell Type Deconvolution"
+output: html_notebook
+---
+
+```{r, warning=FALSE, message=FALSE, include=FALSE}
+library(tidyverse)
+library(patchwork)
+library(Metrics)
+```
+
+## CIBERSORTx Assessment
+Whether aggregating by (cell line, day) or by (cell line, sample), RMSE does not appear to be significantly impacted, and cell type deconvolution appears reasonably accurate
+```{r, , warning=FALSE, message=FALSE, echo=FALSE}
+true.day <- read_tsv("results/cibersort/pseudobulk_fracs.indday.test.true.tsv")
+inferred.day <- read_tsv("results/cibersort/pseudobulk_fracs.indday.test.inferred.txt") %>% 
+  select(!c(`P-value`, Correlation, RMSE)) %>%
+  rename(sample=Mixture) %>%
+  relocate(colnames(true.day))
+stopifnot(all.equal(true.day$sample, inferred.day$sample))
+stopifnot(all.equal(colnames(true.day), colnames(inferred.day)))
+cell.types <- colnames(true.day)[-c(1)]
+rmse.day <- bind_rows(lapply(cell.types, function(ct){tibble("type"=ct, "rmse"=rmse(true.day[[ct]], inferred.day[[ct]]))}))
+
+true.col <- read_tsv("results/cibersort/pseudobulk_fracs.indcol.test.true.tsv")
+inferred.col <- read_tsv("results/cibersort/pseudobulk_fracs.indcol.test.inferred.txt") %>% 
+  select(!c(`P-value`, Correlation, RMSE)) %>%
+  rename(sample=Mixture) %>%
+  relocate(colnames(true.col))
+stopifnot(all.equal(true.col$sample, inferred.col$sample))
+stopifnot(all.equal(colnames(true.col), colnames(inferred.col)))
+cell.types <- colnames(true.col)[-c(1)]
+rmse.col <- bind_rows(lapply(cell.types, function(ct){tibble("type"=ct, "rmse"=rmse(true.col[[ct]], inferred.col[[ct]]))}))
+
+rmse.comp <- rmse.day %>%
+  rename(day=rmse) %>%
+  inner_join(rmse.col, by="type") %>%
+  rename(col=rmse) %>%
+  gather(!type, key="aggregation", value="rmse")
+ggplot(rmse.comp, aes(x=type, y=rmse, fill=aggregation)) +
+  geom_bar(position="dodge", stat="identity") +
+  xlab("Cell Type") + 
+  ylab("RMSE")
+```
+
+We can also visually see that the true and inferred cell type proportions as they change over time are similar
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
+cell.types <- c("iPSC", "meso", "EMT", "cardiomes", "prog", "CM", "EPDC")
+true.day <- true.day %>% 
+  gather(!sample, key="type", value="frac") %>% 
+  mutate(day=str_extract(sample, "[^_]+$")) %>%
+  mutate(ind=str_extract(sample, "[^_]+")) %>%
+  mutate(type=factor(type, levels=cell.types)) %>%
+  mutate(day=as.numeric(day)) %>%
+  mutate(ind=factor(ind)) %>%
+  mutate(deconv="true")
+inds.3 <- sample(unique(true.day$ind), 3)
+true.day <- filter(true.day, ind %in% inds.3)
+
+inferred.day <- inferred.day %>% 
+  gather(!sample, key="type", value="frac") %>% 
+  mutate(day=str_extract(sample, "[^_]+$")) %>%
+  mutate(ind=str_extract(sample, "[^_]+")) %>%
+  mutate(type=factor(type, levels=cell.types)) %>%
+  mutate(day=as.numeric(day)) %>%
+  mutate(ind=factor(ind)) %>%
+  mutate(deconv="inferred") %>%
+  filter(ind %in% inds.3)
+
+p <- bind_rows(true.day, inferred.day)
+
+ggplot(p, aes(x=day, y=frac, fill=type)) +
+  geom_area(alpha=0.6 , size=1, colour="black") +
+  facet_grid(rows=vars(ind), cols=vars(deconv))+
+  theme_classic() + theme(axis.ticks.y = element_blank(), axis.text.y=element_blank())
+
+```
+
+
+## Bulk Deconvolution
+Bulk deconvolution suggests that while cell lines do not consistently follow the same differentiation trajectory between the two experiments, there does seem to be a notable trend of 
+```{r, fig.width=15, fig.height=10, echo=FALSE}
+bulk <- read_tsv("results/cibersort/bulk.inferred.tsv") %>% 
+  select(!c(`P-value`, Correlation, RMSE)) %>%
+  rename(sample=Mixture) %>%
+  gather(!sample, key="type", value="frac") %>% 
+  mutate(day=str_extract(sample, "[^_]+$")) %>%
+  mutate(ind=str_extract(sample, "[^_]+")) %>%
+  mutate(type=factor(type, levels=cell.types)) %>%
+  mutate(day=as.numeric(day)) %>%
+  mutate(ind=factor(ind)) %>%
+  mutate(exp="bulk")
+
+pseudobulk <- read_tsv("results/cibersort/pseudobulk_fracs.indday.full.true.tsv") %>% 
+  gather(!sample, key="type", value="frac") %>% 
+  mutate(day=str_extract(sample, "[^_]+$")) %>%
+  mutate(ind=str_extract(sample, "[^_]+")) %>%
+  mutate(type=factor(type, levels=cell.types)) %>%
+  mutate(day=as.numeric(day)) %>%
+  mutate(ind=factor(ind)) %>%
+  mutate(exp="pseudobulk")
+
+p <- bind_rows(bulk, pseudobulk)
+
+ggplot(p, aes(x=day, y=frac, fill=type)) +
+  geom_area(alpha=0.6 , size=1, colour="black") +
+  facet_grid(rows=vars(ind), cols=vars(exp)) +
+  theme_classic() + theme(axis.ticks.y = element_blank(), axis.text.y=element_blank())
+```

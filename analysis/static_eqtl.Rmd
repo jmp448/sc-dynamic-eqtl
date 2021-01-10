@@ -1,0 +1,115 @@
+---
+title: "Static eQTL"
+output: html_notebook
+---
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
+library(tidyverse)
+library(patchwork)
+library(qvalue)
+```
+
+## Gene-Level Significant eQTLs for Different Numbers of PCs
+First, look at the number of significant eGenes for each cell type, at 10% FDR (based on Storey's qvalue). We can see that there is much higher detection power in bulk than in pseudobulk.
+```{r, warning=FALSE, message=FALSE, echo=FALSE, fig.width=15, fig.height=5}
+type.levels <- c("iPSC", "meso", "cardiomes", "prog", "EMT", "EPDC", "CM")
+for (ct in type.levels) {
+  for (npc in seq(0, 5)) {
+    if (ct=="iPSC" & npc==0) {
+      ct.counts <- read_tsv("results/eqtl_static/pseudobulk/type/iPSC/50k-0pcs.tsv")
+      type.counts <- tibble(type="iPSC", pcs=0, counts=sum(ct.counts$qval.bonf.unadj<=0.1))
+    } else {
+      ct.counts <- read_tsv(paste0("results/eqtl_static/pseudobulk/type/", ct, "/50k-", npc, "pcs.tophits.tsv"))
+      type.counts <- bind_rows(type.counts, tibble(type=ct, pcs=npc, counts=sum(ct.counts$qval.bonf.unadj<=0.1)))
+    }
+  }
+}
+type.counts$pcs <- factor(type.counts$pcs)
+type.counts$type <- factor(type.counts$type, levels=type.levels)
+p1 <- ggplot(type.counts, aes(x=type, y=counts, fill=pcs)) + 
+  geom_bar(position="dodge", stat="identity") +
+  theme(axis.text.x=element_text(angle=45)) + 
+  ylab("# significant egenes") + 
+  ggtitle("Pseudobulk Aggregated by Type") +
+  theme_classic()
+
+pbday.levels <- paste0("day", c(0, 1, 3, 5, 7, 11, 15))
+for (d in pbday.levels) {
+  for (npc in seq(0, 5)) {
+    if (d=="day0" & npc==0) {
+      d.counts <- read_tsv("results/eqtl_static/pseudobulk/day/day0/50k-0pcs.tophits.tsv")
+      day.counts <- tibble(day="day0", pcs=0, counts=sum(d.counts$qval.bonf.unadj<=0.1))
+    } else {
+      d.counts <- read_tsv(paste0("results/eqtl_static/pseudobulk/day/", d, "/50k-", npc, "pcs.tophits.tsv"))
+      day.counts <- bind_rows(day.counts, tibble(day=d, pcs=npc, counts=sum(d.counts$qval.bonf.unadj<=0.1)))
+    }
+  }
+}
+day.counts$pcs <- factor(day.counts$pcs)
+day.counts$day <- factor(day.counts$day, levels=pbday.levels)
+p2 <- ggplot(day.counts, aes(x=day, y=counts, fill=pcs)) + 
+  geom_bar(position="dodge", stat="identity") +
+  theme(axis.text.x=element_text(angle=45)) +
+  ylab("# significant egenes") +
+  ggtitle("Pseudobulk Aggregated by Day") +
+  theme_classic()
+
+bulkday.levels <- paste0("day", c(0, 1, 3, 5, 7, 11, 15))
+for (d in bulkday.levels) {
+  for (npc in seq(0, 5)) {
+    if (d=="day0" & npc==0) {
+      d.counts <- read_tsv("results/eqtl_static/bulk/day/day0/50k-0pcs.tophits.tsv")
+      day.counts <- tibble(day="day0", pcs=0, counts=sum(d.counts$qval.bonf.unadj<=0.1))
+    } else {
+      d.counts <- read_tsv(paste0("results/eqtl_static/bulk/day/", d, "/50k-", npc, "pcs.tophits.tsv"))
+      day.counts <- bind_rows(day.counts, tibble(day=d, pcs=npc, counts=sum(d.counts$qval.bonf.unadj<=0.1)))
+    }
+  }
+}
+day.counts$pcs <- factor(day.counts$pcs)
+day.counts$day <- factor(day.counts$day, levels=bulkday.levels)
+p3 <- ggplot(day.counts, aes(x=day, y=counts, fill=pcs)) + 
+  geom_bar(position="dodge", stat="identity") +
+  theme(axis.text.x=element_text(angle=45)) +
+  ylab("# significant egenes") +
+  ggtitle("Bulk Aggregated by Day") +
+  theme_classic()
+
+p1 + p2 + p3
+```
+
+## Replication of Non-Dynamic eQTLs
+By looking at the $\pi_1$ replication rates, we can determine whether the QTLs we detected in bulk are replicated in pseudobulk
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
+days <- paste0("day", c(0, 1, 3, 5, 7, 11, 15))
+npcs <- seq(0, 5)
+rep.rates <- tibble("days"=character(),
+                    "npcs"=numeric(), 
+                    "pi1"=numeric())
+for (d in days) {
+  for (npc in npcs) {
+    bulk.hits <- read_tsv(paste0("results/eqtl_static/bulk/day/", d, "/50k-", npc, "pcs.tophits.tsv")) %>% 
+      filter(qval.bonf.unadj<=0.1) %>%
+      mutate(gv=paste(gene, snp, sep="--"))
+    if(nrow(bulk.hits) <= 5) {
+      next
+    }
+    pseudobulk.stats <- read_tsv(paste0("results/eqtl_static/pseudobulk/day/", d, "/50k-", npc, "pcs.mtc.tsv")) %>%
+      mutate(gv=paste(gene, snp, sep="--")) %>%
+      filter(gv %in% bulk.hits$gv) %>%
+      .$bonf.p.unadj
+    if (length(pseudobulk.stats)<=5) {
+      next
+    }
+    pseudobulk.stats <- pseudobulk.stats %>%
+      qvalue %>%
+      (function(x){1-x$pi0})
+    rep.rates <- bind_rows(rep.rates, tibble("days"=d, "npcs"=npc, "pi1"=pseudobulk.stats))
+  }
+}
+
+rep.rates$days <- factor(rep.rates$days, levels=days)
+ggplot(rep.rates, aes(x=npcs, y=pi1)) + 
+  facet_grid(rows=vars(days)) +
+  geom_bar(position="dodge", stat="identity") +
+  theme_classic()
+```
