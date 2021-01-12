@@ -23,7 +23,7 @@ $({\bf K}*{\bf t})$ and $({\bf G}*{\bf t})$ capture the interaction of time with
 This model is applied to each gene-variant pair. A gene-variant pair is considered a significant dynamic eQTL (dynQTL) if it has a Storey's q-value $\leq 0.1$ after Bonferroni multiple testing correction.
 
 ## dynQTL Visualization 
-```{r warning=FALSE, message=FALSE}
+```{r warning=FALSE, message=FALSE, echo=FALSE}
 nqtl <- 5
 dynqtl <- read_tsv("results/eqtl_dynamic/linear_dQTL/bulk/day/50k-3clpcs.tophits.tsv") %>%
   select(gene, snp, bonf.p.unadj, qval) %>% 
@@ -80,7 +80,7 @@ for (i in seq(1, nqtl)) {
 
 ## Impact of varying the number of cell line PCs
 In order to avoid detecting false positives due to differences in the way cell lines proceed through differentiation, we regress out cell line PCs. Here we evaluate the impact of regressing out different numbers of PCs and compare the number of dynamic eQTLs detected in bulk compared to pseudobulk
-```{r, warning=FALSE, message=FALSE}
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
 for (dataset in c("bulk", "pseudobulk-drop2")) {
   for (npc in seq(0, 5)) {
     nhits <- read_tsv(paste0("results/eqtl_dynamic/linear_dQTL/", dataset, "/day/50k-", npc, "clpcs.tophits.tsv")) %>% filter(lfsr<=0.05) %>% nrow
@@ -100,7 +100,7 @@ ggplot(sighits, aes(x=pcs, y=hits)) +
 ```
 
 There is a huge difference here between bulk and pseudobulk detection rates, and we can see by subsetting the bulk data to only 7 days (similar to what we have in pseudobulk) could be responsible for a large part of it
-```{r, warning=FALSE, message=FALSE}
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
 for (dataset in c("bulk7", "pseudobulk-drop2")) {
   for (npc in seq(0, 5)) {
     nhits <- read_tsv(paste0("results/eqtl_dynamic/linear_dQTL/", dataset, "/day/50k-", npc, "clpcs.tophits.tsv")) %>% filter(lfsr<=0.05) %>% nrow
@@ -119,8 +119,8 @@ ggplot(sighits, aes(x=pcs, y=hits)) +
   ylab("# significant egenes")
 ```
 
-Now, can we get more hits if instead of binning pseudobulk by day, we bin by pseudotime bin?
-```{r, warning=FALSE, message=FALSE}
+We see that we can bridge the gap by binning pseudobulk by pseudotime bin rather than day, effectively creating more time points
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
 for (dataset in c("bulk", "pseudobulk")) {
   if (dataset == "bulk") {
     agg <- "day"
@@ -129,6 +129,31 @@ for (dataset in c("bulk", "pseudobulk")) {
   }
   for (npc in seq(0, 5)) {
     nhits <- read_tsv(paste0("results/eqtl_dynamic/linear_dQTL/", dataset, "/", agg, "/50k-", npc, "clpcs.tophits.tsv")) %>% filter(lfsr<=0.05) %>% nrow
+    if ((dataset=="bulk") & (npc==0)) {
+      sighits <- tibble("exp"=dataset, "pcs"=npc, "hits"=nhits)
+    } else {
+      sighits <- bind_rows(sighits, tibble("exp"=dataset, "pcs"=npc, "hits"=nhits))
+    }
+  }
+}
+
+ggplot(sighits, aes(x=pcs, y=hits)) + 
+  geom_bar(position="dodge", stat="identity") +
+  facet_grid(cols=vars(exp)) +
+  theme(axis.text.x=element_text(angle=45)) + 
+  ylab("# significant egenes")
+```
+
+An alternative testing strategy would be to explicitly perform multiple testing correction at the gene level, followed by FDR correction with only the top hit per gene. We see that this does not lead to a notable change in the number of significant dynamic eGenes detected (except in pseudobulk without cell line PC regression, but these are likely to be confounded.
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
+for (dataset in c("bulk", "pseudobulk")) {
+  if (dataset == "bulk") {
+    agg <- "day"
+  } else {
+    agg <- "cmbin"
+  }
+  for (npc in seq(0, 5)) {
+    nhits <- read_tsv(paste0("results/eqtl_dynamic/linear_dQTL/", dataset, "/", agg, "/50k-", npc, "clpcs.tophits.tsv")) %>% filter(qval<=0.05) %>% nrow
     if ((dataset=="bulk") & (npc==0)) {
       sighits <- tibble("exp"=dataset, "pcs"=npc, "hits"=nhits)
     } else {
@@ -219,7 +244,7 @@ ggplot(rep.rates, aes(x=npcs, y=pi1)) +
 
 ### Comparing p values between samples
 Looking across all tests, there does not appear to be any correlation (as expected, considering most tests are null)
-```{r, warning=FALSE, message=FALSE}
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
 bulk <- read_tsv("results/eqtl_dynamic/linear_dQTL/bulk/day/50k-3clpcs.mtc.tsv") %>%
   mutate(gv=paste(gene, snp, sep="--")) %>%
   mutate(bulk.log10p=-log10(p.adj)) %>%
@@ -234,7 +259,7 @@ ggplot(comp, aes(x=bulk.log10p, y=pseudobulk.log10p, text=gv)) +
 ```
 
 Subsetting to only the tests that are significant in at least one of the differentiations, we see that pvalues are negatively correlated between the two experiments
-```{r, warning=FALSE, message=FALSE}
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
 bulk <- read_tsv("results/eqtl_dynamic/linear_dQTL/bulk/day/50k-3clpcs.mtc.tsv") %>%
   mutate(gv=paste(gene, snp, sep="--")) %>%
   mutate(bulk.log10p=-log10(p.adj)) %>%
@@ -254,8 +279,8 @@ ggplot(comp, aes(x=bulk.log10p, y=pseudobulk.log10p, text=gv)) +
 cor(comp$pseudobulk.log10p, comp$bulk.log10p)
 ```
 
-Finally, we can look specifically at those dynamic eQTLs that _were_ significant at $lfsr<=0.1$ in both experiments
-```{r, warning=FALSE, message=FALSE}
+Finally, we can look specifically at those dynamic eQTLs that _were_ significant at $lfsr<=0.1$ in both experiments (mouse over a point to see the snp-gene pair)
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
 bulk <- read_tsv("results/eqtl_dynamic/linear_dQTL/bulk/day/50k-3clpcs.mtc.tsv") %>%
   mutate(gv=paste(gene, snp, sep="--")) %>%
   mutate(bulk.log10p=-log10(p.adj)) %>%
