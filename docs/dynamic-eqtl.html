@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Dynamic eQTL Calling</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<script src="site_libs/htmlwidgets-1.5.1/htmlwidgets.js"></script>
+<script src="site_libs/plotly-binding-4.9.2.1/plotly.js"></script>
+<script src="site_libs/typedarray-0.1/typedarray.min.js"></script>
+<link href="site_libs/crosstalk-1.1.0.1/css/crosstalk.css" rel="stylesheet" />
+<script src="site_libs/crosstalk-1.1.0.1/js/crosstalk.min.js"></script>
+<link href="site_libs/plotly-htmlwidgets-css-1.52.2/plotly-htmlwidgets.css" rel="stylesheet" />
+<script src="site_libs/plotly-main-1.52.2/plotly-latest.min.js"></script>
+<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
+
+<link rel="icon" href="https://github.com/workflowr/workflowr-assets/raw/master/img/reproducible.png">
+<!-- Add a small amount of space between sections. -->
+<style type="text/css">
+div.section {
+  padding-top: 12px;
+}
+</style>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+      </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #ffffff;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">sc-dynamic-eqtl</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/jmp448/sc-dynamic-eqtl">
+    <span class="fa fa-github"></span>
+     
+    Source code
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Dynamic eQTL Calling</h1>
+
+</div>
+
+
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-report" data-toggle="collapse" data-target="#workflowr-report">
+<span class="glyphicon glyphicon-list" aria-hidden="true"></span> workflowr <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
+</button>
+</p>
+<div id="workflowr-report" class="collapse">
+<ul class="nav nav-tabs">
+<li class="active">
+<a data-toggle="tab" href="#summary">Summary</a>
+</li>
+<li>
+<a data-toggle="tab" href="#checks"> Checks <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> </a>
+</li>
+<li>
+<a data-toggle="tab" href="#versions">Past versions</a>
+</li>
+</ul>
+<div class="tab-content">
+<div id="summary" class="tab-pane fade in active">
+<p>
+<strong>Last updated:</strong> 2021-01-12
+</p>
+<p>
+<strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 7 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 0
+</p>
+<p>
+<strong>Knit directory:</strong> <code>sc-dynamic-eqtl/</code> <span class="glyphicon glyphicon-question-sign" aria-hidden="true" title="This is the local directory in which the code in this file was executed."> </span>
+</p>
+<p>
+This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis was created with <a
+  href="https://github.com/jdblischak/workflowr">workflowr</a> (version 1.6.2). The <em>Checks</em> tab describes the reproducibility checks that were applied when the results were created. The <em>Past versions</em> tab lists the development history.
+</p>
+<hr>
+</div>
+<div id="checks" class="tab-pane fade">
+<div id="workflowr-checks" class="panel-group">
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguptodate"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>R Markdown file:</strong> up-to-date </a>
+</p>
+</div>
+<div id="strongRMarkdownfilestronguptodate" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great! Since the R Markdown file has been committed to the Git repository, you know the exact version of the code that produced these results.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongEnvironmentstrongempty"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Environment:</strong> empty </a>
+</p>
+</div>
+<div id="strongEnvironmentstrongempty" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! The global environment was empty. Objects defined in the global environment can affect the analysis in your R Markdown file in unknown ways. For reproduciblity it’s best to always run the code in an empty environment.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSeedstrongcodesetseed20201027code"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Seed:</strong> <code>set.seed(20201027)</code> </a>
+</p>
+</div>
+<div id="strongSeedstrongcodesetseed20201027code" class="panel-collapse collapse">
+<div class="panel-body">
+<p>The command <code>set.seed(20201027)</code> was run prior to running the code in the R Markdown file. Setting a seed ensures that any results that rely on randomness, e.g. subsampling or permutations, are reproducible.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSessioninformationstrongrecorded"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Session information:</strong> recorded </a>
+</p>
+</div>
+<div id="strongSessioninformationstrongrecorded" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Recording the operating system, R version, and package versions is critical for reproducibility.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongCachestrongnone"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Cache:</strong> none </a>
+</p>
+</div>
+<div id="strongCachestrongnone" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Nice! There were no cached chunks for this analysis, so you can be confident that you successfully produced the results during this run.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongFilepathsstrongrelative"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>File paths:</strong> relative </a>
+</p>
+</div>
+<div id="strongFilepathsstrongrelative" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Using relative paths to the files within your workflowr project makes it easier to run your code on other machines.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomjmp448scdynamiceqtltree3d902426341612fb324c8240a98116271595353etargetblank3d90242a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/jmp448/sc-dynamic-eqtl/tree/3d902426341612fb324c8240a98116271595353e" target="_blank">3d90242</a> </a>
+</p>
+</div>
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomjmp448scdynamiceqtltree3d902426341612fb324c8240a98116271595353etargetblank3d90242a" class="panel-collapse collapse">
+<div class="panel-body">
+<p>
+Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility.
+</p>
+<p>
+The results in this page were generated with repository version <a href="https://github.com/jmp448/sc-dynamic-eqtl/tree/3d902426341612fb324c8240a98116271595353e" target="_blank">3d90242</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
+</p>
+<p>
+Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
+</p>
+<pre><code>
+Ignored files:
+    Ignored:    analysis/.Rhistory
+    Ignored:    analysis/annotation.nb.html
+    Ignored:    analysis/cell-line-pca.nb.html
+    Ignored:    analysis/deconvolution.nb.html
+    Ignored:    analysis/dynamic-eqtl.nb.html
+    Ignored:    analysis/interaction-qtl.nb.html
+    Ignored:    analysis/static_eqtl.nb.html
+    Ignored:    code/.Rhistory
+    Ignored:    data/ben/
+    Ignored:    data/bulk_counts.full.tsv
+    Ignored:    data/bulk_counts.overlap.tsv
+    Ignored:    data/bulk_cpm.full.tsv
+    Ignored:    data/bulk_cpm.overlap.tsv
+    Ignored:    data/bulk_logtpm.full.tsv
+    Ignored:    data/bulk_logtpm.overlap.tsv
+    Ignored:    data/bulk_rpkm.full.tsv
+    Ignored:    data/bulk_rpkm.overlap.tsv
+    Ignored:    data/bulk_tpm.full.tsv
+    Ignored:    data/bulk_tpm.overlap.tsv
+    Ignored:    data/cibersort/
+    Ignored:    data/dynamic/
+    Ignored:    data/gene_locs.filtered.tsv
+    Ignored:    data/genotypes.filtered.tsv
+    Ignored:    data/gv_pairs.filtered.100k.tsv
+    Ignored:    data/gv_pairs.filtered.10k.tsv
+    Ignored:    data/gv_pairs.filtered.25k.tsv
+    Ignored:    data/gv_pairs.filtered.50k.tsv
+    Ignored:    data/gv_pairs.filtered.tsv
+    Ignored:    data/pseudobulk-drop2_cpm.col.full.tsv
+    Ignored:    data/pseudobulk-drop2_cpm.day.full.tsv
+    Ignored:    data/pseudobulk-drop2_logcpm.col.full.tsv
+    Ignored:    data/pseudobulk-drop2_logcpm.day.full.tsv
+    Ignored:    data/pseudobulk_counts.cmbin.full.tsv
+    Ignored:    data/pseudobulk_counts.col.full.tsv
+    Ignored:    data/pseudobulk_counts.col.overlap.tsv
+    Ignored:    data/pseudobulk_counts.day.full.tsv
+    Ignored:    data/pseudobulk_counts.day.overlap.tsv
+    Ignored:    data/pseudobulk_counts.type.full.tsv
+    Ignored:    data/pseudobulk_counts.type.overlap.tsv
+    Ignored:    data/pseudobulk_cpm.cmbin.full.tsv
+    Ignored:    data/pseudobulk_cpm.col.full.tsv
+    Ignored:    data/pseudobulk_cpm.col.overlap.tsv
+    Ignored:    data/pseudobulk_cpm.day.full.tsv
+    Ignored:    data/pseudobulk_cpm.day.overlap.tsv
+    Ignored:    data/pseudobulk_cpm.type.full.tsv
+    Ignored:    data/pseudobulk_cpm.type.overlap.tsv
+    Ignored:    data/pseudobulk_logcpm.cmbin.full.tsv
+    Ignored:    data/pseudobulk_logcpm.col.full.tsv
+    Ignored:    data/pseudobulk_logcpm.col.overlap.tsv
+    Ignored:    data/pseudobulk_logcpm.day.full.tsv
+    Ignored:    data/pseudobulk_logcpm.day.overlap.tsv
+    Ignored:    data/pseudobulk_logcpm.type.full.tsv
+    Ignored:    data/pseudobulk_logcpm.type.overlap.tsv
+    Ignored:    data/seurat/
+    Ignored:    data/snp_locs.filtered.tsv
+    Ignored:    data/static/
+    Ignored:    results/
+
+Untracked files:
+    Untracked:  analysis/interaction-qtl.Rmd
+    Untracked:  code/cell_line_pca.R
+    Untracked:  code/cibersort.R
+    Untracked:  code/correlation.R
+    Untracked:  code/debug.R
+    Untracked:  code/eqtl_dynamic.R
+    Untracked:  code/eqtl_interaction.R
+    Untracked:  code/eqtl_static.R
+    Untracked:  code/helpers.R
+    Untracked:  code/list_tests.R
+    Untracked:  code/mashr.R
+    Untracked:  code/mtc_dynamic.R
+    Untracked:  code/mtc_interaction.R
+    Untracked:  code/mtc_static.R
+    Untracked:  code/prediction_clusters.R
+    Untracked:  code/prediction_lasso.R
+    Untracked:  code/preprocessing.R
+    Untracked:  code/replication.R
+    Untracked:  figs/
+    Untracked:  wrappers/
+
+Unstaged changes:
+    Modified:   .gitignore
+    Deleted:    analysis/cell-deconvolution.Rmd
+    Modified:   analysis/cell-line-pca.Rmd
+    Deleted:    analysis/cibersort-calibration.Rmd
+    Deleted:    analysis/deconvolution-results.Rmd
+
+</code></pre>
+<p>
+Note that any generated files, e.g. HTML, png, CSS, etc., are not included in this status report because it is ok for generated content to have uncommitted changes.
+</p>
+</div>
+</div>
+</div>
+</div>
+<hr>
+</div>
+<div id="versions" class="tab-pane fade">
+
+<p>
+These are the previous versions of the repository in which changes were made to the R Markdown (<code>analysis/dynamic-eqtl.Rmd</code>) and HTML (<code>docs/dynamic-eqtl.html</code>) files. If you’ve configured a remote Git repository (see <code>?wflow_git_remote</code>), click on the hyperlinks in the table below to view the files as they were in that past version.
+</p>
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+File
+</th>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+<th>
+Message
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/3d902426341612fb324c8240a98116271595353e/analysis/dynamic-eqtl.Rmd" target="_blank">3d90242</a>
+</td>
+<td>
+jmp448
+</td>
+<td>
+2021-01-12
+</td>
+<td>
+wflow_publish(“analysis/dynamic-eqtl.Rmd”)
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr>
+</div>
+</div>
+</div>
+<div id="model-overview" class="section level2">
+<h2>Model Overview</h2>
+<p>Our dynamic eQTL calling framework is based on the following model: <span class="math display">\[{\bf y}_g \sim {\bf K} + {\bf (K*t)} + {\bf G}_v +  ({\bf G}_v*{\bf t})+{\bf t}\]</span> where<br />
+<span class="math inline">\({\bf y}_{g}\)</span> is a <span class="math inline">\(1*(nt)\)</span> array containing the log-normalized gene expression for gene <span class="math inline">\(g\)</span> for each (individual, time point) sample<br />
+<span class="math inline">\({\bf K}\)</span> is a <span class="math inline">\(C*(nt)\)</span> covariates matrix for <span class="math inline">\(C\)</span> covariates (an intercept plus cell line PCs)<br />
+<span class="math inline">\({\bf G}_v\)</span> is a <span class="math inline">\(1*(nt)\)</span> array containing the genotype dosages for each sample<br />
+<span class="math inline">\({\bf t}_v\)</span> is a <span class="math inline">\(1*(nt)\)</span> array containing the time of collection for each sample<br />
+<span class="math inline">\(({\bf K}*{\bf t})\)</span> and <span class="math inline">\(({\bf G}*{\bf t})\)</span> capture the interaction of time with cell line PCs and genotype, respectively</p>
+<p>This model is applied to each gene-variant pair. A gene-variant pair is considered a significant dynamic eQTL (dynQTL) if it has a Storey’s q-value <span class="math inline">\(\leq 0.1\)</span> after Bonferroni multiple testing correction.</p>
+</div>
+<div id="dynqtl-visualization" class="section level2">
+<h2>dynQTL Visualization</h2>
+<pre class="r"><code>nqtl &lt;- 5
+dynqtl &lt;- read_tsv(&quot;results/eqtl_dynamic/linear_dQTL/bulk/day/50k-3clpcs.tophits.tsv&quot;) %&gt;%
+  select(gene, snp, bonf.p.unadj, qval) %&gt;% 
+  filter(qval&lt;=0.1) %&gt;% 
+  arrange(bonf.p.unadj) %&gt;% 
+  slice_head(n=nqtl)
+bulk_expr_all &lt;- read_tsv(&quot;data/bulk_logtpm.full.tsv&quot;)
+pseudobulk_expr_all &lt;- read_tsv(&quot;data/pseudobulk_logcpm.day.full.tsv&quot;)
+geno_all &lt;- read_tsv(&quot;data/genotypes.filtered.tsv&quot;)
+
+for (i in seq(1, nqtl)) {
+  egene &lt;- dynqtl$gene[i]
+  evar &lt;- dynqtl$snp[i]
+  bulk_expr &lt;- bulk_expr_all %&gt;% filter(gene==!!egene) %&gt;% 
+    column_to_rownames(&quot;gene&quot;) %&gt;% t %&gt;% 
+    as_tibble(rownames=&quot;ind&quot;) %&gt;% 
+    `colnames&lt;-`(c(&quot;sample&quot;, &quot;logtpm&quot;)) %&gt;%
+    mutate(day=str_extract(sample, &quot;[^_]+$&quot;)) %&gt;%
+    mutate(ind=str_extract(sample, &quot;[^_]+&quot;)) %&gt;%
+    mutate(exp=&quot;bulk&quot;)
+  pseudobulk_expr &lt;- pseudobulk_expr_all %&gt;% filter(gene==!!egene) %&gt;% 
+    column_to_rownames(&quot;gene&quot;) %&gt;% t %&gt;% 
+    as_tibble(rownames=&quot;ind&quot;) %&gt;% 
+    `colnames&lt;-`(c(&quot;sample&quot;, &quot;logtpm&quot;)) %&gt;%
+    mutate(day=str_extract(sample, &quot;[^_]+$&quot;)) %&gt;%
+    mutate(ind=str_extract(sample, &quot;[^_]+&quot;)) %&gt;%
+    mutate(exp=&quot;pseudobulk&quot;)
+  expr &lt;- bind_rows(bulk_expr, pseudobulk_expr)
+  geno &lt;- geno_all %&gt;% filter(snp==evar) %&gt;%
+    column_to_rownames(&quot;snp&quot;) %&gt;% t %&gt;% 
+    as_tibble(rownames=&quot;ind&quot;) %&gt;% 
+    `colnames&lt;-`(c(&quot;ind&quot;, &quot;genotype&quot;)) %&gt;%
+    mutate(ind=str_replace(ind, &quot;NA&quot;, &quot;&quot;))
+  dynvis &lt;- left_join(expr, geno, by=&quot;ind&quot;) %&gt;%
+    mutate(logtpm=as.numeric(logtpm)) %&gt;%
+    mutate(genotype=factor(genotype, levels=c(&quot;0&quot;,&quot;1&quot;,&quot;2&quot;))) %&gt;%
+    mutate(ind=factor(ind)) %&gt;%
+    mutate(day=factor(day, levels=seq(0, 15)))
+  p1&lt;-ggplot(filter(dynvis, exp==&quot;bulk&quot;), aes(x=day, y=logtpm, fill=genotype)) + 
+    facet_grid(rows=vars(exp)) +
+    geom_boxplot() +
+    ylab(egene) +
+    ggtitle(evar) +
+    theme_classic()
+  p2 &lt;- ggplot(filter(dynvis, exp==&quot;pseudobulk&quot;), aes(x=day, y=logtpm, fill=genotype)) + 
+    facet_grid(rows=vars(exp)) +
+    geom_boxplot() +
+    ylab(egene) +
+    ggtitle(evar) +
+    theme_classic()
+  print(p1 + p2 + plot_layout(ncol=1))
+}</code></pre>
+<p><img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-2-1.png" width="672" style="display: block; margin: auto;" /><img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-2-2.png" width="672" style="display: block; margin: auto;" /><img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-2-3.png" width="672" style="display: block; margin: auto;" /><img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-2-4.png" width="672" style="display: block; margin: auto;" /><img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-2-5.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="impact-of-varying-the-number-of-cell-line-pcs" class="section level2">
+<h2>Impact of varying the number of cell line PCs</h2>
+<p>In order to avoid detecting false positives due to differences in the way cell lines proceed through differentiation, we regress out cell line PCs. Here we evaluate the impact of regressing out different numbers of PCs and compare the number of dynamic eQTLs detected in bulk compared to pseudobulk</p>
+<pre class="r"><code>for (dataset in c(&quot;bulk&quot;, &quot;pseudobulk-drop2&quot;)) {
+  for (npc in seq(0, 5)) {
+    nhits &lt;- read_tsv(paste0(&quot;results/eqtl_dynamic/linear_dQTL/&quot;, dataset, &quot;/day/50k-&quot;, npc, &quot;clpcs.tophits.tsv&quot;)) %&gt;% filter(lfsr&lt;=0.05) %&gt;% nrow
+    if ((dataset==&quot;bulk&quot;) &amp; (npc==0)) {
+      sighits &lt;- tibble(&quot;exp&quot;=dataset, &quot;pcs&quot;=npc, &quot;hits&quot;=nhits)
+    } else {
+      sighits &lt;- bind_rows(sighits, tibble(&quot;exp&quot;=dataset, &quot;pcs&quot;=npc, &quot;hits&quot;=nhits))
+    }
+  }
+}
+
+ggplot(sighits, aes(x=pcs, y=hits)) + 
+  geom_bar(position=&quot;dodge&quot;, stat=&quot;identity&quot;) +
+  facet_grid(cols=vars(exp)) +
+  theme(axis.text.x=element_text(angle=45)) + 
+  ylab(&quot;# significant egenes&quot;)</code></pre>
+<p><img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-3-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>There is a huge difference here between bulk and pseudobulk detection rates, and we can see by subsetting the bulk data to only 7 days (similar to what we have in pseudobulk) could be responsible for a large part of it</p>
+<pre class="r"><code>for (dataset in c(&quot;bulk7&quot;, &quot;pseudobulk-drop2&quot;)) {
+  for (npc in seq(0, 5)) {
+    nhits &lt;- read_tsv(paste0(&quot;results/eqtl_dynamic/linear_dQTL/&quot;, dataset, &quot;/day/50k-&quot;, npc, &quot;clpcs.tophits.tsv&quot;)) %&gt;% filter(lfsr&lt;=0.05) %&gt;% nrow
+    if ((dataset==&quot;bulk7&quot;) &amp; (npc==0)) {
+      sighits &lt;- tibble(&quot;exp&quot;=dataset, &quot;pcs&quot;=npc, &quot;hits&quot;=nhits)
+    } else {
+      sighits &lt;- bind_rows(sighits, tibble(&quot;exp&quot;=dataset, &quot;pcs&quot;=npc, &quot;hits&quot;=nhits))
+    }
+  }
+}
+
+ggplot(sighits, aes(x=pcs, y=hits)) + 
+  geom_bar(position=&quot;dodge&quot;, stat=&quot;identity&quot;) +
+  facet_grid(cols=vars(exp)) +
+  theme(axis.text.x=element_text(angle=45)) + 
+  ylab(&quot;# significant egenes&quot;)</code></pre>
+<p><img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-4-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Now, can we get more hits if instead of binning pseudobulk by day, we bin by pseudotime bin?</p>
+<pre class="r"><code>for (dataset in c(&quot;bulk&quot;, &quot;pseudobulk&quot;)) {
+  if (dataset == &quot;bulk&quot;) {
+    agg &lt;- &quot;day&quot;
+  } else {
+    agg &lt;- &quot;cmbin&quot;
+  }
+  for (npc in seq(0, 5)) {
+    nhits &lt;- read_tsv(paste0(&quot;results/eqtl_dynamic/linear_dQTL/&quot;, dataset, &quot;/&quot;, agg, &quot;/50k-&quot;, npc, &quot;clpcs.tophits.tsv&quot;)) %&gt;% filter(lfsr&lt;=0.05) %&gt;% nrow
+    if ((dataset==&quot;bulk&quot;) &amp; (npc==0)) {
+      sighits &lt;- tibble(&quot;exp&quot;=dataset, &quot;pcs&quot;=npc, &quot;hits&quot;=nhits)
+    } else {
+      sighits &lt;- bind_rows(sighits, tibble(&quot;exp&quot;=dataset, &quot;pcs&quot;=npc, &quot;hits&quot;=nhits))
+    }
+  }
+}
+
+ggplot(sighits, aes(x=pcs, y=hits)) + 
+  geom_bar(position=&quot;dodge&quot;, stat=&quot;identity&quot;) +
+  facet_grid(cols=vars(exp)) +
+  theme(axis.text.x=element_text(angle=45)) + 
+  ylab(&quot;# significant egenes&quot;)</code></pre>
+<p><img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="replication-rates-between-bulk-and-pseudobulk" class="section level2">
+<h2>Replication rates between bulk and pseudobulk</h2>
+<p>To see whether these hits are appearing in both datasets, we can look at <span class="math inline">\(\pi_1\)</span> replication rates. First, we look at replication of bulk hits in pseudobulk, compared to a random set of variants. We see that regressing out 3 cell line PCs maximizes the replication rate. <img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Reversing this, we now look at replication of pseudobulk hits in bulk. <img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-7-1.png" width="672" style="display: block; margin: auto;" /></p>
+<div id="comparing-p-values-between-samples" class="section level3">
+<h3>Comparing p values between samples</h3>
+<p>Looking across all tests, there does not appear to be any correlation (as expected, considering most tests are null)</p>
+<pre class="r"><code>bulk &lt;- read_tsv(&quot;results/eqtl_dynamic/linear_dQTL/bulk/day/50k-3clpcs.mtc.tsv&quot;) %&gt;%
+  mutate(gv=paste(gene, snp, sep=&quot;--&quot;)) %&gt;%
+  mutate(bulk.log10p=-log10(p.adj)) %&gt;%
+  select(gv, bulk.log10p)
+pseudobulk &lt;- read_tsv(&quot;results/eqtl_dynamic/linear_dQTL/pseudobulk/cmbin/50k-3clpcs.mtc.tsv&quot;) %&gt;%
+  mutate(gv=paste(gene, snp, sep=&quot;--&quot;)) %&gt;%
+  mutate(pseudobulk.log10p=-log10(p.adj)) %&gt;%
+  select(gv, pseudobulk.log10p)
+comp &lt;- inner_join(bulk, pseudobulk, by=&quot;gv&quot;)
+ggplot(comp, aes(x=bulk.log10p, y=pseudobulk.log10p, text=gv)) +
+  geom_point()</code></pre>
+<p><img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-8-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Subsetting to only the tests that are significant in at least one of the differentiations, we see that pvalues are negatively correlated between the two experiments</p>
+<pre class="r"><code>bulk &lt;- read_tsv(&quot;results/eqtl_dynamic/linear_dQTL/bulk/day/50k-3clpcs.mtc.tsv&quot;) %&gt;%
+  mutate(gv=paste(gene, snp, sep=&quot;--&quot;)) %&gt;%
+  mutate(bulk.log10p=-log10(p.adj)) %&gt;%
+  rename(bulk.lfsr=lfsr) %&gt;%
+  select(gv, bulk.log10p, bulk.lfsr)
+pseudobulk &lt;- read_tsv(&quot;results/eqtl_dynamic/linear_dQTL/pseudobulk/cmbin/50k-3clpcs.mtc.tsv&quot;) %&gt;%
+  mutate(gv=paste(gene, snp, sep=&quot;--&quot;)) %&gt;%
+  mutate(pseudobulk.log10p=-log10(p.adj)) %&gt;%
+  rename(pseudobulk.lfsr=lfsr) %&gt;%
+  select(gv, pseudobulk.log10p, pseudobulk.lfsr)
+comp &lt;- inner_join(bulk, pseudobulk, by=&quot;gv&quot;) %&gt;%
+  mutate(min.sig=mapply(min, bulk.lfsr, pseudobulk.lfsr)) %&gt;%
+  filter(min.sig&lt;=0.1)
+ggplot(comp, aes(x=bulk.log10p, y=pseudobulk.log10p, text=gv)) +
+  geom_point() + 
+  theme_classic()</code></pre>
+<p><img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-9-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>cor(comp$pseudobulk.log10p, comp$bulk.log10p)</code></pre>
+<pre><code>[1] -0.6544881</code></pre>
+<p>Finally, we can look specifically at those dynamic eQTLs that <em>were</em> significant at <span class="math inline">\(lfsr&lt;=0.1\)</span> in both experiments</p>
+<pre class="r"><code>bulk &lt;- read_tsv(&quot;results/eqtl_dynamic/linear_dQTL/bulk/day/50k-3clpcs.mtc.tsv&quot;) %&gt;%
+  mutate(gv=paste(gene, snp, sep=&quot;--&quot;)) %&gt;%
+  mutate(bulk.log10p=-log10(p.adj)) %&gt;%
+  filter(lfsr&lt;=0.1) %&gt;%
+  select(gv, bulk.log10p)
+pseudobulk &lt;- read_tsv(&quot;results/eqtl_dynamic/linear_dQTL/pseudobulk/cmbin/50k-3clpcs.mtc.tsv&quot;) %&gt;%
+  mutate(gv=paste(gene, snp, sep=&quot;--&quot;)) %&gt;%
+  mutate(pseudobulk.log10p=-log10(p.adj)) %&gt;%
+  filter(lfsr&lt;=0.1) %&gt;%
+  select(gv, pseudobulk.log10p)
+comp &lt;- inner_join(bulk, pseudobulk, by=&quot;gv&quot;)
+p &lt;- ggplot(comp, aes(x=bulk.log10p, y=pseudobulk.log10p, text=gv)) +
+  geom_point() + 
+  theme_classic()
+ggplotly(p, tooltip=&quot;text&quot;)</code></pre>
+<div id="htmlwidget-ba16190872a9bf89f5eb" style="width:672px;height:480px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="htmlwidget-ba16190872a9bf89f5eb">{"x":{"data":[{"x":[10.4511333433911,10.4511333433911,10.4511333433911,3.91039306407308,4.9144124045036,3.05782943540623,5.54017799473724,3.42557960083281,5.06071981034791,3.64617168916195,3.47245009578626,4.66736160356594,4.66736160356594,4.66736160356594,4.66736160356594,4.66736160356594],"y":[2.9801745741993,2.9801745741993,2.9801745741993,7.35800858243702,4.47341388012957,2.2467119981721,9.12693471042615,2.68500969117187,2.89092242745247,3.40903529620993,4.48447642988278,3.61041206320346,3.61041206320346,3.61041206320346,3.61041206320346,3.61041206320346],"text":["GUF1--chr4_44691693","GUF1--chr4_44699883","GUF1--chr4_44704932","PPIP5K2--chr5_103086881","FYN--chr6_111661054","KPNA5--chr6_116632877","WDR60--chr7_158879928","ELP3--chr8_28083827","UFM1--chr13_38354839","CHURC1--chr14_64932537","CHURC1--chr14_64932545","CHURC1--chr14_64932573","CHURC1--chr14_64932588","CHURC1--chr14_64933351","CHURC1--chr14_64934977","CHURC1--chr14_64935101"],"type":"scatter","mode":"markers","marker":{"autocolorscale":false,"color":"rgba(0,0,0,1)","opacity":1,"size":5.66929133858268,"symbol":"circle","line":{"width":1.88976377952756,"color":"rgba(0,0,0,1)"}},"hoveron":"points","showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null}],"layout":{"margin":{"t":26.2283105022831,"r":7.30593607305936,"b":40.1826484018265,"l":31.4155251141553},"plot_bgcolor":"rgba(255,255,255,1)","paper_bgcolor":"rgba(255,255,255,1)","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187},"xaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[2.68816424000698,10.8207985387904],"tickmode":"array","ticktext":["3","5","7","9"],"tickvals":[3,5,7,9],"categoryorder":"array","categoryarray":["3","5","7","9"],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.65296803652968,"tickwidth":0.66417600664176,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":true,"linecolor":"rgba(0,0,0,1)","linewidth":0.66417600664176,"showgrid":false,"gridcolor":null,"gridwidth":0,"zeroline":false,"anchor":"y","title":{"text":"bulk.log10p","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187}},"hoverformat":".2f"},"yaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[1.9027008625594,9.47094584603885],"tickmode":"array","ticktext":["2","4","6","8"],"tickvals":[2,4,6,8],"categoryorder":"array","categoryarray":["2","4","6","8"],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.65296803652968,"tickwidth":0.66417600664176,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":true,"linecolor":"rgba(0,0,0,1)","linewidth":0.66417600664176,"showgrid":false,"gridcolor":null,"gridwidth":0,"zeroline":false,"anchor":"x","title":{"text":"pseudobulk.log10p","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187}},"hoverformat":".2f"},"shapes":[{"type":"rect","fillcolor":null,"line":{"color":null,"width":0,"linetype":[]},"yref":"paper","xref":"paper","x0":0,"x1":1,"y0":0,"y1":1}],"showlegend":false,"legend":{"bgcolor":"rgba(255,255,255,1)","bordercolor":"transparent","borderwidth":1.88976377952756,"font":{"color":"rgba(0,0,0,1)","family":"","size":11.689497716895}},"hovermode":"closest","barmode":"relative"},"config":{"doubleClick":"reset","showSendToCloud":false},"source":"A","attrs":{"3fab611c70c95":{"x":{},"y":{},"text":{},"type":"scatter"}},"cur_data":"3fab611c70c95","visdat":{"3fab611c70c95":["function (y) ","x"]},"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+<br>
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
+<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span> Session information
+</button>
+</p>
+<div id="workflowr-sessioninfo" class="collapse">
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>R version 4.0.0 (2020-04-24)
+Platform: x86_64-pc-linux-gnu (64-bit)
+Running under: Scientific Linux 7.4 (Nitrogen)
+
+Matrix products: default
+BLAS/LAPACK: /software/openblas-0.2.19-el7-x86_64/lib/libopenblas_haswellp-r0.2.19.so
+
+locale:
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+ [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+ [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+ [1] patchwork_1.0.1 plotly_4.9.2.1  qvalue_2.21.0   forcats_0.5.0  
+ [5] stringr_1.4.0   dplyr_1.0.2     purrr_0.3.4     readr_1.3.1    
+ [9] tidyr_1.1.2     tibble_3.0.3    ggplot2_3.3.2   tidyverse_1.3.0
+[13] workflowr_1.6.2
+
+loaded via a namespace (and not attached):
+ [1] Rcpp_1.0.5        lubridate_1.7.9   assertthat_0.2.1  rprojroot_1.3-2  
+ [5] digest_0.6.25     R6_2.4.1          cellranger_1.1.0  plyr_1.8.6       
+ [9] backports_1.1.10  reprex_0.3.0      evaluate_0.14     httr_1.4.2       
+[13] pillar_1.4.6      rlang_0.4.7       lazyeval_0.2.2    readxl_1.3.1     
+[17] rstudioapi_0.11   data.table_1.13.0 whisker_0.4       blob_1.2.1       
+[21] rmarkdown_2.4     labeling_0.3      splines_4.0.0     htmlwidgets_1.5.1
+[25] munsell_0.5.0     broom_0.7.0       compiler_4.0.0    httpuv_1.5.4     
+[29] modelr_0.1.8      xfun_0.18         pkgconfig_2.0.3   htmltools_0.5.0  
+[33] tidyselect_1.1.0  viridisLite_0.3.0 fansi_0.4.1       crayon_1.3.4     
+[37] dbplyr_1.4.4      withr_2.3.0       later_1.1.0.1     grid_4.0.0       
+[41] jsonlite_1.7.1    gtable_0.3.0      lifecycle_0.2.0   DBI_1.1.0        
+[45] git2r_0.27.1      magrittr_1.5      scales_1.1.1      cli_2.0.2        
+[49] stringi_1.5.3     farver_2.0.3      reshape2_1.4.4    fs_1.5.0         
+[53] promises_1.1.1    xml2_1.3.2        ellipsis_0.3.1    generics_0.0.2   
+[57] vctrs_0.3.4       tools_4.0.0       glue_1.4.2        crosstalk_1.1.0.1
+[61] hms_0.5.3         yaml_2.2.1        colorspace_1.4-1  rvest_0.3.6      
+[65] knitr_1.30        haven_2.3.1      </code></pre>
+</div>
+</div>
+</div>
+
+
+<!-- Adjust MathJax settings so that all math formulae are shown using
+TeX fonts only; see
+http://docs.mathjax.org/en/latest/configuration.html.  This will make
+the presentation more consistent at the cost of the webpage sometimes
+taking slightly longer to load. Note that this only works because the
+footer is added to webpages before the MathJax javascript. -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    "HTML-CSS": { availableFonts: ["TeX"] }
+  });
+</script>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
