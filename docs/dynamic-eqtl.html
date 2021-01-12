@@ -516,16 +516,16 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomjmp448scdynamiceqtltree3d902426341612fb324c8240a98116271595353etargetblank3d90242a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/jmp448/sc-dynamic-eqtl/tree/3d902426341612fb324c8240a98116271595353e" target="_blank">3d90242</a> </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomjmp448scdynamiceqtltree35e2c763a7bce4ecdb109dc7d8688a28ba385001targetblank35e2c76a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/jmp448/sc-dynamic-eqtl/tree/35e2c763a7bce4ecdb109dc7d8688a28ba385001" target="_blank">35e2c76</a> </a>
 </p>
 </div>
-<div id="strongRepositoryversionstrongahrefhttpsgithubcomjmp448scdynamiceqtltree3d902426341612fb324c8240a98116271595353etargetblank3d90242a" class="panel-collapse collapse">
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomjmp448scdynamiceqtltree35e2c763a7bce4ecdb109dc7d8688a28ba385001targetblank35e2c76a" class="panel-collapse collapse">
 <div class="panel-body">
 <p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility.
 </p>
 <p>
-The results in this page were generated with repository version <a href="https://github.com/jmp448/sc-dynamic-eqtl/tree/3d902426341612fb324c8240a98116271595353e" target="_blank">3d90242</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
+The results in this page were generated with repository version <a href="https://github.com/jmp448/sc-dynamic-eqtl/tree/35e2c763a7bce4ecdb109dc7d8688a28ba385001" target="_blank">35e2c76</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
 </p>
 <p>
 Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
@@ -661,6 +661,40 @@ Message
 Rmd
 </td>
 <td>
+<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/35e2c763a7bce4ecdb109dc7d8688a28ba385001/analysis/dynamic-eqtl.Rmd" target="_blank">35e2c76</a>
+</td>
+<td>
+jmp448
+</td>
+<td>
+2021-01-12
+</td>
+<td>
+wflow_publish(“analysis/dynamic-eqtl.Rmd”)
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/jmp448/sc-dynamic-eqtl/adf49b21f72dfe47e15dddbe857e64f642264b13/docs/dynamic-eqtl.html" target="_blank">adf49b2</a>
+</td>
+<td>
+jmp448
+</td>
+<td>
+2021-01-12
+</td>
+<td>
+Build site.
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
 <a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/3d902426341612fb324c8240a98116271595353e/analysis/dynamic-eqtl.Rmd" target="_blank">3d90242</a>
 </td>
 <td>
@@ -692,179 +726,474 @@ wflow_publish(“analysis/dynamic-eqtl.Rmd”)
 </div>
 <div id="dynqtl-visualization" class="section level2">
 <h2>dynQTL Visualization</h2>
-<pre class="r"><code>nqtl &lt;- 5
-dynqtl &lt;- read_tsv(&quot;results/eqtl_dynamic/linear_dQTL/bulk/day/50k-3clpcs.tophits.tsv&quot;) %&gt;%
-  select(gene, snp, bonf.p.unadj, qval) %&gt;% 
-  filter(qval&lt;=0.1) %&gt;% 
-  arrange(bonf.p.unadj) %&gt;% 
-  slice_head(n=nqtl)
-bulk_expr_all &lt;- read_tsv(&quot;data/bulk_logtpm.full.tsv&quot;)
-pseudobulk_expr_all &lt;- read_tsv(&quot;data/pseudobulk_logcpm.day.full.tsv&quot;)
-geno_all &lt;- read_tsv(&quot;data/genotypes.filtered.tsv&quot;)
-
-for (i in seq(1, nqtl)) {
-  egene &lt;- dynqtl$gene[i]
-  evar &lt;- dynqtl$snp[i]
-  bulk_expr &lt;- bulk_expr_all %&gt;% filter(gene==!!egene) %&gt;% 
-    column_to_rownames(&quot;gene&quot;) %&gt;% t %&gt;% 
-    as_tibble(rownames=&quot;ind&quot;) %&gt;% 
-    `colnames&lt;-`(c(&quot;sample&quot;, &quot;logtpm&quot;)) %&gt;%
-    mutate(day=str_extract(sample, &quot;[^_]+$&quot;)) %&gt;%
-    mutate(ind=str_extract(sample, &quot;[^_]+&quot;)) %&gt;%
-    mutate(exp=&quot;bulk&quot;)
-  pseudobulk_expr &lt;- pseudobulk_expr_all %&gt;% filter(gene==!!egene) %&gt;% 
-    column_to_rownames(&quot;gene&quot;) %&gt;% t %&gt;% 
-    as_tibble(rownames=&quot;ind&quot;) %&gt;% 
-    `colnames&lt;-`(c(&quot;sample&quot;, &quot;logtpm&quot;)) %&gt;%
-    mutate(day=str_extract(sample, &quot;[^_]+$&quot;)) %&gt;%
-    mutate(ind=str_extract(sample, &quot;[^_]+&quot;)) %&gt;%
-    mutate(exp=&quot;pseudobulk&quot;)
-  expr &lt;- bind_rows(bulk_expr, pseudobulk_expr)
-  geno &lt;- geno_all %&gt;% filter(snp==evar) %&gt;%
-    column_to_rownames(&quot;snp&quot;) %&gt;% t %&gt;% 
-    as_tibble(rownames=&quot;ind&quot;) %&gt;% 
-    `colnames&lt;-`(c(&quot;ind&quot;, &quot;genotype&quot;)) %&gt;%
-    mutate(ind=str_replace(ind, &quot;NA&quot;, &quot;&quot;))
-  dynvis &lt;- left_join(expr, geno, by=&quot;ind&quot;) %&gt;%
-    mutate(logtpm=as.numeric(logtpm)) %&gt;%
-    mutate(genotype=factor(genotype, levels=c(&quot;0&quot;,&quot;1&quot;,&quot;2&quot;))) %&gt;%
-    mutate(ind=factor(ind)) %&gt;%
-    mutate(day=factor(day, levels=seq(0, 15)))
-  p1&lt;-ggplot(filter(dynvis, exp==&quot;bulk&quot;), aes(x=day, y=logtpm, fill=genotype)) + 
-    facet_grid(rows=vars(exp)) +
-    geom_boxplot() +
-    ylab(egene) +
-    ggtitle(evar) +
-    theme_classic()
-  p2 &lt;- ggplot(filter(dynvis, exp==&quot;pseudobulk&quot;), aes(x=day, y=logtpm, fill=genotype)) + 
-    facet_grid(rows=vars(exp)) +
-    geom_boxplot() +
-    ylab(egene) +
-    ggtitle(evar) +
-    theme_classic()
-  print(p1 + p2 + plot_layout(ncol=1))
-}</code></pre>
-<p><img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-2-1.png" width="672" style="display: block; margin: auto;" /><img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-2-2.png" width="672" style="display: block; margin: auto;" /><img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-2-3.png" width="672" style="display: block; margin: auto;" /><img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-2-4.png" width="672" style="display: block; margin: auto;" /><img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-2-5.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-2-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-2-1">
+Past versions of unnamed-chunk-2-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-2-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/adf49b21f72dfe47e15dddbe857e64f642264b13/docs/figure/dynamic-eqtl.Rmd/unnamed-chunk-2-1.png" target="_blank">adf49b2</a>
+</td>
+<td>
+jmp448
+</td>
+<td>
+2021-01-12
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p><img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-2-2.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-2-2">
+Past versions of unnamed-chunk-2-2.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-2-2" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/adf49b21f72dfe47e15dddbe857e64f642264b13/docs/figure/dynamic-eqtl.Rmd/unnamed-chunk-2-2.png" target="_blank">adf49b2</a>
+</td>
+<td>
+jmp448
+</td>
+<td>
+2021-01-12
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p><img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-2-3.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-2-3">
+Past versions of unnamed-chunk-2-3.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-2-3" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/adf49b21f72dfe47e15dddbe857e64f642264b13/docs/figure/dynamic-eqtl.Rmd/unnamed-chunk-2-3.png" target="_blank">adf49b2</a>
+</td>
+<td>
+jmp448
+</td>
+<td>
+2021-01-12
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p><img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-2-4.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-2-4">
+Past versions of unnamed-chunk-2-4.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-2-4" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/adf49b21f72dfe47e15dddbe857e64f642264b13/docs/figure/dynamic-eqtl.Rmd/unnamed-chunk-2-4.png" target="_blank">adf49b2</a>
+</td>
+<td>
+jmp448
+</td>
+<td>
+2021-01-12
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p><img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-2-5.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-2-5">
+Past versions of unnamed-chunk-2-5.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-2-5" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/adf49b21f72dfe47e15dddbe857e64f642264b13/docs/figure/dynamic-eqtl.Rmd/unnamed-chunk-2-5.png" target="_blank">adf49b2</a>
+</td>
+<td>
+jmp448
+</td>
+<td>
+2021-01-12
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </div>
 <div id="impact-of-varying-the-number-of-cell-line-pcs" class="section level2">
 <h2>Impact of varying the number of cell line PCs</h2>
-<p>In order to avoid detecting false positives due to differences in the way cell lines proceed through differentiation, we regress out cell line PCs. Here we evaluate the impact of regressing out different numbers of PCs and compare the number of dynamic eQTLs detected in bulk compared to pseudobulk</p>
-<pre class="r"><code>for (dataset in c(&quot;bulk&quot;, &quot;pseudobulk-drop2&quot;)) {
-  for (npc in seq(0, 5)) {
-    nhits &lt;- read_tsv(paste0(&quot;results/eqtl_dynamic/linear_dQTL/&quot;, dataset, &quot;/day/50k-&quot;, npc, &quot;clpcs.tophits.tsv&quot;)) %&gt;% filter(lfsr&lt;=0.05) %&gt;% nrow
-    if ((dataset==&quot;bulk&quot;) &amp; (npc==0)) {
-      sighits &lt;- tibble(&quot;exp&quot;=dataset, &quot;pcs&quot;=npc, &quot;hits&quot;=nhits)
-    } else {
-      sighits &lt;- bind_rows(sighits, tibble(&quot;exp&quot;=dataset, &quot;pcs&quot;=npc, &quot;hits&quot;=nhits))
-    }
-  }
-}
-
-ggplot(sighits, aes(x=pcs, y=hits)) + 
-  geom_bar(position=&quot;dodge&quot;, stat=&quot;identity&quot;) +
-  facet_grid(cols=vars(exp)) +
-  theme(axis.text.x=element_text(angle=45)) + 
-  ylab(&quot;# significant egenes&quot;)</code></pre>
-<p><img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-3-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>There is a huge difference here between bulk and pseudobulk detection rates, and we can see by subsetting the bulk data to only 7 days (similar to what we have in pseudobulk) could be responsible for a large part of it</p>
-<pre class="r"><code>for (dataset in c(&quot;bulk7&quot;, &quot;pseudobulk-drop2&quot;)) {
-  for (npc in seq(0, 5)) {
-    nhits &lt;- read_tsv(paste0(&quot;results/eqtl_dynamic/linear_dQTL/&quot;, dataset, &quot;/day/50k-&quot;, npc, &quot;clpcs.tophits.tsv&quot;)) %&gt;% filter(lfsr&lt;=0.05) %&gt;% nrow
-    if ((dataset==&quot;bulk7&quot;) &amp; (npc==0)) {
-      sighits &lt;- tibble(&quot;exp&quot;=dataset, &quot;pcs&quot;=npc, &quot;hits&quot;=nhits)
-    } else {
-      sighits &lt;- bind_rows(sighits, tibble(&quot;exp&quot;=dataset, &quot;pcs&quot;=npc, &quot;hits&quot;=nhits))
-    }
-  }
-}
-
-ggplot(sighits, aes(x=pcs, y=hits)) + 
-  geom_bar(position=&quot;dodge&quot;, stat=&quot;identity&quot;) +
-  facet_grid(cols=vars(exp)) +
-  theme(axis.text.x=element_text(angle=45)) + 
-  ylab(&quot;# significant egenes&quot;)</code></pre>
-<p><img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-4-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>Now, can we get more hits if instead of binning pseudobulk by day, we bin by pseudotime bin?</p>
-<pre class="r"><code>for (dataset in c(&quot;bulk&quot;, &quot;pseudobulk&quot;)) {
-  if (dataset == &quot;bulk&quot;) {
-    agg &lt;- &quot;day&quot;
-  } else {
-    agg &lt;- &quot;cmbin&quot;
-  }
-  for (npc in seq(0, 5)) {
-    nhits &lt;- read_tsv(paste0(&quot;results/eqtl_dynamic/linear_dQTL/&quot;, dataset, &quot;/&quot;, agg, &quot;/50k-&quot;, npc, &quot;clpcs.tophits.tsv&quot;)) %&gt;% filter(lfsr&lt;=0.05) %&gt;% nrow
-    if ((dataset==&quot;bulk&quot;) &amp; (npc==0)) {
-      sighits &lt;- tibble(&quot;exp&quot;=dataset, &quot;pcs&quot;=npc, &quot;hits&quot;=nhits)
-    } else {
-      sighits &lt;- bind_rows(sighits, tibble(&quot;exp&quot;=dataset, &quot;pcs&quot;=npc, &quot;hits&quot;=nhits))
-    }
-  }
-}
-
-ggplot(sighits, aes(x=pcs, y=hits)) + 
-  geom_bar(position=&quot;dodge&quot;, stat=&quot;identity&quot;) +
-  facet_grid(cols=vars(exp)) +
-  theme(axis.text.x=element_text(angle=45)) + 
-  ylab(&quot;# significant egenes&quot;)</code></pre>
-<p><img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>In order to avoid detecting false positives due to differences in the way cell lines proceed through differentiation, we regress out cell line PCs. Here we evaluate the impact of regressing out different numbers of PCs and compare the number of dynamic eQTLs detected in bulk compared to pseudobulk <img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-3-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-3-1">
+Past versions of unnamed-chunk-3-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-3-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/adf49b21f72dfe47e15dddbe857e64f642264b13/docs/figure/dynamic-eqtl.Rmd/unnamed-chunk-3-1.png" target="_blank">adf49b2</a>
+</td>
+<td>
+jmp448
+</td>
+<td>
+2021-01-12
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>There is a huge difference here between bulk and pseudobulk detection rates, and we can see by subsetting the bulk data to only 7 days (similar to what we have in pseudobulk) could be responsible for a large part of it <img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-4-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-4-1">
+Past versions of unnamed-chunk-4-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-4-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/adf49b21f72dfe47e15dddbe857e64f642264b13/docs/figure/dynamic-eqtl.Rmd/unnamed-chunk-4-1.png" target="_blank">adf49b2</a>
+</td>
+<td>
+jmp448
+</td>
+<td>
+2021-01-12
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>We see that we can bridge the gap by binning pseudobulk by pseudotime bin rather than day, effectively creating more time points <img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-5-1">
+Past versions of unnamed-chunk-5-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-5-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/adf49b21f72dfe47e15dddbe857e64f642264b13/docs/figure/dynamic-eqtl.Rmd/unnamed-chunk-5-1.png" target="_blank">adf49b2</a>
+</td>
+<td>
+jmp448
+</td>
+<td>
+2021-01-12
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>An alternative testing strategy would be to explicitly perform multiple testing correction at the gene level, followed by FDR correction with only the top hit per gene. We see that this does not lead to a notable change in the number of significant dynamic eGenes detected (except in pseudobulk without cell line PC regression, but these are likely to be confounded. <img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-6-1">
+Past versions of unnamed-chunk-6-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-6-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/adf49b21f72dfe47e15dddbe857e64f642264b13/docs/figure/dynamic-eqtl.Rmd/unnamed-chunk-6-1.png" target="_blank">adf49b2</a>
+</td>
+<td>
+jmp448
+</td>
+<td>
+2021-01-12
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </div>
 <div id="replication-rates-between-bulk-and-pseudobulk" class="section level2">
 <h2>Replication rates between bulk and pseudobulk</h2>
-<p>To see whether these hits are appearing in both datasets, we can look at <span class="math inline">\(\pi_1\)</span> replication rates. First, we look at replication of bulk hits in pseudobulk, compared to a random set of variants. We see that regressing out 3 cell line PCs maximizes the replication rate. <img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>Reversing this, we now look at replication of pseudobulk hits in bulk. <img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-7-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>To see whether these hits are appearing in both datasets, we can look at <span class="math inline">\(\pi_1\)</span> replication rates. First, we look at replication of bulk hits in pseudobulk, compared to a random set of variants. We see that regressing out 3 cell line PCs maximizes the replication rate. <img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-7-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-7-1">
+Past versions of unnamed-chunk-7-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-7-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/adf49b21f72dfe47e15dddbe857e64f642264b13/docs/figure/dynamic-eqtl.Rmd/unnamed-chunk-7-1.png" target="_blank">adf49b2</a>
+</td>
+<td>
+jmp448
+</td>
+<td>
+2021-01-12
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>Reversing this, we now look at replication of pseudobulk hits in bulk. <img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-8-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-8-1">
+Past versions of unnamed-chunk-8-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-8-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/adf49b21f72dfe47e15dddbe857e64f642264b13/docs/figure/dynamic-eqtl.Rmd/unnamed-chunk-8-1.png" target="_blank">adf49b2</a>
+</td>
+<td>
+jmp448
+</td>
+<td>
+2021-01-12
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <div id="comparing-p-values-between-samples" class="section level3">
 <h3>Comparing p values between samples</h3>
-<p>Looking across all tests, there does not appear to be any correlation (as expected, considering most tests are null)</p>
-<pre class="r"><code>bulk &lt;- read_tsv(&quot;results/eqtl_dynamic/linear_dQTL/bulk/day/50k-3clpcs.mtc.tsv&quot;) %&gt;%
-  mutate(gv=paste(gene, snp, sep=&quot;--&quot;)) %&gt;%
-  mutate(bulk.log10p=-log10(p.adj)) %&gt;%
-  select(gv, bulk.log10p)
-pseudobulk &lt;- read_tsv(&quot;results/eqtl_dynamic/linear_dQTL/pseudobulk/cmbin/50k-3clpcs.mtc.tsv&quot;) %&gt;%
-  mutate(gv=paste(gene, snp, sep=&quot;--&quot;)) %&gt;%
-  mutate(pseudobulk.log10p=-log10(p.adj)) %&gt;%
-  select(gv, pseudobulk.log10p)
-comp &lt;- inner_join(bulk, pseudobulk, by=&quot;gv&quot;)
-ggplot(comp, aes(x=bulk.log10p, y=pseudobulk.log10p, text=gv)) +
-  geom_point()</code></pre>
-<p><img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-8-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>Subsetting to only the tests that are significant in at least one of the differentiations, we see that pvalues are negatively correlated between the two experiments</p>
-<pre class="r"><code>bulk &lt;- read_tsv(&quot;results/eqtl_dynamic/linear_dQTL/bulk/day/50k-3clpcs.mtc.tsv&quot;) %&gt;%
-  mutate(gv=paste(gene, snp, sep=&quot;--&quot;)) %&gt;%
-  mutate(bulk.log10p=-log10(p.adj)) %&gt;%
-  rename(bulk.lfsr=lfsr) %&gt;%
-  select(gv, bulk.log10p, bulk.lfsr)
-pseudobulk &lt;- read_tsv(&quot;results/eqtl_dynamic/linear_dQTL/pseudobulk/cmbin/50k-3clpcs.mtc.tsv&quot;) %&gt;%
-  mutate(gv=paste(gene, snp, sep=&quot;--&quot;)) %&gt;%
-  mutate(pseudobulk.log10p=-log10(p.adj)) %&gt;%
-  rename(pseudobulk.lfsr=lfsr) %&gt;%
-  select(gv, pseudobulk.log10p, pseudobulk.lfsr)
-comp &lt;- inner_join(bulk, pseudobulk, by=&quot;gv&quot;) %&gt;%
-  mutate(min.sig=mapply(min, bulk.lfsr, pseudobulk.lfsr)) %&gt;%
-  filter(min.sig&lt;=0.1)
-ggplot(comp, aes(x=bulk.log10p, y=pseudobulk.log10p, text=gv)) +
-  geom_point() + 
-  theme_classic()</code></pre>
-<p><img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-9-1.png" width="672" style="display: block; margin: auto;" /></p>
-<pre class="r"><code>cor(comp$pseudobulk.log10p, comp$bulk.log10p)</code></pre>
+<p>Looking across all tests, there does not appear to be any correlation (as expected, considering most tests are null) <img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-9-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-9-1">
+Past versions of unnamed-chunk-9-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-9-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/adf49b21f72dfe47e15dddbe857e64f642264b13/docs/figure/dynamic-eqtl.Rmd/unnamed-chunk-9-1.png" target="_blank">adf49b2</a>
+</td>
+<td>
+jmp448
+</td>
+<td>
+2021-01-12
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>Subsetting to only the tests that are significant in at least one of the differentiations, we see that pvalues are negatively correlated between the two experiments <img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-10-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre><code>[1] -0.6544881</code></pre>
-<p>Finally, we can look specifically at those dynamic eQTLs that <em>were</em> significant at <span class="math inline">\(lfsr&lt;=0.1\)</span> in both experiments</p>
-<pre class="r"><code>bulk &lt;- read_tsv(&quot;results/eqtl_dynamic/linear_dQTL/bulk/day/50k-3clpcs.mtc.tsv&quot;) %&gt;%
-  mutate(gv=paste(gene, snp, sep=&quot;--&quot;)) %&gt;%
-  mutate(bulk.log10p=-log10(p.adj)) %&gt;%
-  filter(lfsr&lt;=0.1) %&gt;%
-  select(gv, bulk.log10p)
-pseudobulk &lt;- read_tsv(&quot;results/eqtl_dynamic/linear_dQTL/pseudobulk/cmbin/50k-3clpcs.mtc.tsv&quot;) %&gt;%
-  mutate(gv=paste(gene, snp, sep=&quot;--&quot;)) %&gt;%
-  mutate(pseudobulk.log10p=-log10(p.adj)) %&gt;%
-  filter(lfsr&lt;=0.1) %&gt;%
-  select(gv, pseudobulk.log10p)
-comp &lt;- inner_join(bulk, pseudobulk, by=&quot;gv&quot;)
-p &lt;- ggplot(comp, aes(x=bulk.log10p, y=pseudobulk.log10p, text=gv)) +
-  geom_point() + 
-  theme_classic()
-ggplotly(p, tooltip=&quot;text&quot;)</code></pre>
-<div id="htmlwidget-ba16190872a9bf89f5eb" style="width:672px;height:480px;" class="plotly html-widget"></div>
-<script type="application/json" data-for="htmlwidget-ba16190872a9bf89f5eb">{"x":{"data":[{"x":[10.4511333433911,10.4511333433911,10.4511333433911,3.91039306407308,4.9144124045036,3.05782943540623,5.54017799473724,3.42557960083281,5.06071981034791,3.64617168916195,3.47245009578626,4.66736160356594,4.66736160356594,4.66736160356594,4.66736160356594,4.66736160356594],"y":[2.9801745741993,2.9801745741993,2.9801745741993,7.35800858243702,4.47341388012957,2.2467119981721,9.12693471042615,2.68500969117187,2.89092242745247,3.40903529620993,4.48447642988278,3.61041206320346,3.61041206320346,3.61041206320346,3.61041206320346,3.61041206320346],"text":["GUF1--chr4_44691693","GUF1--chr4_44699883","GUF1--chr4_44704932","PPIP5K2--chr5_103086881","FYN--chr6_111661054","KPNA5--chr6_116632877","WDR60--chr7_158879928","ELP3--chr8_28083827","UFM1--chr13_38354839","CHURC1--chr14_64932537","CHURC1--chr14_64932545","CHURC1--chr14_64932573","CHURC1--chr14_64932588","CHURC1--chr14_64933351","CHURC1--chr14_64934977","CHURC1--chr14_64935101"],"type":"scatter","mode":"markers","marker":{"autocolorscale":false,"color":"rgba(0,0,0,1)","opacity":1,"size":5.66929133858268,"symbol":"circle","line":{"width":1.88976377952756,"color":"rgba(0,0,0,1)"}},"hoveron":"points","showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null}],"layout":{"margin":{"t":26.2283105022831,"r":7.30593607305936,"b":40.1826484018265,"l":31.4155251141553},"plot_bgcolor":"rgba(255,255,255,1)","paper_bgcolor":"rgba(255,255,255,1)","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187},"xaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[2.68816424000698,10.8207985387904],"tickmode":"array","ticktext":["3","5","7","9"],"tickvals":[3,5,7,9],"categoryorder":"array","categoryarray":["3","5","7","9"],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.65296803652968,"tickwidth":0.66417600664176,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":true,"linecolor":"rgba(0,0,0,1)","linewidth":0.66417600664176,"showgrid":false,"gridcolor":null,"gridwidth":0,"zeroline":false,"anchor":"y","title":{"text":"bulk.log10p","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187}},"hoverformat":".2f"},"yaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[1.9027008625594,9.47094584603885],"tickmode":"array","ticktext":["2","4","6","8"],"tickvals":[2,4,6,8],"categoryorder":"array","categoryarray":["2","4","6","8"],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.65296803652968,"tickwidth":0.66417600664176,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":true,"linecolor":"rgba(0,0,0,1)","linewidth":0.66417600664176,"showgrid":false,"gridcolor":null,"gridwidth":0,"zeroline":false,"anchor":"x","title":{"text":"pseudobulk.log10p","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187}},"hoverformat":".2f"},"shapes":[{"type":"rect","fillcolor":null,"line":{"color":null,"width":0,"linetype":[]},"yref":"paper","xref":"paper","x0":0,"x1":1,"y0":0,"y1":1}],"showlegend":false,"legend":{"bgcolor":"rgba(255,255,255,1)","bordercolor":"transparent","borderwidth":1.88976377952756,"font":{"color":"rgba(0,0,0,1)","family":"","size":11.689497716895}},"hovermode":"closest","barmode":"relative"},"config":{"doubleClick":"reset","showSendToCloud":false},"source":"A","attrs":{"3fab611c70c95":{"x":{},"y":{},"text":{},"type":"scatter"}},"cur_data":"3fab611c70c95","visdat":{"3fab611c70c95":["function (y) ","x"]},"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+<p>Finally, we can look specifically at those dynamic eQTLs that <em>were</em> significant at <span class="math inline">\(lfsr&lt;=0.1\)</span> in both experiments (mouse over a point to see the snp-gene pair) <div id="htmlwidget-ba16190872a9bf89f5eb" style="width:672px;height:480px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="htmlwidget-ba16190872a9bf89f5eb">{"x":{"data":[{"x":[10.4511333433911,10.4511333433911,10.4511333433911,3.91039306407308,4.9144124045036,3.05782943540623,5.54017799473724,3.42557960083281,5.06071981034791,3.64617168916195,3.47245009578626,4.66736160356594,4.66736160356594,4.66736160356594,4.66736160356594,4.66736160356594],"y":[2.9801745741993,2.9801745741993,2.9801745741993,7.35800858243702,4.47341388012957,2.2467119981721,9.12693471042615,2.68500969117187,2.89092242745247,3.40903529620993,4.48447642988278,3.61041206320346,3.61041206320346,3.61041206320346,3.61041206320346,3.61041206320346],"text":["GUF1--chr4_44691693","GUF1--chr4_44699883","GUF1--chr4_44704932","PPIP5K2--chr5_103086881","FYN--chr6_111661054","KPNA5--chr6_116632877","WDR60--chr7_158879928","ELP3--chr8_28083827","UFM1--chr13_38354839","CHURC1--chr14_64932537","CHURC1--chr14_64932545","CHURC1--chr14_64932573","CHURC1--chr14_64932588","CHURC1--chr14_64933351","CHURC1--chr14_64934977","CHURC1--chr14_64935101"],"type":"scatter","mode":"markers","marker":{"autocolorscale":false,"color":"rgba(0,0,0,1)","opacity":1,"size":5.66929133858268,"symbol":"circle","line":{"width":1.88976377952756,"color":"rgba(0,0,0,1)"}},"hoveron":"points","showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null}],"layout":{"margin":{"t":26.2283105022831,"r":7.30593607305936,"b":40.1826484018265,"l":31.4155251141553},"plot_bgcolor":"rgba(255,255,255,1)","paper_bgcolor":"rgba(255,255,255,1)","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187},"xaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[2.68816424000698,10.8207985387904],"tickmode":"array","ticktext":["3","5","7","9"],"tickvals":[3,5,7,9],"categoryorder":"array","categoryarray":["3","5","7","9"],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.65296803652968,"tickwidth":0.66417600664176,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":true,"linecolor":"rgba(0,0,0,1)","linewidth":0.66417600664176,"showgrid":false,"gridcolor":null,"gridwidth":0,"zeroline":false,"anchor":"y","title":{"text":"bulk.log10p","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187}},"hoverformat":".2f"},"yaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[1.9027008625594,9.47094584603885],"tickmode":"array","ticktext":["2","4","6","8"],"tickvals":[2,4,6,8],"categoryorder":"array","categoryarray":["2","4","6","8"],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.65296803652968,"tickwidth":0.66417600664176,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":true,"linecolor":"rgba(0,0,0,1)","linewidth":0.66417600664176,"showgrid":false,"gridcolor":null,"gridwidth":0,"zeroline":false,"anchor":"x","title":{"text":"pseudobulk.log10p","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187}},"hoverformat":".2f"},"shapes":[{"type":"rect","fillcolor":null,"line":{"color":null,"width":0,"linetype":[]},"yref":"paper","xref":"paper","x0":0,"x1":1,"y0":0,"y1":1}],"showlegend":false,"legend":{"bgcolor":"rgba(255,255,255,1)","bordercolor":"transparent","borderwidth":1.88976377952756,"font":{"color":"rgba(0,0,0,1)","family":"","size":11.689497716895}},"hovermode":"closest","barmode":"relative"},"config":{"doubleClick":"reset","showSendToCloud":false},"source":"A","attrs":{"419045fb9b366":{"x":{},"y":{},"text":{},"type":"scatter"}},"cur_data":"419045fb9b366","visdat":{"419045fb9b366":["function (y) ","x"]},"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script></p>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
