@@ -69,6 +69,7 @@ p <- inner_join(fracs, bulk.loadings, by="sample") %>%
   mutate(covariate=factor(covariate, levels=paste0("PC", seq(1,5)))) %>%
   ggplot(aes(x=covariate, y=value, fill=type)) +
   geom_boxplot() + theme_classic()
+p
 ```
 
 <!-- What does this mean? Even in the bulk data, it is possible to resolve the multiple cell types we're working with -->
