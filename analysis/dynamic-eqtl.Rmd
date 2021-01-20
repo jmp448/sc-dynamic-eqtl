@@ -3,38 +3,389 @@ title: "Dynamic eQTL Calling"
 output: html_notebook
 ---
 
-```{r, include=FALSE}
+```{r libloader, include=FALSE}
 library(tidyverse)
 library(qvalue)
 library(plotly)
 library(patchwork)
+library(ggpubr)
 ```
 
 ## Model Overview
 Our dynamic eQTL calling framework is based on the following model:
-$${\bf y}_g \sim {\bf K} + {\bf (K*t)} + {\bf G}_v +  ({\bf G}_v*{\bf t})+{\bf t}$$
+$${\bf y}_g \sim {\bf K}_{s} +{\bf K}_{cl}+({\bf K}_{cl}*{\bf t}) + {\bf G}_v + ({\bf G}_v*{\bf t})+{\bf t}$$
 where  
 ${\bf y}_{g}$ is a $1*(nt)$ array containing the log-normalized gene expression for gene $g$ for each (individual, time point) sample  
-${\bf K}$ is a $C*(nt)$ covariates matrix for $C$ covariates (an intercept plus cell line PCs)  
+${\bf K}_s$ is a $C_s*(nt)$ covariates matrix for $C$ sample covariates (an intercept plus expression PCs)
+${\bf K}_{cl}$ is a $C_{cl}*(nt)$ covariates matrix of cell-line covariates 
 ${\bf G}_v$ is a $1*(nt)$ array containing the genotype dosages for each sample   
 ${\bf t}_v$ is a $1*(nt)$ array containing the time of collection for each sample  
 $({\bf K}*{\bf t})$ and $({\bf G}*{\bf t})$ capture the interaction of time with cell line PCs and genotype, respectively  
   
-This model is applied to each gene-variant pair. A gene-variant pair is considered a significant dynamic eQTL (dynQTL) if it has a Storey's q-value $\leq 0.1$ after Bonferroni multiple testing correction.
+This model is applied to each gene-variant pair. A gene-variant pair is considered a significant dynamic eQTL (dynQTL) if it has a Storey's q-value $\leq 0.05$ after Bonferroni multiple testing correction.
+
+## Bulk Dynamic eQTL Calling
+In order to avoid detecting false positives due to differences in the way cell lines proceed through differentiation, we regress out cell line PCs, as well as expression PCs
+```{r compare_detection, warning=FALSE, message=FALSE, echo=FALSE}
+sighits <- tibble("samp.pcs"=numeric(), "cl.pcs"=numeric(), "hits"=numeric())
+for (n.samp.pc in c(0, 5, 10, 20)) {
+  for (n.cl.pc in c(0, 3, 5, 10)) {
+    nhits <- read_tsv(paste0("results/eqtl_dynamic/linear_dQTL/bulk/day/50k-", n.cl.pc, "clpcs-", n.samp.pc, "pcs.tophits.tsv")) %>% 
+        filter(qval.unadj<=0.05) %>% 
+        nrow
+    sighits <- bind_rows(sighits, tibble("samp.pcs"=n.samp.pc, "cl.pcs"=n.cl.pc, "hits"=nhits))
+  }
+}
+sighits$samp.pcs <- factor(sighits$samp.pcs, levels=c(0, 5, 10, 20))
+sighits$cl.pcs <- factor(sighits$cl.pcs, levels=c(0, 3, 5, 10))
+ggplot(sighits, aes(x=samp.pcs, y=hits, fill=samp.pcs)) + 
+  geom_bar(position="dodge", stat="identity") +
+  facet_grid(rows=vars(cl.pcs)) +
+  theme(axis.text.x=element_text(angle=45)) + 
+  ylab("# significant egenes")
+```
+
+```{r binned_detection, warning=FALSE, message=FALSE, echo=FALSE}
+pdist <- tibble("n_samp_pcs"=numeric(), "n_cl_pcs"=numeric(), 
+                "rejection_region"=logical(), "p.unadj"=numeric())
+for (n.samp.pc in c(0, 5, 10, 20)) {
+  for (n.cl.pc in c(0, 3, 5, 10)) {
+    siggies <- read_tsv(paste0("results/eqtl_dynamic/linear_dQTL/bulk/day/50k-", n.cl.pc, "clpcs-", n.samp.pc, "pcs.tophits.tsv")) %>%
+      filter(qval.unadj<=0.05) %>% 
+      mutate(gv=paste(gene, snp, sep="--")) %>% 
+      .$gv
+    alltests <- read_tsv(paste0("results/eqtl_dynamic/linear_dQTL/bulk/day/50k-", n.cl.pc, "clpcs-", n.samp.pc, "pcs.mtc.tsv")) %>%
+      mutate(gv=paste(gene, snp, sep="--")) %>% 
+      mutate(rejection_region=gv%in%siggies) %>%
+      select(p.unadj, rejection_region) %>%
+      mutate(n_samp_pcs=n.samp.pc) %>%
+      mutate(n_cl_pcs=n.cl.pc)
+    pdist <- bind_rows(pdist, alltests)
+  }
+}
+ggplot(pdist, aes(x=p.unadj, fill=rejection_region)) +
+  geom_histogram() +
+  theme_classic() +
+  theme(axis.text.x=element_blank()) +
+  facet_grid(rows=vars(n_cl_pcs), cols=vars(n_samp_pcs)) +
+  ggtitle("P-value Distribution for Linear Dynamic eQTLs")
+```
+
+## Pseudobulk Dynamic eQTL Calling
+In order to avoid detecting false positives due to differences in the way cell lines proceed through differentiation, we regress out cell line PCs, as well as expression PCs
+```{r compare_detection_pb, warning=FALSE, message=FALSE, echo=FALSE}
+sighits <- tibble("samp.pcs"=numeric(), "cl.pcs"=numeric(), "hits"=numeric())
+for (n.samp.pc in c(0, 5, 10, 20)) {
+  for (n.cl.pc in c(0, 3, 5, 10)) {
+    nhits <- read_tsv(paste0("results/eqtl_dynamic/linear_dQTL/pseudobulk/cmbin/50k-", n.cl.pc, "clpcs-", n.samp.pc, "pcs.tophits.tsv")) %>% 
+        filter(qval.unadj<=0.05) %>% 
+        nrow
+    sighits <- bind_rows(sighits, tibble("samp.pcs"=n.samp.pc, "cl.pcs"=n.cl.pc, "hits"=nhits))
+  }
+}
+sighits$samp.pcs <- factor(sighits$samp.pcs, levels=c(0, 5, 10, 20))
+sighits$cl.pcs <- factor(sighits$cl.pcs, levels=c(0, 3, 5, 10))
+ggplot(sighits, aes(x=samp.pcs, y=hits, fill=samp.pcs)) + 
+  geom_bar(position="dodge", stat="identity") +
+  facet_grid(rows=vars(cl.pcs)) +
+  theme(axis.text.x=element_text(angle=45)) + 
+  ylab("# significant egenes")
+```
+
+```{r binned_detection_pb, warning=FALSE, message=FALSE, echo=FALSE}
+pdist <- tibble("n_samp_pcs"=numeric(), "n_cl_pcs"=numeric(), 
+                "rejection_region"=logical(), "p.unadj"=numeric())
+for (n.samp.pc in c(0, 5, 10, 20)) {
+  for (n.cl.pc in c(0, 3, 5, 10)) {
+    siggies <- read_tsv(paste0("results/eqtl_dynamic/linear_dQTL/pseudobulk/cmbin/50k-", n.cl.pc, "clpcs-", n.samp.pc, "pcs.tophits.tsv")) %>%
+      filter(qval.unadj<=0.05) %>% 
+      mutate(gv=paste(gene, snp, sep="--")) %>% 
+      .$gv
+    alltests <- read_tsv(paste0("results/eqtl_dynamic/linear_dQTL/pseudobulk/cmbin/50k-", n.cl.pc, "clpcs-", n.samp.pc, "pcs.mtc.tsv")) %>%
+      mutate(gv=paste(gene, snp, sep="--")) %>% 
+      mutate(rejection_region=gv%in%siggies) %>%
+      select(p.unadj, rejection_region) %>%
+      mutate(n_samp_pcs=n.samp.pc) %>%
+      mutate(n_cl_pcs=n.cl.pc)
+    pdist <- bind_rows(pdist, alltests)
+  }
+}
+ggplot(pdist, aes(x=p.unadj, fill=rejection_region)) +
+  geom_histogram() +
+  theme_classic() +
+  theme(axis.text.x=element_blank()) +
+  facet_grid(rows=vars(n_cl_pcs), cols=vars(n_samp_pcs)) +
+  ggtitle("P-value Distribution for Linear Dynamic eQTLs")
+```
+
+## Replication rates between bulk and pseudobulk
+### Cell Line PCs
+To see whether these hits are appearing in both datasets, we can look at $\pi_1$ replication rates. First, we look at replication of bulk hits in pseudobulk, compared to a random set of tests, matched for distance to tss. The number of cell line PCs regressed out of bulk is indicated in the column header, pseudobulk in the row header
+```{r reprates1, warning = FALSE, message = FALSE, echo=FALSE}
+rep.rates <- tibble("variants"=character(), "pi1"=numeric(), "npcs"=numeric())
+all.tests <- read_tsv("data/gv_pairs.filtered.50k.tsv") %>%
+  mutate(gv=paste(gene, snp, sep="--"))
+
+get.matched <- function(tests) {
+  elim.genes <- str_extract(tests, "[^-]+")
+  match.dists <- all.tests %>% 
+    filter(gv %in% tests) %>%
+    .$dist2tss
+  candidates <- all.tests %>%
+    filter(!gene %in% elim.genes)
+  matched.tests <- bind_rows(map_dfr(match.dists, function(d){slice(candidates, which.min(abs(dist2tss-d)))}))$gv
+  matched.tests
+}
+
+for (npc.bulk in c(0, 3, 5, 10)) {
+  bulk.hits <- read_tsv(paste0("results/eqtl_dynamic/linear_dQTL/bulk/day/50k-", npc.bulk, "clpcs-0pcs.tophits.tsv")) %>%
+    filter(qval.unadj<=0.1) %>% 
+    mutate(gv=paste(gene, snp, sep="--")) %>% 
+    rename(bulk.p=bonf.p.unadj) %>% 
+    select(c(bulk.p, gv))
+  for (npc.pseudobulk in c(0, 3, 5, 10)) {
+    pseudobulk.pi1 <- read_tsv(paste0("results/eqtl_dynamic/linear_dQTL/pseudobulk/cmbin/50k-", npc.pseudobulk, "clpcs-0pcs.mtc.tsv")) %>%
+      mutate(gv=paste(gene, snp, sep="--")) %>%
+      filter(gv %in% bulk.hits$gv) %>%
+      .$p.unadj %>%
+      qvalue %>% 
+      (function(x){1-x$pi0})
+    
+    rep.rates <- bind_rows(rep.rates, tibble("variants"="bulk_rejection_region",
+                                             "pi1"=pseudobulk.pi1, 
+                                             "npcs.bulk"=npc.bulk,
+                                             "npcs.pseudobulk"=npc.pseudobulk))
+    
+    random.pi1 <- read_tsv(paste0("results/eqtl_dynamic/linear_dQTL/pseudobulk/cmbin/50k-", npc.pseudobulk, "clpcs-5pcs.mtc.tsv")) %>%
+      mutate(gv=paste(gene, snp, sep="--")) %>%
+      filter(gv %in% get.matched(bulk.hits$gv)) %>%
+      .$p.unadj %>%
+      qvalue %>% 
+      (function(x){1-x$pi0})
+    rep.rates <- bind_rows(rep.rates, tibble("variants"="random_tests",
+                                             "pi1"=random.pi1, 
+                                             "npcs.bulk"=npc.bulk,
+                                             "npcs.pseudobulk"=npc.pseudobulk))
+  }
+}
+rep.rates$npcs.bulk <- factor(rep.rates$npcs.bulk, levels=c(0, 3, 5, 10))
+rep.rates$npcs.pseudobulk <- factor(rep.rates$npcs.pseudobulk, levels=c(0, 3, 5, 10))
+ggplot(rep.rates, aes(x=variants, y=pi1, fill=variants)) + 
+  geom_bar(position="dodge", stat="identity") +
+  facet_grid(cols=vars(npcs.bulk), rows=vars(npcs.pseudobulk)) + 
+  theme(axis.ticks.x=element_blank(), axis.ticks.y=element_blank(),
+        axis.text.x=element_blank())
+```
+
+It may be more useful to look at replication of pseudobulk hits in bulk, since we would expect a subset of the bulk hits (those corresponding to increased expression among epicardium-like cells) not to be replicated. Here, again, bulk cell line PCs regressed out are shown in column headers, pseudobulk CLPCs regressed are in row headers.
+```{r reprates2, warning = FALSE, message = FALSE, echo=FALSE}
+rep.rates <- tibble("variants"=character(), "pi1"=numeric(), "npcs.bulk"=numeric(), "npcs.pseudobulk"=numeric())
+all.tests <- read_tsv("data/gv_pairs.filtered.50k.tsv") %>%
+  mutate(gv=paste(gene, snp, sep="--"))
+
+for (npc.pseudobulk in c(0, 3, 5, 10)) {
+  pb.hits <- read_tsv(paste0("results/eqtl_dynamic/linear_dQTL/pseudobulk/cmbin/50k-", npc.pseudobulk, "clpcs-0pcs.tophits.tsv")) %>%
+    filter(qval.unadj<=0.1) %>% 
+    mutate(gv=paste(gene, snp, sep="--")) %>% 
+    rename(bulk.p=bonf.p.unadj) %>% 
+    select(c(bulk.p, gv))
+  for (npc.bulk in c(0, 3, 5, 10)) {
+  bulk.pi1 <- read_tsv(paste0("results/eqtl_dynamic/linear_dQTL/bulk/day/50k-", npc.bulk, "clpcs-0pcs.mtc.tsv")) %>%
+    mutate(gv=paste(gene, snp, sep="--")) %>%
+    filter(gv %in% pb.hits$gv) %>%
+    .$p.unadj %>%
+    qvalue %>% 
+    (function(x){1-x$pi0})
+  
+  rep.rates <- bind_rows(rep.rates, tibble("variants"="pseudobulk_rejection_region",
+                                           "pi1"=bulk.pi1, 
+                                           "npcs.bulk"=npc.bulk,
+                                           "npcs.pseudobulk"=npc.pseudobulk))
+  
+  random.pi1 <- read_tsv(paste0("results/eqtl_dynamic/linear_dQTL/bulk/day/50k-", npc.bulk, "clpcs-0pcs.mtc.tsv")) %>%
+    mutate(gv=paste(gene, snp, sep="--")) %>%
+    filter(gv %in% get.matched(pb.hits$gv)) %>%
+    .$p.unadj %>%
+    qvalue %>% 
+    (function(x){1-x$pi0})
+  rep.rates <- bind_rows(rep.rates, tibble("variants"="random_tests",
+                                           "pi1"=random.pi1, 
+                                           "npcs.bulk"=npc.bulk,
+                                           "npcs.pseudobulk"=npc.pseudobulk))
+  }
+}
+rep.rates$npcs.bulk <- factor(rep.rates$npcs.bulk, levels=c(0, 3, 5, 10))
+rep.rates$npcs.pseudobulk <- factor(rep.rates$npcs.pseudobulk, levels=c(0, 3, 5, 10))
+ggplot(rep.rates, aes(x=variants, y=pi1, fill=variants)) + 
+  geom_bar(position="dodge", stat="identity") +
+  facet_grid(cols=vars(npcs.bulk), rows=vars(npcs.pseudobulk)) + 
+  theme(axis.ticks.x=element_blank(), axis.ticks.y=element_blank(),
+        axis.text.x=element_blank())
+```
+
+### Sample PCs
+Now let's stick to 5 cell line PCs, and see how changing the number of sample PCs will affect this. First, looking at replication of bulk hits in pseudobulk. Columns are sample PCs regressed out of bulk, rows are sample PCs regressed out of pseudobulk. 
+```{r reprates_samp, warning = FALSE, message = FALSE, echo=FALSE}
+rep.rates <- tibble("variants"=character(), "pi1"=numeric(), "npcs.bulk"=numeric(), "npcs.pseudobulk"=numeric())
+
+for (npc.bulk in c(0, 5, 10, 20)) {
+  bulk.hits <- read_tsv(paste0("results/eqtl_dynamic/linear_dQTL/bulk/day/50k-5clpcs-", npc.bulk, "pcs.tophits.tsv")) %>%
+    filter(qval.unadj<=0.1) %>% 
+    mutate(gv=paste(gene, snp, sep="--")) %>% 
+    rename(bulk.p=bonf.p.unadj) %>% 
+    select(c(bulk.p, gv))
+  for (npc.pseudobulk in c(0, 5, 10, 20)) {
+    pseudobulk.pi1 <- read_tsv(paste0("results/eqtl_dynamic/linear_dQTL/pseudobulk/cmbin/50k-5clpcs-", npc.pseudobulk, "pcs.mtc.tsv")) %>%
+      mutate(gv=paste(gene, snp, sep="--")) %>%
+      filter(gv %in% bulk.hits$gv) %>%
+      .$p.unadj %>%
+      qvalue %>% 
+      (function(x){1-x$pi0})
+    
+    rep.rates <- bind_rows(rep.rates, tibble("variants"="bulk_rejection_region",
+                                             "pi1"=pseudobulk.pi1, 
+                                             "npcs.bulk"=npc.bulk,
+                                             "npcs.pseudobulk"=npc.pseudobulk))
+    
+    random.pi1 <- read_tsv(paste0("results/eqtl_dynamic/linear_dQTL/pseudobulk/cmbin/50k-5clpcs-", npc.pseudobulk, "pcs.mtc.tsv")) %>%
+      mutate(gv=paste(gene, snp, sep="--")) %>%
+      filter(gv %in% get.matched(bulk.hits$gv)) %>%
+      .$p.unadj %>%
+      qvalue %>% 
+      (function(x){1-x$pi0})
+    rep.rates <- bind_rows(rep.rates, tibble("variants"="random_tests",
+                                             "pi1"=random.pi1, 
+                                             "npcs.bulk"=npc.bulk,
+                                             "npcs.pseudobulk"=npc.pseudobulk))
+  }
+}
+rep.rates$npcs.bulk <- factor(rep.rates$npcs.bulk, levels=c(0, 5, 10, 20))
+rep.rates$npcs.pseudobulk <- factor(rep.rates$npcs.pseudobulk, levels=c(0, 5, 10, 20))
+ggplot(rep.rates, aes(x=variants, y=pi1, fill=variants)) + 
+  geom_bar(position="dodge", stat="identity") +
+  facet_grid(cols=vars(npcs.bulk), rows=vars(npcs.pseudobulk)) + 
+  theme(axis.ticks.x=element_blank(), axis.ticks.y=element_blank(),
+        axis.text.x=element_blank())
+```
+
+Now, look at replication of pseudobulk hits in bulk. Again, columns are sample PCs regressed out of bulk, rows are sample PCs regressed out of pseudobulk.
+```{r reprates2_samp, warning = FALSE, message = FALSE, echo=FALSE}
+rep.rates <- tibble("variants"=character(), "pi1"=numeric(), "npcs.bulk"=numeric(), "npcs.pseudobulk"=numeric())
+all.tests <- read_tsv("data/gv_pairs.filtered.50k.tsv") %>%
+  mutate(gv=paste(gene, snp, sep="--"))
+
+for (npc.pseudobulk in c(0, 5, 10, 20)) {
+  pb.hits <- read_tsv(paste0("results/eqtl_dynamic/linear_dQTL/pseudobulk/cmbin/50k-5clpcs-", npc.pseudobulk, "pcs.tophits.tsv")) %>%
+    filter(qval.unadj<=0.1) %>% 
+    mutate(gv=paste(gene, snp, sep="--")) %>% 
+    rename(bulk.p=bonf.p.unadj) %>% 
+    select(c(bulk.p, gv))
+  for (npc.bulk in c(0, 5, 10, 20)) {
+  bulk.pi1 <- read_tsv(paste0("results/eqtl_dynamic/linear_dQTL/bulk/day/50k-5clpcs-", npc.bulk, "pcs.mtc.tsv")) %>%
+    mutate(gv=paste(gene, snp, sep="--")) %>%
+    filter(gv %in% pb.hits$gv) %>%
+    .$p.unadj %>%
+    qvalue %>% 
+    (function(x){1-x$pi0})
+  
+  rep.rates <- bind_rows(rep.rates, tibble("variants"="pseudobulk_rejection_region",
+                                           "pi1"=bulk.pi1, 
+                                           "npcs.bulk"=npc.bulk,
+                                           "npcs.pseudobulk"=npc.pseudobulk))
+  
+  random.pi1 <- read_tsv(paste0("results/eqtl_dynamic/linear_dQTL/bulk/day/50k-5clpcs-", npc.bulk, "pcs.mtc.tsv")) %>%
+    mutate(gv=paste(gene, snp, sep="--")) %>%
+    filter(gv %in% get.matched(pb.hits$gv)) %>%
+    .$p.unadj %>%
+    qvalue %>% 
+    (function(x){1-x$pi0})
+  rep.rates <- bind_rows(rep.rates, tibble("variants"="random_tests",
+                                           "pi1"=random.pi1, 
+                                           "npcs.bulk"=npc.bulk,
+                                           "npcs.pseudobulk"=npc.pseudobulk))
+  }
+}
+rep.rates$npcs.bulk <- factor(rep.rates$npcs.bulk, levels=c(0, 5, 10, 20))
+rep.rates$npcs.pseudobulk <- factor(rep.rates$npcs.pseudobulk, levels=c(0, 5, 10, 20))
+ggplot(rep.rates, aes(x=variants, y=pi1, fill=variants)) + 
+  geom_bar(position="dodge", stat="identity") +
+  facet_grid(cols=vars(npcs.bulk), rows=vars(npcs.pseudobulk)) + 
+  theme(axis.ticks.x=element_blank(), axis.ticks.y=element_blank(),
+        axis.text.x=element_blank())
+```
+
+## P-value comparison between experiments
+Looking across all tests, we see no correlation of p-values
+```{r pcomp_scatter, warning=FALSE, message=FALSE, echo=FALSE}
+bulk <- read_tsv("results/eqtl_dynamic/linear_dQTL/bulk/day/50k-5clpcs-5pcs.mtc.tsv") %>%
+  mutate(gv=paste(gene, snp, sep="--")) %>%
+  mutate(bulk.log10p=-log10(p.unadj)) %>%
+  select(gv, bulk.log10p)
+pseudobulk <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk/cmbin/50k-5clpcs-5pcs.mtc.tsv") %>%
+  mutate(gv=paste(gene, snp, sep="--")) %>%
+  mutate(pseudobulk.log10p=-log10(p.unadj)) %>%
+  select(gv, pseudobulk.log10p)
+comp <- inner_join(bulk, pseudobulk, by="gv")
+ggplot(comp, aes(x=bulk.log10p, y=pseudobulk.log10p, text=gv)) +
+  geom_point() +
+  stat_cor(aes(x=bulk.log10p, y=pseudobulk.log10p, label = ..r.label..))
+cor(comp$bulk.log10p, comp$pseudobulk.log10p)
+```
+
+Finally, we can look specifically at those dynamic eQTLs that _were_ significant at $q<=0.05$ in both experiments (mouse over a point to see the snp-gene pair)
+```{r consensus_hits, warning=FALSE, message=FALSE, echo=FALSE}
+bulk <- read_tsv("results/eqtl_dynamic/linear_dQTL/bulk/day/50k-5clpcs-5pcs.tophits.tsv") %>%
+  mutate(gv=paste(gene, snp, sep="--")) %>%
+  mutate(bulk.log10p=-log10(p.unadj)) %>%
+  filter(qval.unadj<=0.05) %>%
+  select(gv, bulk.log10p)
+pseudobulk <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk/cmbin/50k-5clpcs-5pcs.tophits.tsv") %>%
+  mutate(gv=paste(gene, snp, sep="--")) %>%
+  mutate(pseudobulk.log10p=-log10(p.unadj)) %>%
+  filter(qval.unadj<=0.05) %>%
+  select(gv, pseudobulk.log10p)
+comp <- inner_join(bulk, pseudobulk, by="gv")
+p <- ggplot(comp, aes(x=bulk.log10p, y=pseudobulk.log10p, text=gv)) +
+  geom_point() + 
+  theme_classic()
+ggplotly(p, tooltip="text")
+```
 
 ## dynQTL Visualization 
-```{r warning=FALSE, message=FALSE, echo=FALSE}
-nqtl <- 5
-dynqtl <- read_tsv("results/eqtl_dynamic/linear_dQTL/bulk/day/50k-3clpcs.tophits.tsv") %>%
-  select(gene, snp, bonf.p.unadj, qval) %>% 
-  filter(qval<=0.1) %>% 
+```{r classify_fcn, echo=FALSE, warning=FALSE, message=FALSE}
+classify.dynqtl <- function(beta.g, beta.gxt, beta.t, ..., t.low=0, t.high=15, thresh=1) {
+  beta.vgt.early = (beta.t*t.low + beta.gxt*0*t.low + beta.g*0) - (beta.t*t.low + beta.gxt*2*t.low + beta.g*2)
+  beta.vgt.late = (beta.t*t.high + beta.gxt*0*t.high + beta.g*0) - (beta.t*t.high + beta.gxt*2*t.high + beta.g*2)
+  
+  if (sign(beta.vgt.early)==sign(beta.vgt.late)) {
+    qtl.type = if_else(abs(beta.vgt.early)>=abs(beta.vgt.late), "early", "late")
+  } else {
+    if ((abs(beta.vgt.early)>=abs(beta.vgt.late)) & (abs(beta.vgt.late)<thresh)) {
+      qtl.type = "early"
+    } else if ((abs(beta.vgt.early)<abs(beta.vgt.late)) & (abs(beta.vgt.early)<thresh)) {
+      qtl.type = "late"
+    } else if ((abs(beta.vgt.early)>=thresh) & (abs(beta.vgt.late)>=thresh)) {
+      qtl.type = "switch"
+    }
+  }
+}
+```
+
+Visualize both early and late dynamic eQTLs that were detected in bulk
+```{r dynqtl_vis, warning=FALSE, message=FALSE, echo=FALSE}
+n.qtls <- 2
+dynqtl <- read_tsv("results/eqtl_dynamic/linear_dQTL/bulk/day/50k-5clpcs-5pcs.tophits.tsv") %>%
+  filter(qval.unadj<=0.05)
+dynqtl <- dynqtl %>%
+  mutate(qtl.type=pmap_chr(dynqtl, classify.dynqtl)) %>%
+  group_by(qtl.type) %>%
   arrange(bonf.p.unadj) %>% 
-  slice_head(n=nqtl)
+  slice_head(n=n.qtls)
 bulk_expr_all <- read_tsv("data/bulk_logtpm.full.tsv")
-pseudobulk_expr_all <- read_tsv("data/pseudobulk_logcpm.day.full.tsv")
+pseudobulk_expr_all <- read_tsv("data/pseudobulk_logcpm.cmbin.full.tsv")
 geno_all <- read_tsv("data/genotypes.filtered.tsv")
 
-for (i in seq(1, nqtl)) {
+for (i in seq(1, nrow(dynqtl))) {
   egene <- dynqtl$gene[i]
   evar <- dynqtl$snp[i]
   bulk_expr <- bulk_expr_all %>% filter(gene==!!egene) %>% 
@@ -77,224 +428,3 @@ for (i in seq(1, nqtl)) {
   print(p1 + p2 + plot_layout(ncol=1))
 }
 ```
-
-## Impact of varying the number of cell line PCs
-In order to avoid detecting false positives due to differences in the way cell lines proceed through differentiation, we regress out cell line PCs. Here we evaluate the impact of regressing out different numbers of PCs and compare the number of dynamic eQTLs detected in bulk compared to pseudobulk
-```{r, warning=FALSE, message=FALSE, echo=FALSE}
-for (dataset in c("bulk", "pseudobulk-drop2")) {
-  for (npc in seq(0, 5)) {
-    nhits <- read_tsv(paste0("results/eqtl_dynamic/linear_dQTL/", dataset, "/day/50k-", npc, "clpcs.tophits.tsv")) %>% filter(lfsr<=0.05) %>% nrow
-    if ((dataset=="bulk") & (npc==0)) {
-      sighits <- tibble("exp"=dataset, "pcs"=npc, "hits"=nhits)
-    } else {
-      sighits <- bind_rows(sighits, tibble("exp"=dataset, "pcs"=npc, "hits"=nhits))
-    }
-  }
-}
-
-ggplot(sighits, aes(x=pcs, y=hits)) + 
-  geom_bar(position="dodge", stat="identity") +
-  facet_grid(cols=vars(exp)) +
-  theme(axis.text.x=element_text(angle=45)) + 
-  ylab("# significant egenes")
-```
-
-There is a huge difference here between bulk and pseudobulk detection rates, and we can see by subsetting the bulk data to only 7 days (similar to what we have in pseudobulk) could be responsible for a large part of it
-```{r, warning=FALSE, message=FALSE, echo=FALSE}
-for (dataset in c("bulk7", "pseudobulk-drop2")) {
-  for (npc in seq(0, 5)) {
-    nhits <- read_tsv(paste0("results/eqtl_dynamic/linear_dQTL/", dataset, "/day/50k-", npc, "clpcs.tophits.tsv")) %>% filter(lfsr<=0.05) %>% nrow
-    if ((dataset=="bulk7") & (npc==0)) {
-      sighits <- tibble("exp"=dataset, "pcs"=npc, "hits"=nhits)
-    } else {
-      sighits <- bind_rows(sighits, tibble("exp"=dataset, "pcs"=npc, "hits"=nhits))
-    }
-  }
-}
-
-ggplot(sighits, aes(x=pcs, y=hits)) + 
-  geom_bar(position="dodge", stat="identity") +
-  facet_grid(cols=vars(exp)) +
-  theme(axis.text.x=element_text(angle=45)) + 
-  ylab("# significant egenes")
-```
-
-We see that we can bridge the gap by binning pseudobulk by pseudotime bin rather than day, effectively creating more time points
-```{r, warning=FALSE, message=FALSE, echo=FALSE}
-for (dataset in c("bulk", "pseudobulk")) {
-  if (dataset == "bulk") {
-    agg <- "day"
-  } else {
-    agg <- "cmbin"
-  }
-  for (npc in seq(0, 5)) {
-    nhits <- read_tsv(paste0("results/eqtl_dynamic/linear_dQTL/", dataset, "/", agg, "/50k-", npc, "clpcs.tophits.tsv")) %>% filter(lfsr<=0.05) %>% nrow
-    if ((dataset=="bulk") & (npc==0)) {
-      sighits <- tibble("exp"=dataset, "pcs"=npc, "hits"=nhits)
-    } else {
-      sighits <- bind_rows(sighits, tibble("exp"=dataset, "pcs"=npc, "hits"=nhits))
-    }
-  }
-}
-
-ggplot(sighits, aes(x=pcs, y=hits)) + 
-  geom_bar(position="dodge", stat="identity") +
-  facet_grid(cols=vars(exp)) +
-  theme(axis.text.x=element_text(angle=45)) + 
-  ylab("# significant egenes")
-```
-
-An alternative testing strategy would be to explicitly perform multiple testing correction at the gene level, followed by FDR correction with only the top hit per gene. We see that this does not lead to a notable change in the number of significant dynamic eGenes detected (except in pseudobulk without cell line PC regression, but these are likely to be confounded.
-```{r, warning=FALSE, message=FALSE, echo=FALSE}
-for (dataset in c("bulk", "pseudobulk")) {
-  if (dataset == "bulk") {
-    agg <- "day"
-  } else {
-    agg <- "cmbin"
-  }
-  for (npc in seq(0, 5)) {
-    nhits <- read_tsv(paste0("results/eqtl_dynamic/linear_dQTL/", dataset, "/", agg, "/50k-", npc, "clpcs.tophits.tsv")) %>% filter(qval<=0.05) %>% nrow
-    if ((dataset=="bulk") & (npc==0)) {
-      sighits <- tibble("exp"=dataset, "pcs"=npc, "hits"=nhits)
-    } else {
-      sighits <- bind_rows(sighits, tibble("exp"=dataset, "pcs"=npc, "hits"=nhits))
-    }
-  }
-}
-
-ggplot(sighits, aes(x=pcs, y=hits)) + 
-  geom_bar(position="dodge", stat="identity") +
-  facet_grid(cols=vars(exp)) +
-  theme(axis.text.x=element_text(angle=45)) + 
-  ylab("# significant egenes")
-```
-
-## Replication rates between bulk and pseudobulk
-To see whether these hits are appearing in both datasets, we can look at $\pi_1$ replication rates. First, we look at replication of bulk hits in pseudobulk, compared to a random set of variants. We see that regressing out 3 cell line PCs maximizes the replication rate.
-```{r, warning = FALSE, message = FALSE, echo=FALSE}
-rep.rates <- tibble("variants"=character(), "pi1"=numeric(), "npcs"=numeric())
-for (npc in seq(0, 5)) {
-  bulk.hits <- read_tsv(paste0("results/eqtl_dynamic/linear_dQTL/bulk/day/50k-", npc, "clpcs.tophits.tsv")) %>%
-    filter(qval<=0.1) %>% 
-    mutate(gv=paste(gene, snp, sep="--")) %>% 
-    rename(bulk.p=bonf.p.unadj) %>% 
-    select(c(bulk.p, gv))
-  
-  pseudobulk.pi1 <- read_tsv(paste0("results/eqtl_dynamic/linear_dQTL/pseudobulk/cmbin/50k-", npc, "clpcs.mtc.tsv")) %>%
-    mutate(gv=paste(gene, snp, sep="--")) %>%
-    filter(gv %in% bulk.hits$gv) %>%
-    .$p.adj %>%
-    qvalue %>% 
-    (function(x){1-x$pi0})
-  rep.rates <- bind_rows(rep.rates, tibble("variants"="bulk_hits",
-                                           "pi1"=pseudobulk.pi1, 
-                                           "npcs"=npc))
-  
-  random.pi1 <- read_tsv(paste0("results/eqtl_dynamic/linear_dQTL/pseudobulk/cmbin/50k-", npc, "clpcs.mtc.tsv")) %>%
-    mutate(gv=paste(gene, snp, sep="--")) %>%
-    sample_n(nrow(bulk.hits)) %>%
-    .$p.adj %>%
-    qvalue %>% 
-    (function(x){1-x$pi0})
-  rep.rates <- bind_rows(rep.rates, tibble("variants"="random",
-                                           "pi1"=random.pi1, 
-                                           "npcs"=npc))
-}
-
-ggplot(rep.rates, aes(x=npcs, y=pi1)) + 
-  geom_bar(position="dodge", stat="identity") +
-  facet_grid(cols=vars(variants))
-```
-
-Reversing this, we now look at replication of pseudobulk hits in bulk.
-```{r, warning = FALSE, message = FALSE, echo=FALSE}
-rep.rates <- tibble("variants"=character(), "pi1"=numeric(), "npcs"=numeric())
-for (npc in seq(0, 5)) {
-  pseudobulk.hits <- read_tsv(paste0("results/eqtl_dynamic/linear_dQTL/pseudobulk/cmbin/50k-", npc, "clpcs.tophits.tsv")) %>%
-    filter(qval<=0.1) %>% 
-    mutate(gv=paste(gene, snp, sep="--")) %>% 
-    rename(bulk.p=bonf.p.unadj) %>% 
-    select(c(bulk.p, gv))
-  
-  bulk.pi1 <- read_tsv(paste0("results/eqtl_dynamic/linear_dQTL/bulk/day/50k-", npc, "clpcs.mtc.tsv")) %>%
-    mutate(gv=paste(gene, snp, sep="--")) %>%
-    filter(gv %in% pseudobulk.hits$gv) %>%
-    .$p.adj %>%
-    qvalue %>% 
-    (function(x){1-x$pi0})
-  rep.rates <- bind_rows(rep.rates, tibble("variants"="bulk_hits",
-                                           "pi1"=bulk.pi1, 
-                                           "npcs"=npc))
-  
-  random.pi1 <- read_tsv(paste0("results/eqtl_dynamic/linear_dQTL/bulk/day/50k-", npc, "clpcs.mtc.tsv")) %>%
-    mutate(gv=paste(gene, snp, sep="--")) %>%
-    sample_n(nrow(pseudobulk.hits)) %>%
-    .$p.adj %>%
-    qvalue %>% 
-    (function(x){1-x$pi0})
-  rep.rates <- bind_rows(rep.rates, tibble("variants"="random",
-                                           "pi1"=random.pi1, 
-                                           "npcs"=npc))
-}
-
-ggplot(rep.rates, aes(x=npcs, y=pi1)) + 
-  geom_bar(position="dodge", stat="identity") +
-  facet_grid(cols=vars(variants))
-```
-
-### Comparing p values between samples
-Looking across all tests, there does not appear to be any correlation (as expected, considering most tests are null)
-```{r, warning=FALSE, message=FALSE, echo=FALSE}
-bulk <- read_tsv("results/eqtl_dynamic/linear_dQTL/bulk/day/50k-3clpcs.mtc.tsv") %>%
-  mutate(gv=paste(gene, snp, sep="--")) %>%
-  mutate(bulk.log10p=-log10(p.adj)) %>%
-  select(gv, bulk.log10p)
-pseudobulk <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk/cmbin/50k-3clpcs.mtc.tsv") %>%
-  mutate(gv=paste(gene, snp, sep="--")) %>%
-  mutate(pseudobulk.log10p=-log10(p.adj)) %>%
-  select(gv, pseudobulk.log10p)
-comp <- inner_join(bulk, pseudobulk, by="gv")
-ggplot(comp, aes(x=bulk.log10p, y=pseudobulk.log10p, text=gv)) +
-  geom_point()
-```
-
-Subsetting to only the tests that are significant in at least one of the differentiations, we see that pvalues are negatively correlated between the two experiments
-```{r, warning=FALSE, message=FALSE, echo=FALSE}
-bulk <- read_tsv("results/eqtl_dynamic/linear_dQTL/bulk/day/50k-3clpcs.mtc.tsv") %>%
-  mutate(gv=paste(gene, snp, sep="--")) %>%
-  mutate(bulk.log10p=-log10(p.adj)) %>%
-  rename(bulk.lfsr=lfsr) %>%
-  select(gv, bulk.log10p, bulk.lfsr)
-pseudobulk <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk/cmbin/50k-3clpcs.mtc.tsv") %>%
-  mutate(gv=paste(gene, snp, sep="--")) %>%
-  mutate(pseudobulk.log10p=-log10(p.adj)) %>%
-  rename(pseudobulk.lfsr=lfsr) %>%
-  select(gv, pseudobulk.log10p, pseudobulk.lfsr)
-comp <- inner_join(bulk, pseudobulk, by="gv") %>%
-  mutate(min.sig=mapply(min, bulk.lfsr, pseudobulk.lfsr)) %>%
-  filter(min.sig<=0.1)
-ggplot(comp, aes(x=bulk.log10p, y=pseudobulk.log10p, text=gv)) +
-  geom_point() + 
-  theme_classic()
-cor(comp$pseudobulk.log10p, comp$bulk.log10p)
-```
-
-Finally, we can look specifically at those dynamic eQTLs that _were_ significant at $lfsr<=0.1$ in both experiments (mouse over a point to see the snp-gene pair)
-```{r, warning=FALSE, message=FALSE, echo=FALSE}
-bulk <- read_tsv("results/eqtl_dynamic/linear_dQTL/bulk/day/50k-3clpcs.mtc.tsv") %>%
-  mutate(gv=paste(gene, snp, sep="--")) %>%
-  mutate(bulk.log10p=-log10(p.adj)) %>%
-  filter(lfsr<=0.1) %>%
-  select(gv, bulk.log10p)
-pseudobulk <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk/cmbin/50k-3clpcs.mtc.tsv") %>%
-  mutate(gv=paste(gene, snp, sep="--")) %>%
-  mutate(pseudobulk.log10p=-log10(p.adj)) %>%
-  filter(lfsr<=0.1) %>%
-  select(gv, pseudobulk.log10p)
-comp <- inner_join(bulk, pseudobulk, by="gv")
-p <- ggplot(comp, aes(x=bulk.log10p, y=pseudobulk.log10p, text=gv)) +
-  geom_point() + 
-  theme_classic()
-ggplotly(p, tooltip="text")
-```
-
