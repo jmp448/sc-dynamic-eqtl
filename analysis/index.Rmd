@@ -1,5 +1,5 @@
 ---
-title: "Home"
+title: "Project Overview"
 site: workflowr::wflow_site
 output:
   workflowr::wflow_html:
@@ -24,6 +24,7 @@ This project uses single-cell RNA sequencing data to find dynamic and cell type 
   - Code for trajectory inference is at `tbd`
 5. [Dynamic eQTLs](dynamic-eqtl.html)
   - Cell line PCA and some correlation analysis at [cell-line-pca.html](cell-line-pca.html)
+  - A comparison of the hits in isolated cardiomyocyte and EPDC lineages is at [dynamic-eqtl-2.html](dynamic-eqtl-2.html)
   - Code for preprocessing is at `code/preprocessing.R`
   - Code for eQTL calling is at `code/eqtl_dynamic.R`
   - Code for multiple testing/ false discovery correction is at `code/mtc_dynamic.R`
