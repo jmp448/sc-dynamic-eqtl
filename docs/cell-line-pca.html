@@ -509,16 +509,16 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomjmp448scdynamiceqtltree0a5ff0b436e05001ad79f5512bcfeac0e55aa886targetblank0a5ff0ba"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/jmp448/sc-dynamic-eqtl/tree/0a5ff0b436e05001ad79f5512bcfeac0e55aa886" target="_blank">0a5ff0b</a> </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomjmp448scdynamiceqtltree76e430198e4f0ea12bfd6da9f8e6a62888a43f73targetblank76e4301a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/jmp448/sc-dynamic-eqtl/tree/76e430198e4f0ea12bfd6da9f8e6a62888a43f73" target="_blank">76e4301</a> </a>
 </p>
 </div>
-<div id="strongRepositoryversionstrongahrefhttpsgithubcomjmp448scdynamiceqtltree0a5ff0b436e05001ad79f5512bcfeac0e55aa886targetblank0a5ff0ba" class="panel-collapse collapse">
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomjmp448scdynamiceqtltree76e430198e4f0ea12bfd6da9f8e6a62888a43f73targetblank76e4301a" class="panel-collapse collapse">
 <div class="panel-body">
 <p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility.
 </p>
 <p>
-The results in this page were generated with repository version <a href="https://github.com/jmp448/sc-dynamic-eqtl/tree/0a5ff0b436e05001ad79f5512bcfeac0e55aa886" target="_blank">0a5ff0b</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
+The results in this page were generated with repository version <a href="https://github.com/jmp448/sc-dynamic-eqtl/tree/76e430198e4f0ea12bfd6da9f8e6a62888a43f73" target="_blank">76e4301</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
 </p>
 <p>
 Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
@@ -618,7 +618,6 @@ Unstaged changes:
     Deleted:    analysis/cell-deconvolution.Rmd
     Deleted:    analysis/cibersort-calibration.Rmd
     Deleted:    analysis/deconvolution-results.Rmd
-    Modified:   analysis/index.Rmd
     Modified:   analysis/static_eqtl.Rmd
 
 </code></pre>
@@ -658,6 +657,40 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/76e430198e4f0ea12bfd6da9f8e6a62888a43f73/analysis/cell-line-pca.Rmd" target="_blank">76e4301</a>
+</td>
+<td>
+jmp448
+</td>
+<td>
+2021-01-20
+</td>
+<td>
+wflow_publish(“analysis/cell-line-pca.Rmd”)
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/jmp448/sc-dynamic-eqtl/e4c42392aae3f50de58d78de6aff9a0d36cc56a8/docs/cell-line-pca.html" target="_blank">e4c4239</a>
+</td>
+<td>
+jmp448
+</td>
+<td>
+2021-01-20
+</td>
+<td>
+Build site.
+</td>
+</tr>
 <tr>
 <td>
 Rmd
@@ -719,7 +752,44 @@ Updated results with replication
 <div id="regular-pca" class="section level2">
 <h2>Regular PCA</h2>
 <p>When we run PCA on both the bulk and pseudobulk data, we see that the primary source of variation between samples appears to be their progression through differentiation. <img src="figure/cell-line-pca.Rmd/regpca-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>When we incorporate subsequent principal components (specifically in bulk), we are able to distinguish between more than just early differentiation and late differentiation - PCs 2, 3, and 4 distinguish between EMT/CM/EPDC</p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-regpca-1">
+Past versions of regpca-1.png
+</button>
+</p>
+<div id="fig-regpca-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/e4c42392aae3f50de58d78de6aff9a0d36cc56a8/docs/figure/cell-line-pca.Rmd/regpca-1.png" target="_blank">e4c4239</a>
+</td>
+<td>
+jmp448
+</td>
+<td>
+2021-01-20
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>When we incorporate subsequent principal components (specifically in bulk), we are able to distinguish between more than just early differentiation and late differentiation - PCs 2, 3, and 4 distinguish between EMT/CM/EPDC <img src="figure/cell-line-pca.Rmd/sample_pc_lineage_detector-1.png" width="672" style="display: block; margin: auto;" /></p>
 <!-- What does this mean? Even in the bulk data, it is possible to resolve the multiple cell types we're working with -->
 <!-- ```{r, 3dplot, webgl=TRUE} -->
 <!-- type.res <- fracs %>% -->
@@ -740,23 +810,320 @@ Updated results with replication
 <h2>Cell Line PCA</h2>
 <div id="scree-plots" class="section level3">
 <h3>Scree plots</h3>
-<p><img src="figure/cell-line-pca.Rmd/clscree-1.png" width="672" style="display: block; margin: auto;" /><img src="figure/cell-line-pca.Rmd/clscree-2.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/cell-line-pca.Rmd/clscree-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-clscree-1">
+Past versions of clscree-1.png
+</button>
+</p>
+<div id="fig-clscree-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/e4c42392aae3f50de58d78de6aff9a0d36cc56a8/docs/figure/cell-line-pca.Rmd/clscree-1.png" target="_blank">e4c4239</a>
+</td>
+<td>
+jmp448
+</td>
+<td>
+2021-01-20
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p><img src="figure/cell-line-pca.Rmd/clscree-2.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-clscree-2">
+Past versions of clscree-2.png
+</button>
+</p>
+<div id="fig-clscree-2" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/e4c42392aae3f50de58d78de6aff9a0d36cc56a8/docs/figure/cell-line-pca.Rmd/clscree-2.png" target="_blank">e4c4239</a>
+</td>
+<td>
+jmp448
+</td>
+<td>
+2021-01-20
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </div>
 <div id="prediction-of-differentiation-speed" class="section level3">
 <h3>Prediction of differentiation speed</h3>
 <p>We see that the first bulk cell line PC appears to sort cell lines by differentiation speed <img src="figure/cell-line-pca.Rmd/bulk_deconv_order-1.png" width="1440" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-bulk_deconv_order-1">
+Past versions of bulk_deconv_order-1.png
+</button>
+</p>
+<div id="fig-bulk_deconv_order-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/e4c42392aae3f50de58d78de6aff9a0d36cc56a8/docs/figure/cell-line-pca.Rmd/bulk_deconv_order-1.png" target="_blank">e4c4239</a>
+</td>
+<td>
+jmp448
+</td>
+<td>
+2021-01-20
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <p><img src="figure/cell-line-pca.Rmd/bulk_diffspeed_cor-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-bulk_diffspeed_cor-1">
+Past versions of bulk_diffspeed_cor-1.png
+</button>
+</p>
+<div id="fig-bulk_diffspeed_cor-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/e4c42392aae3f50de58d78de6aff9a0d36cc56a8/docs/figure/cell-line-pca.Rmd/bulk_diffspeed_cor-1.png" target="_blank">e4c4239</a>
+</td>
+<td>
+jmp448
+</td>
+<td>
+2021-01-20
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <p>This trend appears with pseudobulk as well <img src="figure/cell-line-pca.Rmd/unnamed-chunk-1-1.png" width="1440" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-1-1">
+Past versions of unnamed-chunk-1-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-1-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/e4c42392aae3f50de58d78de6aff9a0d36cc56a8/docs/figure/cell-line-pca.Rmd/unnamed-chunk-1-1.png" target="_blank">e4c4239</a>
+</td>
+<td>
+jmp448
+</td>
+<td>
+2021-01-20
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </div>
 <div id="terminal-cell-type-prediction" class="section level3">
 <h3>Terminal cell type prediction</h3>
 <p>While the first cell line PC separates cell lines by differentiation speed, the second cell line PC differentiates between those cell lines that primarily produce cardiomyocytes and those that primarily produce epicardium-like cells <img src="figure/cell-line-pca.Rmd/ctpreds-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-ctpreds-1">
+Past versions of ctpreds-1.png
+</button>
+</p>
+<div id="fig-ctpreds-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/e4c42392aae3f50de58d78de6aff9a0d36cc56a8/docs/figure/cell-line-pca.Rmd/ctpreds-1.png" target="_blank">e4c4239</a>
+</td>
+<td>
+jmp448
+</td>
+<td>
+2021-01-20
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </div>
 </div>
 <div id="cell-line-pca-of-pseudotime-aggregated-pseudobulk-data" class="section level2">
 <h2>Cell Line PCA of Pseudotime-Aggregated Pseudobulk Data</h2>
 <p>If cell line PCA is primarily picking up on differences in differentiation speed and trajectory preference between cell lines, it is not immediately apparent that it would be necessary to apply cell line PCA to some of our other models, like dynamic eQTL calling on pseudobulk data aggregated by cell type. <img src="figure/cell-line-pca.Rmd/cmbin_clpca-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-cmbin_clpca-1">
+Past versions of cmbin_clpca-1.png
+</button>
+</p>
+<div id="fig-cmbin_clpca-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/e4c42392aae3f50de58d78de6aff9a0d36cc56a8/docs/figure/cell-line-pca.Rmd/cmbin_clpca-1.png" target="_blank">e4c4239</a>
+</td>
+<td>
+jmp448
+</td>
+<td>
+2021-01-20
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <p>However, if cell lines differentiate at different speeds, we will see broad differences in the distribution of cells across the pseudotime bins. This will impact TMM normalization, leading to differences between cell lines. <img src="figure/cell-line-pca.Rmd/cmbin_diffspeed-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-cmbin_diffspeed-1">
+Past versions of cmbin_diffspeed-1.png
+</button>
+</p>
+<div id="fig-cmbin_diffspeed-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/e4c42392aae3f50de58d78de6aff9a0d36cc56a8/docs/figure/cell-line-pca.Rmd/cmbin_diffspeed-1.png" target="_blank">e4c4239</a>
+</td>
+<td>
+jmp448
+</td>
+<td>
+2021-01-20
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <!-- ## Correlation Analysis -->
 <!-- Looking within each time point, do bulk samples from a specific cell line look more similar to pseudobulk samples from the same cell line than they do others? (Looking across all genes) -->
 <!-- ```{r} -->
