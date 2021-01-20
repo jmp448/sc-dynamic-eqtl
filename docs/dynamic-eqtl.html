@@ -425,7 +425,7 @@ div.tocify {
 <div class="tab-content">
 <div id="summary" class="tab-pane fade in active">
 <p>
-<strong>Last updated:</strong> 2021-01-12
+<strong>Last updated:</strong> 2021-01-20
 </p>
 <p>
 <strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 7 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 0
@@ -516,27 +516,30 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomjmp448scdynamiceqtltree35e2c763a7bce4ecdb109dc7d8688a28ba385001targetblank35e2c76a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/jmp448/sc-dynamic-eqtl/tree/35e2c763a7bce4ecdb109dc7d8688a28ba385001" target="_blank">35e2c76</a> </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomjmp448scdynamiceqtltreec6741b19442d44c5bfd8859aec9ed6522ba75cdatargetblankc6741b1a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/jmp448/sc-dynamic-eqtl/tree/c6741b19442d44c5bfd8859aec9ed6522ba75cda" target="_blank">c6741b1</a> </a>
 </p>
 </div>
-<div id="strongRepositoryversionstrongahrefhttpsgithubcomjmp448scdynamiceqtltree35e2c763a7bce4ecdb109dc7d8688a28ba385001targetblank35e2c76a" class="panel-collapse collapse">
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomjmp448scdynamiceqtltreec6741b19442d44c5bfd8859aec9ed6522ba75cdatargetblankc6741b1a" class="panel-collapse collapse">
 <div class="panel-body">
 <p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility.
 </p>
 <p>
-The results in this page were generated with repository version <a href="https://github.com/jmp448/sc-dynamic-eqtl/tree/35e2c763a7bce4ecdb109dc7d8688a28ba385001" target="_blank">35e2c76</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
+The results in this page were generated with repository version <a href="https://github.com/jmp448/sc-dynamic-eqtl/tree/c6741b19442d44c5bfd8859aec9ed6522ba75cda" target="_blank">c6741b1</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
 </p>
 <p>
 Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
 </p>
 <pre><code>
 Ignored files:
+    Ignored:    .Rhistory
     Ignored:    analysis/.Rhistory
     Ignored:    analysis/annotation.nb.html
     Ignored:    analysis/cell-line-pca.nb.html
     Ignored:    analysis/deconvolution.nb.html
+    Ignored:    analysis/dynamic-eqtl-2.nb.html
     Ignored:    analysis/dynamic-eqtl.nb.html
+    Ignored:    analysis/epigenetics.nb.html
     Ignored:    analysis/interaction-qtl.nb.html
     Ignored:    analysis/static_eqtl.nb.html
     Ignored:    code/.Rhistory
@@ -553,6 +556,7 @@ Ignored files:
     Ignored:    data/bulk_tpm.overlap.tsv
     Ignored:    data/cibersort/
     Ignored:    data/dynamic/
+    Ignored:    data/epigenetics/
     Ignored:    data/gene_locs.filtered.tsv
     Ignored:    data/genotypes.filtered.tsv
     Ignored:    data/gv_pairs.filtered.100k.tsv
@@ -569,6 +573,7 @@ Ignored files:
     Ignored:    data/pseudobulk_counts.col.overlap.tsv
     Ignored:    data/pseudobulk_counts.day.full.tsv
     Ignored:    data/pseudobulk_counts.day.overlap.tsv
+    Ignored:    data/pseudobulk_counts.epdcbin.full.tsv
     Ignored:    data/pseudobulk_counts.type.full.tsv
     Ignored:    data/pseudobulk_counts.type.overlap.tsv
     Ignored:    data/pseudobulk_cpm.cmbin.full.tsv
@@ -576,6 +581,7 @@ Ignored files:
     Ignored:    data/pseudobulk_cpm.col.overlap.tsv
     Ignored:    data/pseudobulk_cpm.day.full.tsv
     Ignored:    data/pseudobulk_cpm.day.overlap.tsv
+    Ignored:    data/pseudobulk_cpm.epdcbin.full.tsv
     Ignored:    data/pseudobulk_cpm.type.full.tsv
     Ignored:    data/pseudobulk_cpm.type.overlap.tsv
     Ignored:    data/pseudobulk_logcpm.cmbin.full.tsv
@@ -583,6 +589,7 @@ Ignored files:
     Ignored:    data/pseudobulk_logcpm.col.overlap.tsv
     Ignored:    data/pseudobulk_logcpm.day.full.tsv
     Ignored:    data/pseudobulk_logcpm.day.overlap.tsv
+    Ignored:    data/pseudobulk_logcpm.epdcbin.full.tsv
     Ignored:    data/pseudobulk_logcpm.type.full.tsv
     Ignored:    data/pseudobulk_logcpm.type.overlap.tsv
     Ignored:    data/seurat/
@@ -591,6 +598,8 @@ Ignored files:
     Ignored:    results/
 
 Untracked files:
+    Untracked:  analysis/dynamic-eqtl-2.Rmd
+    Untracked:  analysis/epigenetics.Rmd
     Untracked:  analysis/interaction-qtl.Rmd
     Untracked:  code/cell_line_pca.R
     Untracked:  code/cibersort.R
@@ -601,7 +610,7 @@ Untracked files:
     Untracked:  code/eqtl_static.R
     Untracked:  code/helpers.R
     Untracked:  code/list_tests.R
-    Untracked:  code/mashr.R
+    Untracked:  code/mashr_static.R
     Untracked:  code/mtc_dynamic.R
     Untracked:  code/mtc_interaction.R
     Untracked:  code/mtc_static.R
@@ -618,6 +627,8 @@ Unstaged changes:
     Modified:   analysis/cell-line-pca.Rmd
     Deleted:    analysis/cibersort-calibration.Rmd
     Deleted:    analysis/deconvolution-results.Rmd
+    Modified:   analysis/index.Rmd
+    Modified:   analysis/static_eqtl.Rmd
 
 </code></pre>
 <p>
@@ -656,6 +667,40 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/c6741b19442d44c5bfd8859aec9ed6522ba75cda/analysis/dynamic-eqtl.Rmd" target="_blank">c6741b1</a>
+</td>
+<td>
+jmp448
+</td>
+<td>
+2021-01-20
+</td>
+<td>
+wflow_publish(“analysis/dynamic-eqtl.Rmd”)
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/jmp448/sc-dynamic-eqtl/b4aafa83ce34c75d6f9d36c37d37e5285487166b/docs/dynamic-eqtl.html" target="_blank">b4aafa8</a>
+</td>
+<td>
+jmp448
+</td>
+<td>
+2021-01-12
+</td>
+<td>
+Build site.
+</td>
+</tr>
 <tr>
 <td>
 Rmd
@@ -716,484 +761,46 @@ wflow_publish(“analysis/dynamic-eqtl.Rmd”)
 </div>
 <div id="model-overview" class="section level2">
 <h2>Model Overview</h2>
-<p>Our dynamic eQTL calling framework is based on the following model: <span class="math display">\[{\bf y}_g \sim {\bf K} + {\bf (K*t)} + {\bf G}_v +  ({\bf G}_v*{\bf t})+{\bf t}\]</span> where<br />
+<p>Our dynamic eQTL calling framework is based on the following model: <span class="math display">\[{\bf y}_g \sim {\bf K}_{s} +{\bf K}_{cl}+({\bf K}_{cl}*{\bf t}) + {\bf G}_v + ({\bf G}_v*{\bf t})+{\bf t}\]</span> where<br />
 <span class="math inline">\({\bf y}_{g}\)</span> is a <span class="math inline">\(1*(nt)\)</span> array containing the log-normalized gene expression for gene <span class="math inline">\(g\)</span> for each (individual, time point) sample<br />
-<span class="math inline">\({\bf K}\)</span> is a <span class="math inline">\(C*(nt)\)</span> covariates matrix for <span class="math inline">\(C\)</span> covariates (an intercept plus cell line PCs)<br />
-<span class="math inline">\({\bf G}_v\)</span> is a <span class="math inline">\(1*(nt)\)</span> array containing the genotype dosages for each sample<br />
+<span class="math inline">\({\bf K}_s\)</span> is a <span class="math inline">\(C_s*(nt)\)</span> covariates matrix for <span class="math inline">\(C\)</span> sample covariates (an intercept plus expression PCs) <span class="math inline">\({\bf K}_{cl}\)</span> is a <span class="math inline">\(C_{cl}*(nt)\)</span> covariates matrix of cell-line covariates <span class="math inline">\({\bf G}_v\)</span> is a <span class="math inline">\(1*(nt)\)</span> array containing the genotype dosages for each sample<br />
 <span class="math inline">\({\bf t}_v\)</span> is a <span class="math inline">\(1*(nt)\)</span> array containing the time of collection for each sample<br />
 <span class="math inline">\(({\bf K}*{\bf t})\)</span> and <span class="math inline">\(({\bf G}*{\bf t})\)</span> capture the interaction of time with cell line PCs and genotype, respectively</p>
-<p>This model is applied to each gene-variant pair. A gene-variant pair is considered a significant dynamic eQTL (dynQTL) if it has a Storey’s q-value <span class="math inline">\(\leq 0.1\)</span> after Bonferroni multiple testing correction.</p>
+<p>This model is applied to each gene-variant pair. A gene-variant pair is considered a significant dynamic eQTL (dynQTL) if it has a Storey’s q-value <span class="math inline">\(\leq 0.05\)</span> after Bonferroni multiple testing correction.</p>
 </div>
-<div id="dynqtl-visualization" class="section level2">
-<h2>dynQTL Visualization</h2>
-<p><img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-2-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>
-<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-2-1">
-Past versions of unnamed-chunk-2-1.png
-</button>
-</p>
-<div id="fig-unnamed-chunk-2-1" class="collapse">
-<div class="table-responsive">
-<table class="table table-condensed table-hover">
-<thead>
-<tr>
-<th>
-Version
-</th>
-<th>
-Author
-</th>
-<th>
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/adf49b21f72dfe47e15dddbe857e64f642264b13/docs/figure/dynamic-eqtl.Rmd/unnamed-chunk-2-1.png" target="_blank">adf49b2</a>
-</td>
-<td>
-jmp448
-</td>
-<td>
-2021-01-12
-</td>
-</tr>
-</tbody>
-</table>
+<div id="bulk-dynamic-eqtl-calling" class="section level2">
+<h2>Bulk Dynamic eQTL Calling</h2>
+<p>In order to avoid detecting false positives due to differences in the way cell lines proceed through differentiation, we regress out cell line PCs, as well as expression PCs <img src="figure/dynamic-eqtl.Rmd/compare_detection-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/dynamic-eqtl.Rmd/binned_detection-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
-</div>
-<p><img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-2-2.png" width="672" style="display: block; margin: auto;" /></p>
-<p>
-<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-2-2">
-Past versions of unnamed-chunk-2-2.png
-</button>
-</p>
-<div id="fig-unnamed-chunk-2-2" class="collapse">
-<div class="table-responsive">
-<table class="table table-condensed table-hover">
-<thead>
-<tr>
-<th>
-Version
-</th>
-<th>
-Author
-</th>
-<th>
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/adf49b21f72dfe47e15dddbe857e64f642264b13/docs/figure/dynamic-eqtl.Rmd/unnamed-chunk-2-2.png" target="_blank">adf49b2</a>
-</td>
-<td>
-jmp448
-</td>
-<td>
-2021-01-12
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<p><img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-2-3.png" width="672" style="display: block; margin: auto;" /></p>
-<p>
-<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-2-3">
-Past versions of unnamed-chunk-2-3.png
-</button>
-</p>
-<div id="fig-unnamed-chunk-2-3" class="collapse">
-<div class="table-responsive">
-<table class="table table-condensed table-hover">
-<thead>
-<tr>
-<th>
-Version
-</th>
-<th>
-Author
-</th>
-<th>
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/adf49b21f72dfe47e15dddbe857e64f642264b13/docs/figure/dynamic-eqtl.Rmd/unnamed-chunk-2-3.png" target="_blank">adf49b2</a>
-</td>
-<td>
-jmp448
-</td>
-<td>
-2021-01-12
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<p><img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-2-4.png" width="672" style="display: block; margin: auto;" /></p>
-<p>
-<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-2-4">
-Past versions of unnamed-chunk-2-4.png
-</button>
-</p>
-<div id="fig-unnamed-chunk-2-4" class="collapse">
-<div class="table-responsive">
-<table class="table table-condensed table-hover">
-<thead>
-<tr>
-<th>
-Version
-</th>
-<th>
-Author
-</th>
-<th>
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/adf49b21f72dfe47e15dddbe857e64f642264b13/docs/figure/dynamic-eqtl.Rmd/unnamed-chunk-2-4.png" target="_blank">adf49b2</a>
-</td>
-<td>
-jmp448
-</td>
-<td>
-2021-01-12
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<p><img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-2-5.png" width="672" style="display: block; margin: auto;" /></p>
-<p>
-<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-2-5">
-Past versions of unnamed-chunk-2-5.png
-</button>
-</p>
-<div id="fig-unnamed-chunk-2-5" class="collapse">
-<div class="table-responsive">
-<table class="table table-condensed table-hover">
-<thead>
-<tr>
-<th>
-Version
-</th>
-<th>
-Author
-</th>
-<th>
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/adf49b21f72dfe47e15dddbe857e64f642264b13/docs/figure/dynamic-eqtl.Rmd/unnamed-chunk-2-5.png" target="_blank">adf49b2</a>
-</td>
-<td>
-jmp448
-</td>
-<td>
-2021-01-12
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</div>
-<div id="impact-of-varying-the-number-of-cell-line-pcs" class="section level2">
-<h2>Impact of varying the number of cell line PCs</h2>
-<p>In order to avoid detecting false positives due to differences in the way cell lines proceed through differentiation, we regress out cell line PCs. Here we evaluate the impact of regressing out different numbers of PCs and compare the number of dynamic eQTLs detected in bulk compared to pseudobulk <img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-3-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>
-<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-3-1">
-Past versions of unnamed-chunk-3-1.png
-</button>
-</p>
-<div id="fig-unnamed-chunk-3-1" class="collapse">
-<div class="table-responsive">
-<table class="table table-condensed table-hover">
-<thead>
-<tr>
-<th>
-Version
-</th>
-<th>
-Author
-</th>
-<th>
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/adf49b21f72dfe47e15dddbe857e64f642264b13/docs/figure/dynamic-eqtl.Rmd/unnamed-chunk-3-1.png" target="_blank">adf49b2</a>
-</td>
-<td>
-jmp448
-</td>
-<td>
-2021-01-12
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<p>There is a huge difference here between bulk and pseudobulk detection rates, and we can see by subsetting the bulk data to only 7 days (similar to what we have in pseudobulk) could be responsible for a large part of it <img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-4-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>
-<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-4-1">
-Past versions of unnamed-chunk-4-1.png
-</button>
-</p>
-<div id="fig-unnamed-chunk-4-1" class="collapse">
-<div class="table-responsive">
-<table class="table table-condensed table-hover">
-<thead>
-<tr>
-<th>
-Version
-</th>
-<th>
-Author
-</th>
-<th>
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/adf49b21f72dfe47e15dddbe857e64f642264b13/docs/figure/dynamic-eqtl.Rmd/unnamed-chunk-4-1.png" target="_blank">adf49b2</a>
-</td>
-<td>
-jmp448
-</td>
-<td>
-2021-01-12
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<p>We see that we can bridge the gap by binning pseudobulk by pseudotime bin rather than day, effectively creating more time points <img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>
-<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-5-1">
-Past versions of unnamed-chunk-5-1.png
-</button>
-</p>
-<div id="fig-unnamed-chunk-5-1" class="collapse">
-<div class="table-responsive">
-<table class="table table-condensed table-hover">
-<thead>
-<tr>
-<th>
-Version
-</th>
-<th>
-Author
-</th>
-<th>
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/adf49b21f72dfe47e15dddbe857e64f642264b13/docs/figure/dynamic-eqtl.Rmd/unnamed-chunk-5-1.png" target="_blank">adf49b2</a>
-</td>
-<td>
-jmp448
-</td>
-<td>
-2021-01-12
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<p>An alternative testing strategy would be to explicitly perform multiple testing correction at the gene level, followed by FDR correction with only the top hit per gene. We see that this does not lead to a notable change in the number of significant dynamic eGenes detected (except in pseudobulk without cell line PC regression, but these are likely to be confounded. <img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>
-<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-6-1">
-Past versions of unnamed-chunk-6-1.png
-</button>
-</p>
-<div id="fig-unnamed-chunk-6-1" class="collapse">
-<div class="table-responsive">
-<table class="table table-condensed table-hover">
-<thead>
-<tr>
-<th>
-Version
-</th>
-<th>
-Author
-</th>
-<th>
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/adf49b21f72dfe47e15dddbe857e64f642264b13/docs/figure/dynamic-eqtl.Rmd/unnamed-chunk-6-1.png" target="_blank">adf49b2</a>
-</td>
-<td>
-jmp448
-</td>
-<td>
-2021-01-12
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
+<div id="pseudobulk-dynamic-eqtl-calling" class="section level2">
+<h2>Pseudobulk Dynamic eQTL Calling</h2>
+<p>In order to avoid detecting false positives due to differences in the way cell lines proceed through differentiation, we regress out cell line PCs, as well as expression PCs <img src="figure/dynamic-eqtl.Rmd/compare_detection_pb-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/dynamic-eqtl.Rmd/binned_detection_pb-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 <div id="replication-rates-between-bulk-and-pseudobulk" class="section level2">
 <h2>Replication rates between bulk and pseudobulk</h2>
-<p>To see whether these hits are appearing in both datasets, we can look at <span class="math inline">\(\pi_1\)</span> replication rates. First, we look at replication of bulk hits in pseudobulk, compared to a random set of variants. We see that regressing out 3 cell line PCs maximizes the replication rate. <img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-7-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>
-<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-7-1">
-Past versions of unnamed-chunk-7-1.png
-</button>
-</p>
-<div id="fig-unnamed-chunk-7-1" class="collapse">
-<div class="table-responsive">
-<table class="table table-condensed table-hover">
-<thead>
-<tr>
-<th>
-Version
-</th>
-<th>
-Author
-</th>
-<th>
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/adf49b21f72dfe47e15dddbe857e64f642264b13/docs/figure/dynamic-eqtl.Rmd/unnamed-chunk-7-1.png" target="_blank">adf49b2</a>
-</td>
-<td>
-jmp448
-</td>
-<td>
-2021-01-12
-</td>
-</tr>
-</tbody>
-</table>
+<div id="cell-line-pcs" class="section level3">
+<h3>Cell Line PCs</h3>
+<p>To see whether these hits are appearing in both datasets, we can look at <span class="math inline">\(\pi_1\)</span> replication rates. First, we look at replication of bulk hits in pseudobulk, compared to a random set of tests, matched for distance to tss. The number of cell line PCs regressed out of bulk is indicated in the column header, pseudobulk in the row header <img src="figure/dynamic-eqtl.Rmd/reprates1-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>It may be more useful to look at replication of pseudobulk hits in bulk, since we would expect a subset of the bulk hits (those corresponding to increased expression among epicardium-like cells) not to be replicated. Here, again, bulk cell line PCs regressed out are shown in column headers, pseudobulk CLPCs regressed are in row headers. <img src="figure/dynamic-eqtl.Rmd/reprates2-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="sample-pcs" class="section level3">
+<h3>Sample PCs</h3>
+<p>Now let’s stick to 5 cell line PCs, and see how changing the number of sample PCs will affect this. First, looking at replication of bulk hits in pseudobulk. Columns are sample PCs regressed out of bulk, rows are sample PCs regressed out of pseudobulk. <img src="figure/dynamic-eqtl.Rmd/reprates_samp-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Now, look at replication of pseudobulk hits in bulk. Again, columns are sample PCs regressed out of bulk, rows are sample PCs regressed out of pseudobulk. <img src="figure/dynamic-eqtl.Rmd/reprates2_samp-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 </div>
-<p>Reversing this, we now look at replication of pseudobulk hits in bulk. <img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-8-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>
-<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-8-1">
-Past versions of unnamed-chunk-8-1.png
-</button>
-</p>
-<div id="fig-unnamed-chunk-8-1" class="collapse">
-<div class="table-responsive">
-<table class="table table-condensed table-hover">
-<thead>
-<tr>
-<th>
-Version
-</th>
-<th>
-Author
-</th>
-<th>
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/adf49b21f72dfe47e15dddbe857e64f642264b13/docs/figure/dynamic-eqtl.Rmd/unnamed-chunk-8-1.png" target="_blank">adf49b2</a>
-</td>
-<td>
-jmp448
-</td>
-<td>
-2021-01-12
-</td>
-</tr>
-</tbody>
-</table>
+<div id="p-value-comparison-between-experiments" class="section level2">
+<h2>P-value comparison between experiments</h2>
+<p>Looking across all tests, we see no correlation of p-values <img src="figure/dynamic-eqtl.Rmd/pcomp_scatter-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre><code>[1] 0.05603293</code></pre>
+<p>Finally, we can look specifically at those dynamic eQTLs that <em>were</em> significant at <span class="math inline">\(q&lt;=0.05\)</span> in both experiments (mouse over a point to see the snp-gene pair) <div id="htmlwidget-bfc3f274232c9c466624" style="width:672px;height:480px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="htmlwidget-bfc3f274232c9c466624">{"x":{"data":[{"x":[25.6017588570392,23.4644577556426,14.9542685743293,14.7886621449146,11.9966585453401,10.071286355668,9.16841421832114,8.74820478148579,7.92489654003877,7.08687269436458,6.90805485457979,5.99509205227376,5.66546131705509,5.3326703105447,5.04964073413119,4.90966969674892,4.87373181408052,4.76932746896883,4.53773242743913,4.34771750592476,4.24108060761224,4.15190711313401,4.05924658385998,3.77082094007496,3.76652532236252,3.62220659978328,3.51412110363597,3.47265875385664,3.3591872876259,3.2888725480229,3.25003675113135,3.23475456329118,3.00387525044017,2.95871602760029,2.88547206060001,2.87586672030087,2.85688991432769,2.8214910605162,2.75930159241298],"y":[11.3546026496429,16.3859795127663,10.4408676981037,6.18077967489761,3.99833175693935,2.97745318461281,5.80639887702007,4.2010936785221,4.13700971980077,9.13625027864676,3.64414185084508,8.70479765094859,3.64176510479183,5.34178464605301,4.94109211244949,4.48039214093076,4.4342129867775,4.03047386576158,7.9350462548555,6.2641634392836,4.29799585923559,6.69790706252566,7.0075633625007,5.4964131473345,5.33618815367255,3.73606181494135,4.09938566505397,3.41056576243895,4.2632334544566,3.57249659180459,3.39419450383165,3.57941967826986,4.19163994036444,5.98893436341864,4.11588919129039,3.09366744551361,3.95622355313293,5.14897399167744,2.94099602565306],"text":["LDHC--chr11_18412342","FABP2--chr4_119272392","PLA2G2A--chr1_19979653","TMEM176A--chr7_150793288","GJD2--chr15_34751391","DTD1--chr20_18542358","PPIP5K2--chr5_103086881","IGFBP1--chr7_45893070","TGM2--chr20_38142186","WDR60--chr7_158879928","FIGN--chr2_163607546","CENPU--chr4_184649399","CYP2B6--chr19_41012316","ITGA4--chr2_181486016","DYNLT1--chr6_158633395","RNPC3--chr1_103565559","NUP54--chr4_76159678","WDR59--chr16_74904185","ACSM1--chr16_20669907","CCND1--chr11_69653462","IL7R--chr5_35877403","FYN--chr6_111661054","ZNF560--chr19_9435125","HADHA--chr2_26187699","MTCH1--chr6_36968830","DUSP10--chr1_221736946","CCDC74A--chr2_131484131","NEFM--chr8_24917170","CSF1R--chr5_150053759","SRPK1--chr6_35819722","HABP2--chr10_113590838","DDT--chr22_23971817","ZNF483--chr9_111543296","CCL20--chr2_227815864","TMEM71--chr8_132638081","VSNL1--chr2_17515306","GRIA1--chr5_153525446","SSPN--chr12_26122622","ZDHHC17--chr12_76764639"],"type":"scatter","mode":"markers","marker":{"autocolorscale":false,"color":"rgba(0,0,0,1)","opacity":1,"size":5.66929133858268,"symbol":"circle","line":{"width":1.88976377952756,"color":"rgba(0,0,0,1)"}},"hoveron":"points","showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null}],"layout":{"margin":{"t":26.2283105022831,"r":7.30593607305936,"b":40.1826484018265,"l":37.2602739726027},"plot_bgcolor":"rgba(255,255,255,1)","paper_bgcolor":"rgba(255,255,255,1)","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187},"xaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[1.61717872918167,26.7438817202705],"tickmode":"array","ticktext":["5","10","15","20","25"],"tickvals":[5,10,15,20,25],"categoryorder":"array","categoryarray":["5","10","15","20","25"],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.65296803652968,"tickwidth":0.66417600664176,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":true,"linecolor":"rgba(0,0,0,1)","linewidth":0.66417600664176,"showgrid":false,"gridcolor":null,"gridwidth":0,"zeroline":false,"anchor":"y","title":{"text":"bulk.log10p","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187}},"hoverformat":".2f"},"yaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[2.2687468512974,17.0582286871219],"tickmode":"array","ticktext":["4","8","12","16"],"tickvals":[4,8,12,16],"categoryorder":"array","categoryarray":["4","8","12","16"],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.65296803652968,"tickwidth":0.66417600664176,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":true,"linecolor":"rgba(0,0,0,1)","linewidth":0.66417600664176,"showgrid":false,"gridcolor":null,"gridwidth":0,"zeroline":false,"anchor":"x","title":{"text":"pseudobulk.log10p","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187}},"hoverformat":".2f"},"shapes":[{"type":"rect","fillcolor":null,"line":{"color":null,"width":0,"linetype":[]},"yref":"paper","xref":"paper","x0":0,"x1":1,"y0":0,"y1":1}],"showlegend":false,"legend":{"bgcolor":"rgba(255,255,255,1)","bordercolor":"transparent","borderwidth":1.88976377952756,"font":{"color":"rgba(0,0,0,1)","family":"","size":11.689497716895}},"hovermode":"closest","barmode":"relative"},"config":{"doubleClick":"reset","showSendToCloud":false},"source":"A","attrs":{"f6d4390caa9b":{"x":{},"y":{},"text":{},"type":"scatter"}},"cur_data":"f6d4390caa9b","visdat":{"f6d4390caa9b":["function (y) ","x"]},"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script></p>
 </div>
-</div>
-<div id="comparing-p-values-between-samples" class="section level3">
-<h3>Comparing p values between samples</h3>
-<p>Looking across all tests, there does not appear to be any correlation (as expected, considering most tests are null) <img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-9-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>
-<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-9-1">
-Past versions of unnamed-chunk-9-1.png
-</button>
-</p>
-<div id="fig-unnamed-chunk-9-1" class="collapse">
-<div class="table-responsive">
-<table class="table table-condensed table-hover">
-<thead>
-<tr>
-<th>
-Version
-</th>
-<th>
-Author
-</th>
-<th>
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/adf49b21f72dfe47e15dddbe857e64f642264b13/docs/figure/dynamic-eqtl.Rmd/unnamed-chunk-9-1.png" target="_blank">adf49b2</a>
-</td>
-<td>
-jmp448
-</td>
-<td>
-2021-01-12
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<p>Subsetting to only the tests that are significant in at least one of the differentiations, we see that pvalues are negatively correlated between the two experiments <img src="figure/dynamic-eqtl.Rmd/unnamed-chunk-10-1.png" width="672" style="display: block; margin: auto;" /></p>
-<pre><code>[1] -0.6544881</code></pre>
-<p>Finally, we can look specifically at those dynamic eQTLs that <em>were</em> significant at <span class="math inline">\(lfsr&lt;=0.1\)</span> in both experiments (mouse over a point to see the snp-gene pair) <div id="htmlwidget-ba16190872a9bf89f5eb" style="width:672px;height:480px;" class="plotly html-widget"></div>
-<script type="application/json" data-for="htmlwidget-ba16190872a9bf89f5eb">{"x":{"data":[{"x":[10.4511333433911,10.4511333433911,10.4511333433911,3.91039306407308,4.9144124045036,3.05782943540623,5.54017799473724,3.42557960083281,5.06071981034791,3.64617168916195,3.47245009578626,4.66736160356594,4.66736160356594,4.66736160356594,4.66736160356594,4.66736160356594],"y":[2.9801745741993,2.9801745741993,2.9801745741993,7.35800858243702,4.47341388012957,2.2467119981721,9.12693471042615,2.68500969117187,2.89092242745247,3.40903529620993,4.48447642988278,3.61041206320346,3.61041206320346,3.61041206320346,3.61041206320346,3.61041206320346],"text":["GUF1--chr4_44691693","GUF1--chr4_44699883","GUF1--chr4_44704932","PPIP5K2--chr5_103086881","FYN--chr6_111661054","KPNA5--chr6_116632877","WDR60--chr7_158879928","ELP3--chr8_28083827","UFM1--chr13_38354839","CHURC1--chr14_64932537","CHURC1--chr14_64932545","CHURC1--chr14_64932573","CHURC1--chr14_64932588","CHURC1--chr14_64933351","CHURC1--chr14_64934977","CHURC1--chr14_64935101"],"type":"scatter","mode":"markers","marker":{"autocolorscale":false,"color":"rgba(0,0,0,1)","opacity":1,"size":5.66929133858268,"symbol":"circle","line":{"width":1.88976377952756,"color":"rgba(0,0,0,1)"}},"hoveron":"points","showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null}],"layout":{"margin":{"t":26.2283105022831,"r":7.30593607305936,"b":40.1826484018265,"l":31.4155251141553},"plot_bgcolor":"rgba(255,255,255,1)","paper_bgcolor":"rgba(255,255,255,1)","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187},"xaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[2.68816424000698,10.8207985387904],"tickmode":"array","ticktext":["3","5","7","9"],"tickvals":[3,5,7,9],"categoryorder":"array","categoryarray":["3","5","7","9"],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.65296803652968,"tickwidth":0.66417600664176,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":true,"linecolor":"rgba(0,0,0,1)","linewidth":0.66417600664176,"showgrid":false,"gridcolor":null,"gridwidth":0,"zeroline":false,"anchor":"y","title":{"text":"bulk.log10p","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187}},"hoverformat":".2f"},"yaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[1.9027008625594,9.47094584603885],"tickmode":"array","ticktext":["2","4","6","8"],"tickvals":[2,4,6,8],"categoryorder":"array","categoryarray":["2","4","6","8"],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.65296803652968,"tickwidth":0.66417600664176,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":true,"linecolor":"rgba(0,0,0,1)","linewidth":0.66417600664176,"showgrid":false,"gridcolor":null,"gridwidth":0,"zeroline":false,"anchor":"x","title":{"text":"pseudobulk.log10p","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187}},"hoverformat":".2f"},"shapes":[{"type":"rect","fillcolor":null,"line":{"color":null,"width":0,"linetype":[]},"yref":"paper","xref":"paper","x0":0,"x1":1,"y0":0,"y1":1}],"showlegend":false,"legend":{"bgcolor":"rgba(255,255,255,1)","bordercolor":"transparent","borderwidth":1.88976377952756,"font":{"color":"rgba(0,0,0,1)","family":"","size":11.689497716895}},"hovermode":"closest","barmode":"relative"},"config":{"doubleClick":"reset","showSendToCloud":false},"source":"A","attrs":{"419045fb9b366":{"x":{},"y":{},"text":{},"type":"scatter"}},"cur_data":"419045fb9b366","visdat":{"419045fb9b366":["function (y) ","x"]},"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script></p>
+<div id="dynqtl-visualization" class="section level2">
+<h2>dynQTL Visualization</h2>
+<p>Visualize both early and late dynamic eQTLs that were detected in bulk <img src="figure/dynamic-eqtl.Rmd/dynqtl_vis-1.png" width="672" style="display: block; margin: auto;" /><img src="figure/dynamic-eqtl.Rmd/dynqtl_vis-2.png" width="672" style="display: block; margin: auto;" /><img src="figure/dynamic-eqtl.Rmd/dynqtl_vis-3.png" width="672" style="display: block; margin: auto;" /><img src="figure/dynamic-eqtl.Rmd/dynqtl_vis-4.png" width="672" style="display: block; margin: auto;" /></p>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
@@ -1221,30 +828,31 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
- [1] patchwork_1.0.1 plotly_4.9.2.1  qvalue_2.21.0   forcats_0.5.0  
- [5] stringr_1.4.0   dplyr_1.0.2     purrr_0.3.4     readr_1.3.1    
- [9] tidyr_1.1.2     tibble_3.0.3    ggplot2_3.3.2   tidyverse_1.3.0
-[13] workflowr_1.6.2
+ [1] ggpubr_0.4.0    patchwork_1.0.1 plotly_4.9.2.1  qvalue_2.21.0  
+ [5] forcats_0.5.0   stringr_1.4.0   dplyr_1.0.2     purrr_0.3.4    
+ [9] readr_1.3.1     tidyr_1.1.2     tibble_3.0.3    ggplot2_3.3.2  
+[13] tidyverse_1.3.0 workflowr_1.6.2
 
 loaded via a namespace (and not attached):
- [1] Rcpp_1.0.5        lubridate_1.7.9   assertthat_0.2.1  rprojroot_1.3-2  
- [5] digest_0.6.25     R6_2.4.1          cellranger_1.1.0  plyr_1.8.6       
- [9] backports_1.1.10  reprex_0.3.0      evaluate_0.14     httr_1.4.2       
-[13] pillar_1.4.6      rlang_0.4.7       lazyeval_0.2.2    readxl_1.3.1     
-[17] rstudioapi_0.11   data.table_1.13.0 whisker_0.4       blob_1.2.1       
-[21] rmarkdown_2.4     labeling_0.3      splines_4.0.0     htmlwidgets_1.5.1
-[25] munsell_0.5.0     broom_0.7.0       compiler_4.0.0    httpuv_1.5.4     
-[29] modelr_0.1.8      xfun_0.18         pkgconfig_2.0.3   htmltools_0.5.0  
-[33] tidyselect_1.1.0  viridisLite_0.3.0 fansi_0.4.1       crayon_1.3.4     
-[37] dbplyr_1.4.4      withr_2.3.0       later_1.1.0.1     grid_4.0.0       
-[41] jsonlite_1.7.1    gtable_0.3.0      lifecycle_0.2.0   DBI_1.1.0        
-[45] git2r_0.27.1      magrittr_1.5      scales_1.1.1      cli_2.0.2        
-[49] stringi_1.5.3     farver_2.0.3      reshape2_1.4.4    fs_1.5.0         
-[53] promises_1.1.1    xml2_1.3.2        ellipsis_0.3.1    generics_0.0.2   
-[57] vctrs_0.3.4       tools_4.0.0       glue_1.4.2        crosstalk_1.1.0.1
-[61] hms_0.5.3         yaml_2.2.1        colorspace_1.4-1  rvest_0.3.6      
-[65] knitr_1.30        haven_2.3.1      </code></pre>
-</div>
+ [1] fs_1.5.0          lubridate_1.7.9   httr_1.4.2        rprojroot_1.3-2  
+ [5] tools_4.0.0       backports_1.1.10  R6_2.4.1          DBI_1.1.0        
+ [9] lazyeval_0.2.2    colorspace_1.4-1  withr_2.3.0       tidyselect_1.1.0 
+[13] curl_4.3          compiler_4.0.0    git2r_0.27.1      cli_2.0.2        
+[17] rvest_0.3.6       xml2_1.3.2        labeling_0.3      scales_1.1.1     
+[21] digest_0.6.25     foreign_0.8-78    rmarkdown_2.4     rio_0.5.16       
+[25] pkgconfig_2.0.3   htmltools_0.5.0   dbplyr_1.4.4      htmlwidgets_1.5.1
+[29] rlang_0.4.7       readxl_1.3.1      rstudioapi_0.11   generics_0.0.2   
+[33] farver_2.0.3      jsonlite_1.7.1    crosstalk_1.1.0.1 zip_2.1.1        
+[37] car_3.0-10        magrittr_1.5      Rcpp_1.0.5        munsell_0.5.0    
+[41] fansi_0.4.1       abind_1.4-5       lifecycle_0.2.0   stringi_1.5.3    
+[45] whisker_0.4       yaml_2.2.1        carData_3.0-4     plyr_1.8.6       
+[49] grid_4.0.0        blob_1.2.1        promises_1.1.1    crayon_1.3.4     
+[53] haven_2.3.1       splines_4.0.0     hms_0.5.3         knitr_1.30       
+[57] pillar_1.4.6      ggsignif_0.6.0    reshape2_1.4.4    reprex_0.3.0     
+[61] glue_1.4.2        evaluate_0.14     data.table_1.13.0 modelr_0.1.8     
+[65] vctrs_0.3.4       httpuv_1.5.4      cellranger_1.1.0  gtable_0.3.0     
+[69] assertthat_0.2.1  xfun_0.18         openxlsx_4.2.2    broom_0.7.0      
+[73] rstatix_0.6.0     later_1.1.0.1     viridisLite_0.3.0 ellipsis_0.3.1   </code></pre>
 </div>
 </div>
 
