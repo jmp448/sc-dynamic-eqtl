@@ -3,7 +3,7 @@ title: "Cardiomyocyte vs EPDC Lineage Comparison"
 output: html_notebook
 ---
 
-```{r}
+```{r libloader, echo=FALSE, warning=FALSE, message=FALSE}
 library(tidyverse)
 library(qvalue)
 ```
