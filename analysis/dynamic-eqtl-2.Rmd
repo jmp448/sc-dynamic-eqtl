@@ -1,0 +1,117 @@
+---
+title: "Cardiomyocyte vs EPDC Lineage Comparison"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(qvalue)
+```
+
+```{r classify_fcn, echo=FALSE, warning=FALSE, message=FALSE}
+classify.dynqtl <- function(beta.g, beta.gxt, beta.t, ..., t.low=0, t.high=15, thresh=1) {
+  beta.vgt.early = (beta.t*t.low + beta.gxt*0*t.low + beta.g*0) - (beta.t*t.low + beta.gxt*2*t.low + beta.g*2)
+  beta.vgt.late = (beta.t*t.high + beta.gxt*0*t.high + beta.g*0) - (beta.t*t.high + beta.gxt*2*t.high + beta.g*2)
+  
+  if (sign(beta.vgt.early)==sign(beta.vgt.late)) {
+    qtl.type = if_else(abs(beta.vgt.early)>=abs(beta.vgt.late), "early", "late")
+  } else {
+    if ((abs(beta.vgt.early)>=abs(beta.vgt.late)) & (abs(beta.vgt.late)<thresh)) {
+      qtl.type = "early"
+    } else if ((abs(beta.vgt.early)<abs(beta.vgt.late)) & (abs(beta.vgt.early)<thresh)) {
+      qtl.type = "late"
+    } else if ((abs(beta.vgt.early)>=thresh) & (abs(beta.vgt.late)>=thresh)) {
+      qtl.type = "switch"
+    }
+  }
+}
+```
+
+
+```{r time_ranges, echo=FALSE, message=FALSE, warning=FALSE}
+cm.medians <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk/cmbin/15bin_medians.tsv")
+t.low.cm <- cm.medians %>% 
+  mutate(bin=str_extract(bin.ind, "[^_]+$")) %>%
+  filter(bin == 1) %>%
+  .$t %>%
+  median
+t.high.cm <- cm.medians %>% 
+  mutate(bin=str_extract(bin.ind, "[^_]+$")) %>%
+  filter(bin == 15) %>%
+  .$t %>%
+  median
+
+epdc.medians <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk/epdcbin/15bin_medians.tsv")
+t.low.epdc <- epdc.medians %>% 
+  mutate(bin=str_extract(bin.ind, "[^_]+$")) %>%
+  filter(bin == 1) %>%
+  .$t %>%
+  median
+t.high.epdc <- epdc.medians %>% 
+  mutate(bin=str_extract(bin.ind, "[^_]+$")) %>%
+  filter(bin == 15) %>%
+  .$t %>%
+  median
+```
+
+How many variants do we detect in the cardiomyocyte lineage vs the EPDC lineage?
+```{r cm_count, warning=FALSE, message=FALSE, echo=FALSE}
+cm.dynqtl <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk/cmbin/50k-5clpcs-5pcs.tophits.tsv") %>%
+  filter(qval.unadj<=0.1)
+cm.dynqtl <- cm.dynqtl %>%
+  mutate(qtl.type=pmap_chr(cm.dynqtl, classify.dynqtl, t.low=t.low.cm, t.high=t.high.cm)) %>%
+  group_by(qtl.type) 
+table(cm.dynqtl$qtl.type)
+
+epdc.dynqtl <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk/epdcbin/50k-5clpcs-5pcs.tophits.tsv") %>%
+  filter(qval.unadj<=0.1)
+epdc.dynqtl <- epdc.dynqtl %>%
+  mutate(qtl.type=pmap_chr(epdc.dynqtl, classify.dynqtl, t.low=t.low.epdc, t.high=t.high.epdc)) %>%
+  group_by(qtl.type) 
+table(epdc.dynqtl$qtl.type)
+```
+
+```{r dist2tssmatcher, echo=FALSE, warning=FALSE, message=FALSE}
+all.tests <- read_tsv("data/gv_pairs.filtered.50k.tsv") %>%
+  mutate(gv=paste(gene, snp, sep="--"))
+get.matched <- function(tests) {
+  elim.genes <- str_extract(tests, "[^-]+")
+  match.dists <- all.tests %>% 
+    filter(gv %in% tests) %>%
+    .$dist2tss
+  candidates <- all.tests %>%
+    filter(!gene %in% elim.genes)
+  matched.tests <- bind_rows(map_dfr(match.dists, function(d){slice(candidates, which.min(abs(dist2tss-d)))}))$gv
+  matched.tests
+}
+```
+
+The $\pi_1$ replication rate between early hits is high
+```{r early_rep, warning=FALSE, message=FALSE, echo=FALSE}
+rep.rates <- tibble("variants"=character(), "pi1"=numeric(), "npcs"=numeric())
+cm.early.hits <- cm.dynqtl %>%
+  filter(qtl.type=="early") %>%
+  select(c(gene, snp))
+epdc.early.rep <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk/epdcbin/50k-5clpcs-5pcs.mtc.tsv") %>%
+  right_join(cm.early.hits, by=c("gene", "snp"))
+
+ggplot(epdc.early.rep, aes(x=p.unadj)) +
+  geom_histogram(binwidth=1/30)
+```
+
+```{r late_rep, warning=FALSE, message=FALSE, echo=FALSE}
+cm.late.hits <- cm.dynqtl %>%
+  filter(qtl.type=="late") %>%
+  select(c(gene, snp))
+epdc.late.rep <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk/epdcbin/50k-5clpcs-5pcs.mtc.tsv") %>%
+  right_join(cm.late.hits, by=c("gene", "snp"))
+
+ggplot(epdc.late.rep, aes(x=p.unadj)) +
+  geom_histogram(binwidth=1/30)
+
+epdc.late.pi1 <- epdc.late.rep %>%
+  .$p.unadj %>%
+  qvalue %>%
+  (function(x){1-x$pi0})
+epdc.late.pi1
+```
