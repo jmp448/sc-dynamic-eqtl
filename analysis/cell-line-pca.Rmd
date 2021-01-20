@@ -2,73 +2,107 @@
 title: "Cell Line PCA"
 output: html_notebook
 ---
-```{r warning=FALSE, message=FALSE}
+```{r libloader, warning=FALSE, message=FALSE, echo=FALSE}
 library(tidyverse)
 library(patchwork)
 library(scales)
 source("code/cell_line_pca.R")
+library(rgl)
+knitr::knit_hooks$set(webgl = hook_webgl)
+library(RColorBrewer)
+library(ggpubr)
 ```
 
 ## Regular PCA
-```{r, warning=FALSE, message=FALSE}
-pseudobulk <- read_tsv( "data/pseudobulk_logcpm.day.full.tsv")
+```{r fileload, warning=FALSE, message=FALSE, echo=FALSE}
+pseudobulk <- read_tsv( "data/pseudobulk_logcpm.day.full.tsv") 
 bulk <- read_tsv("data/bulk_logtpm.full.tsv")
 ```
 
-Run PCA on both datasets
-```{r}
+When we run PCA on both the bulk and pseudobulk data, we see that the primary source of variation between samples appears to be their progression through differentiation.
+```{r regpca, warning=FALSE, echo=FALSE, message=FALSE}
 pb.pca <- regular.pca(pseudobulk)
 pb.loadings <- pb.pca$u %>% mutate(day=as.numeric(str_extract(sample, "[^_]+$")))
-ggplot(pb.loadings, aes(x=PC1, y=PC2, color=day)) + geom_point() + theme_classic()
+p1 <- ggplot(pb.loadings, aes(x=PC1, y=PC2, color=day)) + 
+  geom_point() + 
+  theme_classic() +
+  ggtitle("Pseudobulk PCA")
+pve <- pb.pca$d^2/sum(pb.pca$d^2)
+p2 <- tibble("PVE"=pve[1:100]) %>%
+  rowid_to_column("PC") %>%
+  ggplot(aes(x=PC,y=PVE)) + 
+    geom_point() + 
+    theme_classic() +
+    ggtitle("Pseudobulk Scree")
 
 bulk.pca <- regular.pca(bulk)
 bulk.loadings <- bulk.pca$u %>% mutate(day=as.numeric(str_extract(sample, "[^_]+$")))
-ggplot(bulk.loadings, aes(x=PC1, y=PC2, color=day)) + geom_point() + theme_classic()
+p3 <- ggplot(bulk.loadings, aes(x=PC1, y=PC2, color=day)) + 
+  geom_point() + 
+  theme_classic() +
+  ggtitle("Bulk PCA")
+pve <- bulk.pca$d^2/sum(bulk.pca$d^2)
+p4 <- tibble("PVE"=pve[1:100]) %>%
+  rowid_to_column("PC") %>%
+  ggplot(aes(x=PC,y=PVE)) + 
+    geom_point() + 
+    theme_classic() +
+    ggtitle("Bulk Scree")
+
+p1 + p2 + p3 + p4 + plot_layout(ncol=2, nrow=2)
 ```
 
-<!-- Pseudobulk covariates -->
-```{r include=FALSE}
-metadata_pb <- read_tsv("/project2/gilad/reem/singlecellCM/SingleCellCMMetadataAllRounds-LineInfo.txt")
-metadata_pb <- metadata_pb[,1:18] %>% mutate(Line=str_replace(Line, "NA", "")) %>%
-  mutate(sample=paste(Line, `Differentiation Day`, sep="_"))
-# fix cell type for some columns
-metadata_pb <- metadata_pb %>% 
-  mutate(`Experiment Batch`=factor(`Experiment Batch`)) %>% 
-  mutate(`Diff Start Batch`=factor(`Diff Start Batch`)) %>%
-  mutate(`Beating on day of collection Y 1/N 0`=as.logical(`Beating on day of collection Y 1/N 0`))
-ct.proportions <- read_tsv("/project2/gilad/jpopp/sc-dynamic-eqtl/data/cibersort/outputs/pseudobulk_labels.true.tsv")
-covars <- left_join(metadata_pb, ct.proportions, by="sample") %>% left_join(pb.loadings, by="sample") %>% select(!c(day, sample))
-
-for (pc in 1:10) {
-  for (cv in colnames(select(covars, !starts_with("PC")))) {
-    fit.mod <- lm(as.formula(paste0("PC", pc, " ~ `", cv, "`")), data=covars)
-    rval <- summary(fit.mod)$adj.r.squared
-    if (pc==1 & cv=="Line") {
-      adj.rs <- tibble("PC"=pc, "Covariate"=cv, "Adj.R"=rval)
-    } else {
-      adj.rs <- bind_rows(adj.rs, tibble("PC"=pc, "Covariate"=cv, "Adj.R"=rval))
-    }
-  }
-}
-
-ggplot(adj.rs, aes(x=PC, y=Covariate, fill=Adj.R)) + geom_tile()
+When we incorporate subsequent principal components (specifically in bulk), we are able to distinguish between more than just early differentiation and late differentiation - PCs 2, 3, and 4 distinguish between EMT/CM/EPDC
+```{r sample_pc_lineage_detector, warning=FALSE, message=FALSE, echo=FALSE}
+fracs <- read_tsv("results/cibersort/bulk.inferred.tsv") %>%
+  rename(sample=Mixture) %>%
+  select(!c(`P-value`, Correlation, RMSE)) %>%
+  gather(!sample, key="type", value="pct") %>%
+  group_by(sample) %>%
+  filter(pct==max(pct)) %>%
+  select(!pct)
+cell.types <- c("iPSC", "meso", "cardiomes", "prog", "EMT", "CM", "EPDC")
+p <- inner_join(fracs, bulk.loadings, by="sample") %>%
+  gather(!c(sample, type, day), key="covariate", value="value") %>%
+  mutate(type=factor(type, levels=cell.types)) %>%
+  filter(covariate %in% paste0("PC", seq(1,5))) %>%
+  mutate(covariate=factor(covariate, levels=paste0("PC", seq(1,5)))) %>%
+  ggplot(aes(x=covariate, y=value, fill=type)) +
+  geom_boxplot() + theme_classic()
 ```
+
+<!-- What does this mean? Even in the bulk data, it is possible to resolve the multiple cell types we're working with -->
+<!-- ```{r, 3dplot, webgl=TRUE} -->
+<!-- type.res <- fracs %>% -->
+<!--   left_join(bulk.loadings, by="sample") %>% -->
+<!--   mutate(type=factor(type, levels=c("iPSC", "meso", "cardiomes", "EMT", "prog", "CM", "EPDC"))) -->
+<!-- getPalette = colorRampPalette(brewer.pal(7, "Spectral")) -->
+<!-- open3d() -->
+<!-- plot3d(type.res$PC1, type.res$PC3, type.res$PC4, -->
+<!--        col=getPalette(7)[type.res$type],  -->
+<!--        alpha=.75, -->
+<!--        size=2, -->
+<!--        type='s', -->
+<!--        xlab="PC1", ylab="PC3", zlab="PC4") -->
+<!-- legend3d("topright", legend = levels(type.res$type), pch = 16, col = brewer.pal(7, "Spectral"), cex=1, inset=c(0.01, 0.01)) -->
+<!-- ``` -->
 
 
 ## Cell Line PCA
-```{r warning=FALSE, message=FALSE}
+```{r clpca, warning=FALSE, message=FALSE, echo=FALSE}
 bulk.clpca <- cell.line.pca(bulk)
 pseudobulk.clpca <- cell.line.pca(pseudobulk)
 ```
 
-### Scree Plots
-```{r warning=FALSE, message=FALSE}
+### Scree plots
+```{r clscree, warning=FALSE, message=FALSE, echo=FALSE}
 plot(bulk.clpca$pve, main="Bulk Cell Line PVE", ylab="PVE", xlab="Cell Line PC")
 plot(pseudobulk.clpca$pve, main="Pseudobulk Cell Line PVE", ylab="PVE", xlab="Cell Line PC")
 ```
 
+### Prediction of differentiation speed
 We see that the first bulk cell line PC appears to sort cell lines by differentiation speed
-```{r, fig.width=15, fig.height=10, echo=FALSE}
+```{r bulk_deconv_order, fig.width=15, fig.height=10, warning=FALSE, message=FALSE, echo=FALSE}
 bulk.clpc1.order <- bulk.clpca$cell.line.pcs %>% select(c(ind, PC_1)) %>% arrange(PC_1) %>% .$ind
 cell.types <- c("iPSC", "meso", "EMT", "cardiomes", "prog", "CM", "EPDC")
 bulk.props <- read_tsv("results/cibersort/bulk.inferred.tsv") %>% 
@@ -87,8 +121,27 @@ ggplot(bulk.props, aes(x=day, y=frac, fill=type)) +
   theme_classic() + theme(axis.ticks.y = element_blank(), axis.text.y=element_blank())
 ```
 
+```{r bulk_diffspeed_cor, echo=FALSE, warning=FALSE, message=FALSE}
+ct.proportions <- read_tsv("results/cibersort/bulk.inferred.tsv") %>%
+  rename(sample=Mixture)
+
+diff.speed <- ct.proportions %>% 
+  mutate(early=iPSC+meso) %>%
+  mutate(ind=substr(sample, 1, 5)) %>%
+  group_by(ind) %>%
+  summarize(delay=sum(early), epdc=sum(EPDC), cm=sum(CM), emt=sum(EMT)) %>%
+  right_join(bulk.clpca$cell.line.pcs, by="ind")
+
+ggplot(diff.speed, aes(x=PC_1, y=delay)) +
+  geom_point() +
+  theme_classic() +
+  ylab("Differentiation Speed") +
+  xlab("Cell Line PC1") +
+  stat_cor(method = "pearson", cor.coef.name="rho", aes(label = ..r.label..))
+```
+
 This trend appears with pseudobulk as well
-```{r, fig.width=15, fig.height=10, echo=FALSE}
+```{r, fig.width=15, fig.height=10, echo=FALSE, warning=FALSE, message=FALSE}
 pseudobulk.clpc1.order <- pseudobulk.clpca$cell.line.pcs %>% select(c(ind, PC_1)) %>% arrange(PC_1) %>% .$ind
 pseudobulk.props <- read_tsv("results/cibersort/pseudobulk_fracs.indday.full.true.tsv") %>% 
   gather(!sample, key="type", value="frac") %>% 
@@ -104,35 +157,86 @@ ggplot(pseudobulk.props, aes(x=day, y=frac, fill=type)) +
   theme_classic() + theme(axis.ticks.y = element_blank(), axis.text.y=element_blank())
 ```
 
-## Correlation Analysis
-Looking within each time point, do bulk samples from a specific cell line look more similar to pseudobulk samples from the same cell line than they do others? (Looking across all genes)
-```{r}
-p <- read_tsv("results/eqtl_static/correlation.tsv")
-p <- p %>% mutate(sim=if_else(cl1==cl2, "same", "diff"))
-ggplot(p, aes(x=sim, y=rho, fill=sim)) +
-  geom_boxplot() +
-  facet_grid(rows=vars(day), cols=vars(npcs))
-```
-Focus on one example and perform Wilcoxon's Rank Sum Test
-```{r, warning=FALSE, message=FALSE}
-p1 <- p %>% filter((day=="day0") & (npcs==3))
-alt <- p1 %>% filter(sim=="same") %>% .$rho
-null <- p1 %>% filter(sim=="diff") %>% .$rho
-wilcox.test(alt, null, 'g')
+### Terminal cell type prediction
+While the first cell line PC separates cell lines by differentiation speed, the second cell line PC differentiates between those cell lines that primarily produce cardiomyocytes and those that primarily produce epicardium-like cells
+```{r ctpreds, echo=FALSE, message=FALSE, warning=FALSE}
+terminal.cell.type <- ct.proportions %>%
+  select(!c(`P-value`, Correlation, RMSE)) %>%
+  mutate(ind=str_sub(sample, 1, 5)) %>%
+  mutate(day=as.numeric(str_extract(sample, "[^_]+$"))) %>%
+  gather(!c(sample, ind, day), key="type", value="frac") %>%
+  filter(day %in% seq(10, 15)) %>%
+  group_by(ind, type) %>%
+  summarize(frac=sum(frac)) %>%
+  group_by(ind) %>%
+  slice(which.max(frac)) %>%
+  select(!frac) %>%
+  left_join(bulk.clpca$cell.line.pcs) %>%
+  mutate(type=factor(type, levels=c("CM", "EPDC", "EMT"))) %>%
+  gather(!c(ind, type), key="covariate", value="value") %>%
+  mutate(covariate=factor(covariate, levels=paste0("PC_", seq(1, 5))))
+
+ggplot(terminal.cell.type, aes(x=covariate, fill=type, y=value)) +
+  geom_boxplot() + theme_classic() + xlab("Cell Line PC")
 ```
 
-Now look at a different metric, where each point corresponds to a single gene's correlation between 
-```{r}
-p.gene <- read_tsv("results/eqtl_static/correlation2.tsv")
-ggplot(p.gene, aes(x=permuted, y=rho, fill=permuted)) +
-  geom_boxplot() +
-  facet_grid(rows=vars(day), cols=vars(npcs))
+## Cell Line PCA of Pseudotime-Aggregated Pseudobulk Data
+If cell line PCA is primarily picking up on differences in differentiation speed and trajectory preference between cell lines, it is not immediately apparent that it would be necessary to apply cell line PCA to some of our other models, like dynamic eQTL calling on pseudobulk data aggregated by cell type. 
+```{r cmbin_clpca, echo=FALSE, warning=FALSE, message=FALSE}
+pb.cmbin <- read_tsv( "data/pseudobulk_logcpm.cmbin.full.tsv") 
+pseudobulk.clpca <- cell.line.pca(pb.cmbin)
+plot(pseudobulk.clpca$pve, main="Pseudobulk Cell Line PVE", ylab="PVE", xlab="Cell Line PC")
 ```
 
-Focus on one example and perform Wilcoxon's Rank Sum Test
-```{r, warning=FALSE, message=FALSE}
-p.gene1 <- p.gene %>% filter((day=="day0") & (npcs==0))
-alt <- p.gene1 %>% filter(permuted==FALSE) %>% .$rho
-null <- p.gene1 %>% filter(permuted==TRUE) %>% .$rho
-wilcox.test(alt, null, 'g')
+However, if cell lines differentiate at different speeds, we will see broad differences in the distribution of cells across the pseudotime bins. This will impact TMM normalization, leading to differences between cell lines. 
+```{r cmbin_diffspeed, echo=FALSE, warning=FALSE, message=FALSE}
+ct.proportions <- read_tsv("results/cibersort/pseudobulk_fracs.indday.full.true.tsv")
+
+diff.speed <- ct.proportions %>% 
+  mutate(early=iPSC+meso) %>%
+  mutate(ind=substr(sample, 1, 5)) %>%
+  group_by(ind) %>%
+  summarize(delay=sum(early)) %>%
+  right_join(pseudobulk.clpca$cell.line.pcs, by="ind")
+
+ggplot(diff.speed, aes(x=PC_1, y=delay)) +
+  geom_point() +
+  theme_classic() +
+  ylab("Differentiation Speed") +
+  xlab("Cell Line PC1") +
+  stat_cor(method = "pearson", cor.coef.name="rho", aes(label = ..r.label..))
 ```
+
+<!-- ## Correlation Analysis -->
+<!-- Looking within each time point, do bulk samples from a specific cell line look more similar to pseudobulk samples from the same cell line than they do others? (Looking across all genes) -->
+<!-- ```{r} -->
+<!-- p <- read_tsv("results/eqtl_static/correlation.tsv") -->
+<!-- p <- p %>% mutate(sim=if_else(cl1==cl2, "same", "diff")) -->
+<!-- ggplot(p, aes(x=sim, y=rho, fill=sim)) + -->
+<!--   geom_boxplot() + -->
+<!--   facet_grid(rows=vars(day), cols=vars(npcs)) -->
+<!-- ``` -->
+<!-- Focus on one example and perform Wilcoxon's Rank Sum Test -->
+
+<!-- ```{r, warning=FALSE, message=FALSE} -->
+<!-- p1 <- p %>% filter((day=="day0") & (npcs==3)) -->
+<!-- alt <- p1 %>% filter(sim=="same") %>% .$rho -->
+<!-- null <- p1 %>% filter(sim=="diff") %>% .$rho -->
+<!-- wilcox.test(alt, null, 'g') -->
+<!-- ``` -->
+
+<!-- Now look at a different metric, where each point corresponds to a single gene's correlation between  -->
+<!-- ```{r} -->
+<!-- p.gene <- read_tsv("results/eqtl_static/correlation2.tsv") -->
+<!-- ggplot(p.gene, aes(x=permuted, y=rho, fill=permuted)) + -->
+<!--   geom_boxplot() + -->
+<!--   facet_grid(rows=vars(day), cols=vars(npcs)) -->
+<!-- ``` -->
+
+<!-- Focus on one example and perform Wilcoxon's Rank Sum Test -->
+<!-- ```{r, warning=FALSE, message=FALSE} -->
+<!-- p.gene1 <- p.gene %>% filter((day=="day0") & (npcs==0)) -->
+<!-- alt <- p.gene1 %>% filter(permuted==FALSE) %>% .$rho -->
+<!-- null <- p.gene1 %>% filter(permuted==TRUE) %>% .$rho -->
+<!-- wilcox.test(alt, null, 'g') -->
+<!-- ``` -->
