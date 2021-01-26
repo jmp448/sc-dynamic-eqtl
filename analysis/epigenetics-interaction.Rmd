@@ -1,0 +1,313 @@
+---
+title: "Epigenetic Analysis of Cell Type Interaction eQTLs"
+output: html_notebook
+---
+
+```{r libloader, echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(qvalue)
+```
+
+```{bash libloader2, include=FALSE}
+module load bedtools
+```
+
+```{r helpers, warning=FALSE, message=FALSE, echo=FALSE}
+classify.ieqtl <- function(beta.g, beta.gxt, beta.t, ..., t.low=0, t.high=1, thresh=1) {
+  beta.vgt.early = (beta.t*t.low + beta.gxt*0*t.low + beta.g*0) - (beta.t*t.low + beta.gxt*2*t.low + beta.g*2)
+  beta.vgt.late = (beta.t*t.high + beta.gxt*0*t.high + beta.g*0) - (beta.t*t.high + beta.gxt*2*t.high + beta.g*2)
+  
+  if (sign(beta.vgt.early)==sign(beta.vgt.late)) {
+    qtl.type = if_else(abs(beta.vgt.early)>=abs(beta.vgt.late), "decrease", "increase")
+  } else {
+    if ((abs(beta.vgt.early)>=abs(beta.vgt.late)) & (abs(beta.vgt.late)<thresh)) {
+      qtl.type = "decrease"
+    } else if ((abs(beta.vgt.early)<abs(beta.vgt.late)) & (abs(beta.vgt.early)<thresh)) {
+      qtl.type = "increase"
+    } else if ((abs(beta.vgt.early)>=thresh) & (abs(beta.vgt.late)>=thresh)) {
+      qtl.type = "switch"
+    }
+  }
+}
+
+all.tests <- read_tsv("data/gv_pairs.filtered.50k.tsv") %>%
+  mutate(gv=paste(gene, snp, sep="--"))
+get.matched <- function(tests) {
+  elim.genes <- str_extract(tests, "[^-]+")
+  match.dists <- all.tests %>% 
+    filter(gv %in% tests) %>%
+    .$dist2tss
+  candidates <- all.tests %>%
+    filter(!gene %in% elim.genes)
+  matched.tests <- bind_rows(map_dfr(match.dists, function(d){slice(candidates, which.min(abs(dist2tss-d)))}))$gv
+  matched.tests
+}
+
+annotate_hits <- function(epi, celltype) {
+  read_tsv(paste0("results/epigenetics/ieQTL/bulk/", celltype, "/50k-5clpcs-5pcs.", epi, ".bed"), col_names=F) %>%
+    `colnames<-`(c("chr", "start", "stop", "annotation")) %>%
+    rename("{epi}":=annotation)
+}
+
+is_active <- function(annot) {
+  if_else(as.numeric(str_extract(annot, "[^_]+"))<=8, "active", "inactive")
+}
+
+ipsc_epis <- c("E018", "E019", "E020", "E021", "E022")
+heart_epis <- c("E083", "E104", "E095", "E105", "E065")
+muscle_epis <- c("E076", "E078", "E103", "E111")
+
+ipsc_hits <- read_tsv("results/eqtl_dynamic/ieQTL/bulk/iPSC/50k-5clpcs-5pcs.sighits.bed")
+cm_hits <- read_tsv("results/eqtl_dynamic/ieQTL/bulk/CM/50k-5clpcs-5pcs.sighits.bed")
+epdc_hits <- read_tsv("results/eqtl_dynamic/ieQTL/bulk/EPDC/50k-5clpcs-5pcs.sighits.bed")
+```
+
+```{r ipsc_ieqtl_bed, warning=FALSE, message=FALSE, echo=FALSE, include=FALSE, eval=FALSE}
+ipsc.ieqtl <- read_tsv("results/eqtl_dynamic/ieQTL/bulk/iPSC/50k-5clpcs-5pcs.tophits.tsv") %>%
+  filter(qval.unadj<=0.05) %>% 
+  rename(beta.g=g, beta.t="iPSC", beta.gxt=coefficients) %>%
+  mutate(qtl.type=pmap_chr(., classify.ieqtl)) %>%
+  filter(qtl.type != "switch")
+
+background.ipsc <- read_tsv(paste0("results/eqtl_dynamic/ieQTL/bulk/iPSC/50k-5clpcs-5pcs.adj.tsv")) %>%
+  rename(beta.g=g, beta.t="iPSC", beta.gxt=coefficients) %>%
+  mutate(gv=paste(gene, snp, sep="--")) %>%
+  filter(gv %in% get.matched(paste(ipsc.ieqtl$gene, ipsc.ieqtl$snp, sep="--"))) %>%
+  mutate(qtl.type="background")
+
+ipsc.ieqtl.bed <- ipsc.ieqtl %>%
+  bind_rows(background.ipsc) %>%
+  mutate(chr=str_extract(snp, "[^_]+")) %>%
+  mutate(stop=as.numeric(str_extract(snp, "[^_]+$"))) %>%
+  mutate(start=stop-1) %>%
+  select(chr, start, stop, qtl.type) %>%
+  write_tsv("results/eqtl_dynamic/ieQTL/bulk/iPSC/50k-5clpcs-5pcs.sighits.bed")
+```
+
+```{r cm_ieqtl_bed, warning=FALSE, message=FALSE, echo=FALSE, include=FALSE, eval=FALSE}
+cm.ieqtl <- read_tsv("results/eqtl_dynamic/ieQTL/bulk/CM/50k-5clpcs-5pcs.tophits.tsv") %>%
+  filter(qval.unadj<=0.05) %>% 
+  rename(beta.g=g, beta.t="CM", beta.gxt=coefficients) %>%
+  mutate(qtl.type=pmap_chr(., classify.ieqtl)) %>%
+  filter(qtl.type != "switch")
+
+background.cm <- read_tsv(paste0("results/eqtl_dynamic/ieQTL/bulk/CM/50k-5clpcs-5pcs.adj.tsv")) %>%
+  rename(beta.g=g, beta.t="CM", beta.gxt=coefficients) %>%
+  mutate(gv=paste(gene, snp, sep="--")) %>%
+  filter(gv %in% get.matched(paste(cm.ieqtl$gene, cm.ieqtl$snp, sep="--"))) %>%
+  mutate(qtl.type="background")
+
+cm.ieqtl.bed <- cm.ieqtl %>%
+  bind_rows(background.cm) %>%
+  mutate(chr=str_extract(snp, "[^_]+")) %>%
+  mutate(stop=as.numeric(str_extract(snp, "[^_]+$"))) %>%
+  mutate(start=stop-1) %>%
+  select(chr, start, stop, qtl.type) %>%
+  write_tsv("results/eqtl_dynamic/ieQTL/bulk/CM/50k-5clpcs-5pcs.sighits.bed")
+```
+
+```{r epdc_ieqtl_bed, warning=FALSE, message=FALSE, echo=FALSE, include=FALSE, eval=FALSE}
+epdc.ieqtl <- read_tsv("results/eqtl_dynamic/ieQTL/bulk/EPDC/50k-5clpcs-5pcs.tophits.tsv") %>%
+  filter(qval.unadj<=0.05) %>% 
+  rename(beta.g=g, beta.t="EPDC", beta.gxt=coefficients) %>%
+  mutate(qtl.type=pmap_chr(., classify.ieqtl)) %>%
+  filter(qtl.type != "switch")
+
+background.epdc <- read_tsv(paste0("results/eqtl_dynamic/ieQTL/bulk/EPDC/50k-5clpcs-5pcs.adj.tsv")) %>%
+  rename(beta.g=g, beta.t="EPDC", beta.gxt=coefficients) %>%
+  mutate(gv=paste(gene, snp, sep="--")) %>%
+  filter(gv %in% get.matched(paste(epdc.ieqtl$gene, epdc.ieqtl$snp, sep="--"))) %>%
+  mutate(qtl.type="background")
+
+epdc.ieqtl.bed <- epdc.ieqtl %>%
+  bind_rows(background.epdc) %>%
+  mutate(chr=str_extract(snp, "[^_]+")) %>%
+  mutate(stop=as.numeric(str_extract(snp, "[^_]+$"))) %>%
+  mutate(start=stop-1) %>%
+  select(chr, start, stop, qtl.type) %>%
+  write_tsv("results/eqtl_dynamic/ieQTL/bulk/EPDC/50k-5clpcs-5pcs.sighits.bed")
+```
+
+```{bash find_intersect_ipsc_ipsc, include=FALSE, eval=FALSE}
+declare -a ipsc_epis=( "E018" "E019" "E020" "E021" "E022" )
+for epi in ${ipsc_epis[@]}; do
+  bedtools intersect -a data/epigenomes/iPSC/${epi}_15state.bed \
+  -b results/eqtl_dynamic/ieQTL/bulk/iPSC/50k-5clpcs-5pcs.sighits.bed \
+  > results/epigenetics/ieQTL/bulk/iPSC/50k-5clpcs-5pcs.${epi}.bed
+done
+```
+
+```{bash find_intersect_cm_ipsc, include=FALSE, eval=FALSE}
+declare -a ipsc_epis=( "E018" "E019" "E020" "E021" "E022" )
+for epi in ${ipsc_epis[@]}; do
+  bedtools intersect -a data/epigenomes/iPSC/${epi}_15state.bed \
+  -b results/eqtl_dynamic/ieQTL/bulk/CM/50k-5clpcs-5pcs.sighits.bed \
+  > results/epigenetics/ieQTL/bulk/CM/50k-5clpcs-5pcs.${epi}.bed
+done
+```
+
+```{bash find_intersect_epdc_ipsc, include=FALSE, eval=FALSE}
+for epi in ${ipsc_epis[@]}; do
+  bedtools intersect -a data/epigenomes/iPSC/${epi}_15state.bed \
+  -b results/eqtl_dynamic/ieQTL/bulk/EPDC/50k-5clpcs-5pcs.sighits.bed \
+  > results/epigenetics/ieQTL/bulk/EPDC/50k-5clpcs-5pcs.${epi}.bed
+done
+```
+
+```{bash find_intersect_ipsc_heart, include=FALSE, eval=FALSE}
+declare -a heart_epis=( "E083" "E104" "E095" "E105" "E065" )
+for epi in ${heart_epis[@]}; do
+  bedtools intersect -a data/epigenomes/heart/${epi}_15state.bed \
+  -b results/eqtl_dynamic/ieQTL/bulk/iPSC/50k-5clpcs-5pcs.sighits.bed \
+  > results/epigenetics/ieQTL/bulk/iPSC/50k-5clpcs-5pcs.${epi}.bed
+done
+```
+
+```{bash find_intersect_cm_heart, include=FALSE, eval=FALSE}
+declare -a heart_epis=( "E083" "E104" "E095" "E105" "E065" )
+for epi in ${heart_epis[@]}; do
+  bedtools intersect -a data/epigenomes/heart/${epi}_15state.bed \
+  -b results/eqtl_dynamic/ieQTL/bulk/CM/50k-5clpcs-5pcs.sighits.bed \
+  > results/epigenetics/ieQTL/bulk/CM/50k-5clpcs-5pcs.${epi}.bed
+done
+```
+
+```{bash find_intersect_epdc_heart, include=FALSE, eval=FALSE}
+for epi in ${heart_epis[@]}; do
+  bedtools intersect -a data/epigenomes/heart/${epi}_15state.bed \
+  -b results/eqtl_dynamic/ieQTL/bulk/EPDC/50k-5clpcs-5pcs.sighits.bed \
+  > results/epigenetics/ieQTL/bulk/EPDC/50k-5clpcs-5pcs.${epi}.bed
+done
+```
+
+```{bash find_intersect_epdc_muscle, include=FALSE, eval=FALSE}
+declare -a muscle_epis=( "E076" "E078" "E103" "E111" )
+for epi in ${muscle_epis[@]}; do
+  bedtools intersect -a data/epigenomes/muscle/${epi}_15state.bed \
+  -b results/eqtl_dynamic/ieQTL/bulk/EPDC/50k-5clpcs-5pcs.sighits.bed \
+  > results/epigenetics/ieQTL/bulk/EPDC/50k-5clpcs-5pcs.${epi}.bed
+done
+```
+
+## Chromatin State Annotations for CM-ieQTLs
+### iPSC-ieQTLs in iPSC lines
+```{r ipsc_ipsc_annotations, warning=FALSE, message=FALSE, echo=FALSE}
+ipsc_ipsc <- map(ipsc_epis, annotate_hits, celltype="iPSC") %>%
+  reduce(inner_join, by=c("chr", "start", "stop")) %>%
+  left_join(ipsc_hits, by=c("chr", "start", "stop")) %>%
+  gather(!c(chr, start, stop, qtl.type), key="epi", value="annotation") %>%
+  group_by(epi, qtl.type, annotation) %>%
+  count %>%
+  group_by(epi, qtl.type) %>%
+  mutate(frac=n/sum(n)) %>%
+  mutate(active=is_active(annotation))
+annot.levels <- unique(ipsc_ipsc$annotation) %>%
+  as_tibble %>% mutate(id=as.numeric(str_extract(value, "[^_]+"))) %>%
+  arrange(id) %>% .$value
+ipsc_ipsc$annotation <- factor(ipsc_ipsc$annotation, levels=annot.levels)
+ggplot(ipsc_ipsc, aes(x=annotation, y=frac, fill=active)) +
+  facet_grid(rows=vars(epi), cols=vars(qtl.type)) +
+  geom_bar(stat="identity") +
+  theme(axis.text.x=element_text(angle=45, hjust=1)) +
+  ggtitle("ChromHMM - iPSC Interaction eQTLs in iPSCs")
+```
+
+## Chromatin State Annotations for CM-ieQTLs
+### CM-ieQTLs in iPSC lines
+```{r cm_ipsc_annotations, warning=FALSE, message=FALSE, echo=FALSE}
+cm_ipsc <- map(ipsc_epis, annotate_hits, celltype="CM") %>%
+  reduce(inner_join, by=c("chr", "start", "stop")) %>%
+  left_join(cm_hits, by=c("chr", "start", "stop")) %>%
+  gather(!c(chr, start, stop, qtl.type), key="epi", value="annotation") %>%
+  group_by(epi, qtl.type, annotation) %>%
+  count %>%
+  group_by(epi, qtl.type) %>%
+  mutate(frac=n/sum(n)) %>%
+  mutate(active=is_active(annotation))
+annot.levels <- unique(cm_ipsc$annotation) %>%
+  as_tibble %>% mutate(id=as.numeric(str_extract(value, "[^_]+"))) %>%
+  arrange(id) %>% .$value
+cm_ipsc$annotation <- factor(cm_ipsc$annotation, levels=annot.levels)
+ggplot(cm_ipsc, aes(x=annotation, y=frac, fill=active)) +
+  facet_grid(rows=vars(epi), cols=vars(qtl.type)) +
+  geom_bar(stat="identity") +
+  theme(axis.text.x=element_text(angle=45, hjust=1)) +
+  ggtitle("ChromHMM - CM Interaction eQTLs in iPSCs")
+```
+
+### CM-ieQTLs in Heart Lines
+```{r cm_heart_annotations, warning=FALSE, message=FALSE, echo=FALSE}
+cm_heart <- map(heart_epis, annotate_hits, celltype="CM") %>%
+  reduce(inner_join, by=c("chr", "start", "stop")) %>%
+  left_join(cm_hits, by=c("chr", "start", "stop")) %>%
+  gather(!c(chr, start, stop, qtl.type), key="epi", value="annotation") %>%
+  group_by(epi, qtl.type, annotation) %>%
+  count %>%
+  group_by(epi, qtl.type) %>%
+  mutate(frac=n/sum(n)) %>%
+  mutate(active=is_active(annotation)) %>%
+  mutate(annotation=factor(annotation, levels=annot.levels))
+ggplot(cm_heart, aes(x=annotation, y=frac, fill=active)) +
+  facet_grid(rows=vars(epi), cols=vars(qtl.type)) +
+  geom_bar(stat="identity") +
+  theme(axis.text.x=element_text(angle=45, hjust=1)) +
+  ggtitle("ChromHMM - CM Interaction eQTLs in Heart Cells")
+```
+
+## Chromatin State Annotations for EPDC-ieQTLs
+### EPDC-ieQTLs in iPSC Lines
+```{r epdc_ipsc_annotations, warning=FALSE, message=FALSE, echo=FALSE}
+epdc_ipsc <- map(ipsc_epis, annotate_hits, celltype="EPDC") %>%
+  reduce(inner_join, by=c("chr", "start", "stop")) %>%
+  left_join(epdc_hits, by=c("chr", "start", "stop")) %>%
+  gather(!c(chr, start, stop, qtl.type), key="epi", value="annotation") %>%
+  group_by(epi, qtl.type, annotation) %>%
+  count %>%
+  group_by(epi, qtl.type) %>%
+  mutate(frac=n/sum(n)) %>%
+  mutate(active=is_active(annotation)) %>%
+  mutate(annotation=factor(annotation, levels=annot.levels))
+ggplot(epdc_ipsc, aes(x=annotation, y=frac, fill=active)) +
+  facet_grid(rows=vars(epi), cols=vars(qtl.type)) +
+  geom_bar(stat="identity") +
+  theme(axis.text.x=element_text(angle=45, hjust=1)) +
+  ggtitle("ChromHMM - EPDC Interaction eQTLs in iPSCs")
+```
+
+### EPDC-ieQTLs in Heart Lines
+```{r epdc_heart_annotations, warning=FALSE, message=FALSE, echo=FALSE}
+epdc_heart <- map(heart_epis, annotate_hits, celltype="EPDC") %>%
+  reduce(inner_join, by=c("chr", "start", "stop")) %>%
+  left_join(epdc_hits, by=c("chr", "start", "stop")) %>%
+  gather(!c(chr, start, stop, qtl.type), key="epi", value="annotation") %>%
+  group_by(epi, qtl.type, annotation) %>%
+  count %>%
+  group_by(epi, qtl.type) %>%
+  mutate(frac=n/sum(n)) %>%
+  mutate(active=is_active(annotation)) %>%
+  mutate(annotation=factor(annotation, levels=annot.levels))
+ggplot(epdc_heart, aes(x=annotation, y=frac, fill=active)) +
+  facet_grid(rows=vars(epi), cols=vars(qtl.type)) +
+  geom_bar(stat="identity") +
+  theme(axis.text.x=element_text(angle=45, hjust=1)) +
+  ggtitle("ChromHMM - EPDC Interaction eQTLs in Heart")
+```
+
+### EPDC-ieQTLs in Smooth Muscle Lines
+```{r epdc_muscle_annotations, warning=FALSE, message=FALSE, echo=FALSE}
+epdc_muscle <- map(muscle_epis, annotate_hits, celltype="EPDC") %>%
+  reduce(inner_join, by=c("chr", "start", "stop")) %>%
+  left_join(epdc_hits, by=c("chr", "start", "stop")) %>%
+  gather(!c(chr, start, stop, qtl.type), key="epi", value="annotation") %>%
+  group_by(epi, qtl.type, annotation) %>%
+  count %>%
+  group_by(epi, qtl.type) %>%
+  mutate(frac=n/sum(n)) %>%
+  mutate(active=is_active(annotation)) %>%
+  mutate(annotation=factor(annotation, levels=annot.levels))
+ggplot(epdc_muscle, aes(x=annotation, y=frac, fill=active)) +
+  facet_grid(rows=vars(epi), cols=vars(qtl.type)) +
+  geom_bar(stat="identity") +
+  theme(axis.text.x=element_text(angle=45, hjust=1)) +
+  ggtitle("ChromHMM - EPDC Interaction eQTLs in Muscle")
+```
