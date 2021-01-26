@@ -32,3 +32,6 @@ This project uses single-cell RNA sequencing data to find dynamic and cell type 
   - Code for preprocessing is at `code/preprocessing.R`
   - Code for eQTL calling is at `code/eqtl_dynamic.R`
   - Code for multiple testing/ false discovery correction is at `code/mtc_dynamic.R`
+7. Epigenetic Analysis
+- Chromatin state annotations of [dynamic eqtls](epigenetics-dynamic.html)
+- Chromatin state annotations of [interaction eqtls](epigenetics-interaction.html)
