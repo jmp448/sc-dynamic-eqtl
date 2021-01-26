@@ -1,0 +1,319 @@
+---
+title: "Epigenetic Analysis of Dynamic eQTLs"
+output: html_notebook
+---
+
+```{r libloader, echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(qvalue)
+```
+
+```{bash libloader2, include=FALSE}
+module load bedtools
+```
+
+```{r helpers, warning=FALSE, message=FALSE, echo=FALSE}
+classify.dynqtl <- function(beta.g, beta.gxt, beta.t, ..., t.low=0, t.high=15, thresh=1) {
+  beta.vgt.early = (beta.t*t.low + beta.gxt*0*t.low + beta.g*0) - (beta.t*t.low + beta.gxt*2*t.low + beta.g*2)
+  beta.vgt.late = (beta.t*t.high + beta.gxt*0*t.high + beta.g*0) - (beta.t*t.high + beta.gxt*2*t.high + beta.g*2)
+  
+  if (sign(beta.vgt.early)==sign(beta.vgt.late)) {
+    qtl.type = if_else(abs(beta.vgt.early)>=abs(beta.vgt.late), "early", "late")
+  } else {
+    if ((abs(beta.vgt.early)>=abs(beta.vgt.late)) & (abs(beta.vgt.late)<thresh)) {
+      qtl.type = "early"
+    } else if ((abs(beta.vgt.early)<abs(beta.vgt.late)) & (abs(beta.vgt.early)<thresh)) {
+      qtl.type = "late"
+    } else if ((abs(beta.vgt.early)>=thresh) & (abs(beta.vgt.late)>=thresh)) {
+      qtl.type = "switch"
+    }
+  }
+}
+
+all.tests <- read_tsv("data/gv_pairs.filtered.50k.tsv") %>%
+  mutate(gv=paste(gene, snp, sep="--"))
+get.matched <- function(tests) {
+  elim.genes <- str_extract(tests, "[^-]+")
+  match.dists <- all.tests %>% 
+    filter(gv %in% tests) %>%
+    .$dist2tss
+  candidates <- all.tests %>%
+    filter(!gene %in% elim.genes)
+  matched.tests <- bind_rows(map_dfr(match.dists, function(d){slice(candidates, which.min(abs(dist2tss-d)))}))$gv
+  matched.tests
+}
+
+annotate_hits <- function(epi, celltype) {
+  read_tsv(paste0("results/epigenetics/linear_dQTL/pseudobulk/", celltype, "bin/50k-5clpcs-5pcs.", epi, ".bed"), col_names=F) %>%
+    `colnames<-`(c("chr", "start", "stop", "annotation")) %>%
+    rename("{epi}":=annotation)
+}
+
+is_active <- function(annot) {
+  if_else(as.numeric(str_extract(annot, "[^_]+"))<=8, "active", "inactive")
+}
+
+ipsc_epis <- c("E018", "E019", "E020", "E021", "E022")
+heart_epis <- c("E083", "E104", "E095", "E105", "E065")
+muscle_epis <- c("E076", "E078", "E103", "E111")
+
+cm_hits <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk/cmbin/50k-5clpcs-5pcs.sighits.bed")
+
+epdc_hits <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk/epdcbin/50k-5clpcs-5pcs.sighits.bed")
+```
+
+```{r time_ranges, echo=FALSE, message=FALSE, warning=FALSE}
+cm.medians <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk/cmbin/15bin_medians.tsv")
+t.low.cm <- cm.medians %>% 
+  mutate(bin=str_extract(bin.ind, "[^_]+$")) %>%
+  filter(bin == 1) %>%
+  .$t %>%
+  median
+t.high.cm <- cm.medians %>% 
+  mutate(bin=str_extract(bin.ind, "[^_]+$")) %>%
+  filter(bin == 15) %>%
+  .$t %>%
+  median
+
+epdc.medians <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk/epdcbin/15bin_medians.tsv")
+t.low.epdc <- epdc.medians %>% 
+  mutate(bin=str_extract(bin.ind, "[^_]+$")) %>%
+  filter(bin == 1) %>%
+  .$t %>%
+  median
+t.high.epdc <- epdc.medians %>% 
+  mutate(bin=str_extract(bin.ind, "[^_]+$")) %>%
+  filter(bin == 15) %>%
+  .$t %>%
+  median
+```
+
+```{r cm_dynqtl_bed, warning=FALSE, message=FALSE, echo=FALSE, include=FALSE, eval=FALSE}
+cm.dynqtl <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk/cmbin/50k-5clpcs-5pcs.tophits.tsv") %>%
+  filter(qval.unadj<=0.05) %>% 
+  mutate(qtl.type=pmap_chr(., classify.dynqtl, t.low=t.low.cm, t.high=t.high.cm)) %>%
+  filter(qtl.type != "switch")
+
+background.cm <- read_tsv(paste0("results/eqtl_dynamic/linear_dQTL/pseudobulk/cmbin/50k-5clpcs-5pcs.mtc.tsv")) %>%
+    mutate(gv=paste(gene, snp, sep="--")) %>%
+    filter(gv %in% get.matched(paste(cm.dynqtl$gene, cm.dynqtl$snp, sep="--"))) %>%
+  mutate(qtl.type="background")
+
+cm.dynqtl.bed <- cm.dynqtl %>%
+  bind_rows(background.cm) %>%
+  mutate(chr=str_extract(snp, "[^_]+")) %>%
+  mutate(stop=as.numeric(str_extract(snp, "[^_]+$"))) %>%
+  mutate(start=stop-1) %>%
+  select(chr, start, stop, qtl.type) %>%
+  write_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk/cmbin/50k-5clpcs-5pcs.sighits.bed")
+```
+
+```{r epdc_dynqtl_bed, warning=FALSE, message=FALSE, echo=FALSE, include=FALSE, eval=FALSE}
+epdc.dynqtl <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk/epdcbin/50k-5clpcs-5pcs.tophits.tsv") %>%
+  filter(qval.unadj<=0.05) %>%
+  mutate(qtl.type=pmap_chr(., classify.dynqtl, t.low=t.low.epdc, t.high=t.high.epdc)) %>%
+  filter(qtl.type != "switch")
+
+background.epdc <- read_tsv(paste0("results/eqtl_dynamic/linear_dQTL/pseudobulk/epdcbin/50k-5clpcs-5pcs.mtc.tsv")) %>%
+    mutate(gv=paste(gene, snp, sep="--")) %>%
+    filter(gv %in% get.matched(paste(epdc.dynqtl$gene, epdc.dynqtl$snp, sep="--"))) %>%
+  mutate(qtl.type="background")
+
+epdc.dynqtl.bed <- epdc.dynqtl %>%
+  bind_rows(background.epdc) %>% 
+  mutate(chr=str_extract(snp, "[^_]+")) %>%
+  mutate(stop=as.numeric(str_extract(snp, "[^_]+$"))) %>%
+  mutate(start=stop-1) %>%
+  select(chr, start, stop, qtl.type) %>%
+  write_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk/epdcbin/50k-5clpcs-5pcs.sighits.bed")
+```
+
+```{bash find_intersect_cm_ipsc, include=FALSE, eval=FALSE}
+declare -a ipsc_epis=( "E018" "E019" "E020" "E021" "E022" )
+for epi in ${ipsc_epis[@]}; do
+  bedtools intersect -a data/epigenomes/iPSC/${epi}_15state.bed \
+  -b results/eqtl_dynamic/linear_dQTL/pseudobulk/cmbin/50k-5clpcs-5pcs.sighits.bed \
+  > results/epigenetics/linear_dQTL/pseudobulk/cmbin/50k-5clpcs-5pcs.${epi}.bed
+done
+```
+
+```{bash find_intersect_epdc_ipsc, include=FALSE, eval=FALSE}
+for epi in ${ipsc_epis[@]}; do
+  bedtools intersect -a data/epigenomes/iPSC/${epi}_15state.bed \
+  -b results/eqtl_dynamic/linear_dQTL/pseudobulk/epdcbin/50k-5clpcs-5pcs.sighits.bed \
+  > results/epigenetics/linear_dQTL/pseudobulk/epdcbin/50k-5clpcs-5pcs.${epi}.bed
+done
+```
+
+```{bash find_intersect_cm_heart, include=FALSE, eval=FALSE}
+declare -a heart_epis=( "E083" "E104" "E095" "E105" "E065" )
+for epi in ${heart_epis[@]}; do
+  bedtools intersect -a data/epigenomes/heart/${epi}_15state.bed \
+  -b results/eqtl_dynamic/linear_dQTL/pseudobulk/cmbin/50k-5clpcs-5pcs.sighits.bed \
+  > results/epigenetics/linear_dQTL/pseudobulk/cmbin/50k-5clpcs-5pcs.${epi}.bed
+done
+```
+
+```{bash find_intersect_epdc_heart, include=FALSE, eval=FALSE}
+for epi in ${heart_epis[@]}; do
+  bedtools intersect -a data/epigenomes/heart/${epi}_15state.bed \
+  -b results/eqtl_dynamic/linear_dQTL/pseudobulk/epdcbin/50k-5clpcs-5pcs.sighits.bed \
+  > results/epigenetics/linear_dQTL/pseudobulk/epdcbin/50k-5clpcs-5pcs.${epi}.bed
+done
+```
+
+```{bash find_intersect_epdc_muscle, include=FALSE, eval=FALSE}
+declare -a muscle_epis=( "E076" "E078" "E103" "E111" )
+for epi in ${muscle_epis[@]}; do
+  bedtools intersect -a data/epigenomes/muscle/${epi}_15state.bed \
+  -b results/eqtl_dynamic/linear_dQTL/pseudobulk/epdcbin/50k-5clpcs-5pcs.sighits.bed \
+  > results/epigenetics/linear_dQTL/pseudobulk/epdcbin/50k-5clpcs-5pcs.${epi}.bed
+done
+```
+
+## Chromatin State Annotations for CM-ieQTLs
+### CM-Dynamic eQTLs in iPSC Cell Lines
+```{r cm_ipsc_annotations, warning=FALSE, message=FALSE, echo=FALSE}
+cm_ipsc <- map(ipsc_epis, annotate_hits, celltype="cm") %>%
+  reduce(inner_join, by=c("chr", "start", "stop")) %>%
+  left_join(cm_hits, by=c("chr", "start", "stop")) %>%
+  gather(!c(chr, start, stop, qtl.type), key="epi", value="annotation") %>%
+  group_by(epi, qtl.type, annotation) %>%
+  count %>%
+  group_by(epi, qtl.type) %>%
+  mutate(frac=n/sum(n)) %>%
+  mutate(active=is_active(annotation))
+annot.levels <- unique(cm_ipsc$annotation) %>%
+  as_tibble %>% mutate(id=as.numeric(str_extract(value, "[^_]+"))) %>%
+  arrange(id) %>% .$value
+cm_ipsc$annotation <- factor(cm_ipsc$annotation, levels=annot.levels)
+ggplot(cm_ipsc, aes(x=annotation, y=frac, fill=active)) +
+  facet_grid(rows=vars(epi), cols=vars(qtl.type)) +
+  geom_bar(stat="identity") +
+  theme(axis.text.x=element_text(angle=45, hjust=1)) +
+  ggtitle("ChromHMM - CM Dynamic eQTLs in iPSCs")
+```
+
+### CM-Dynamic eQTLs in Heart Cell Lines
+```{r cm_heart_annotations, warning=FALSE, message=FALSE, echo=FALSE}
+cm_heart <- map(heart_epis, annotate_hits, celltype="cm") %>%
+  reduce(inner_join, by=c("chr", "start", "stop")) %>%
+  left_join(cm_hits, by=c("chr", "start", "stop")) %>%
+  gather(!c(chr, start, stop, qtl.type), key="epi", value="annotation") %>%
+  group_by(epi, qtl.type, annotation) %>%
+  count %>%
+  group_by(epi, qtl.type) %>%
+  mutate(frac=n/sum(n)) %>%
+  mutate(active=is_active(annotation)) %>%
+  mutate(annotation=factor(annotation, levels=annot.levels))
+ggplot(cm_heart, aes(x=annotation, y=frac, fill=active)) +
+  facet_grid(rows=vars(epi), cols=vars(qtl.type)) +
+  geom_bar(stat="identity") +
+  theme(axis.text.x=element_text(angle=45, hjust=1)) +
+  ggtitle("ChromHMM - CM Dynamic eQTLs in Heart Cells")
+```
+
+
+## Chromatin State Annotations for CM-ieQTLs
+### EPDC-Dynamic eQTLs in iPSC Cell Lines
+```{r epdc_ipsc_annotations, warning=FALSE, message=FALSE, echo=FALSE}
+epdc_ipsc <- map(ipsc_epis, annotate_hits, celltype="epdc") %>%
+  reduce(inner_join, by=c("chr", "start", "stop")) %>%
+  left_join(epdc_hits, by=c("chr", "start", "stop")) %>%
+  gather(!c(chr, start, stop, qtl.type), key="epi", value="annotation") %>%
+  group_by(epi, qtl.type, annotation) %>%
+  count %>%
+  group_by(epi, qtl.type) %>%
+  mutate(frac=n/sum(n)) %>%
+  mutate(active=is_active(annotation)) %>%
+  mutate(annotation=factor(annotation, levels=annot.levels))
+ggplot(epdc_ipsc, aes(x=annotation, y=frac, fill=active)) +
+  facet_grid(rows=vars(epi), cols=vars(qtl.type)) +
+  geom_bar(stat="identity") +
+  theme(axis.text.x=element_text(angle=45, hjust=1)) +
+  ggtitle("ChromHMM - EPDC Dynamic eQTLs in iPSCs")
+```
+
+### EPDC-Dynamic eQTLs in Heart Cell Lines
+```{r epdc_heart_annotations, warning=FALSE, message=FALSE, echo=FALSE}
+epdc_heart <- map(heart_epis, annotate_hits, celltype="epdc") %>%
+  reduce(inner_join, by=c("chr", "start", "stop")) %>%
+  left_join(epdc_hits, by=c("chr", "start", "stop")) %>%
+  gather(!c(chr, start, stop, qtl.type), key="epi", value="annotation") %>%
+  group_by(epi, qtl.type, annotation) %>%
+  count %>%
+  group_by(epi, qtl.type) %>%
+  mutate(frac=n/sum(n)) %>%
+  mutate(active=is_active(annotation)) %>%
+  mutate(annotation=factor(annotation, levels=annot.levels))
+ggplot(epdc_heart, aes(x=annotation, y=frac, fill=active)) +
+  facet_grid(rows=vars(epi), cols=vars(qtl.type)) +
+  geom_bar(stat="identity") +
+  theme(axis.text.x=element_text(angle=45, hjust=1)) +
+  ggtitle("ChromHMM - EPDC Dynamic eQTLs in Heart")
+```
+
+### EPDC-Dynamic eQTLs in Smooth Muscle Cell Lines
+```{r epdc_muscle_annotations, warning=FALSE, message=FALSE, echo=FALSE}
+epdc_muscle <- map(muscle_epis, annotate_hits, celltype="epdc") %>%
+  reduce(inner_join, by=c("chr", "start", "stop")) %>%
+  left_join(epdc_hits, by=c("chr", "start", "stop")) %>%
+  gather(!c(chr, start, stop, qtl.type), key="epi", value="annotation") %>%
+  group_by(epi, qtl.type, annotation) %>%
+  count %>%
+  group_by(epi, qtl.type) %>%
+  mutate(frac=n/sum(n)) %>%
+  mutate(active=is_active(annotation)) %>%
+  mutate(annotation=factor(annotation, levels=annot.levels))
+ggplot(epdc_muscle, aes(x=annotation, y=frac, fill=active)) +
+  facet_grid(rows=vars(epi), cols=vars(qtl.type)) +
+  geom_bar(stat="identity") +
+  theme(axis.text.x=element_text(angle=45, hjust=1)) +
+  ggtitle("ChromHMM - EPDC Dynamic eQTLs in Muscle")
+```
+
+## CM Dynamic eQTLs Across Cell Types
+Merge by assigning each variant to the chromatin state to which it is most commonly assigned
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+epdc_ipsc <- map(ipsc_epis, annotate_hits, celltype="epdc") %>%
+  reduce(inner_join, by=c("chr", "start", "stop")) %>%
+  gather(!c(chr, start, stop), key="epi", value="annotation") %>%
+  select(-epi) %>%
+  group_by(chr, start, stop) %>%
+  summarize(annotation=which.max(table(annotation))) %>%
+  mutate(ipsc=names(annotation), .keep="unused")
+
+epdc_heart <- map(heart_epis, annotate_hits, celltype="epdc") %>%
+  reduce(inner_join, by=c("chr", "start", "stop")) %>%
+  gather(!c(chr, start, stop), key="epi", value="annotation") %>%
+  select(-epi) %>%
+  group_by(chr, start, stop) %>%
+  summarize(annotation=which.max(table(annotation))) %>%
+  mutate(heart=names(annotation), .keep="unused")
+
+epdc_muscle <- map(muscle_epis, annotate_hits, celltype="epdc") %>%
+  reduce(inner_join, by=c("chr", "start", "stop")) %>%
+  gather(!c(chr, start, stop), key="epi", value="annotation") %>%
+  select(-epi) %>%
+  group_by(chr, start, stop) %>%
+  summarize(annotation=which.max(table(annotation))) %>%
+  mutate(muscle=names(annotation), .keep="unused")
+
+epdc_all <- list(epdc_ipsc, epdc_heart, epdc_muscle) %>%
+  reduce(inner_join, by=c("chr", "start", "stop")) %>%
+  gather(!c(chr, start, stop), key="celltype", value="annotation") %>%
+  left_join(epdc_hits, by=c("chr", "start", "stop")) %>%
+  group_by(celltype, qtl.type, annotation) %>%
+  count %>%
+  group_by(celltype, qtl.type) %>%
+  mutate(frac=n/sum(n)) %>%
+  mutate(activity=is_active(annotation)) %>%
+  mutate(annotation=factor(annotation, levels=annot.levels))
+
+ggplot(epdc_all, aes(x=annotation, y=frac, fill=activity)) +
+  facet_grid(rows=vars(celltype), cols=vars(qtl.type)) +
+  geom_bar(stat="identity") +
+  theme(axis.text.x=element_text(angle=45, hjust=1)) +
+  ggtitle("ChromHMM - EPDC Dynamic eQTLs")
+```
+
