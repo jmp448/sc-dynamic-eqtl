@@ -72,21 +72,24 @@ p <- inner_join(fracs, bulk.loadings, by="sample") %>%
 p
 ```
 
-<!-- What does this mean? Even in the bulk data, it is possible to resolve the multiple cell types we're working with -->
-<!-- ```{r, 3dplot, webgl=TRUE} -->
-<!-- type.res <- fracs %>% -->
-<!--   left_join(bulk.loadings, by="sample") %>% -->
-<!--   mutate(type=factor(type, levels=c("iPSC", "meso", "cardiomes", "EMT", "prog", "CM", "EPDC"))) -->
-<!-- getPalette = colorRampPalette(brewer.pal(7, "Spectral")) -->
-<!-- open3d() -->
-<!-- plot3d(type.res$PC1, type.res$PC3, type.res$PC4, -->
-<!--        col=getPalette(7)[type.res$type],  -->
-<!--        alpha=.75, -->
-<!--        size=2, -->
-<!--        type='s', -->
-<!--        xlab="PC1", ylab="PC3", zlab="PC4") -->
-<!-- legend3d("topright", legend = levels(type.res$type), pch = 16, col = brewer.pal(7, "Spectral"), cex=1, inset=c(0.01, 0.01)) -->
-<!-- ``` -->
+What does this mean? Even in the bulk data, it is possible to resolve the multiple cell types we're working with
+```{r, 3dplot, webgl=TRUE}
+type.res <- fracs %>%
+  left_join(bulk.loadings, by="sample") %>%
+  mutate(type=factor(type, levels=c("iPSC", "meso", "cardiomes", "EMT", "prog", "CM", "EPDC")))
+getPalette = colorRampPalette(brewer.pal(7, "Spectral"))
+open3d()
+plot3d(type.res$PC1, type.res$PC3, type.res$PC4,
+       col=getPalette(7)[type.res$type],
+       alpha=.75,
+       size=2,
+       type='s',
+       xlab="PC1", ylab="PC3", zlab="PC4")
+legend3d("topright", legend = levels(type.res$type), pch = 16, col = brewer.pal(7, "Spectral"), cex=1, inset=c(0.01, 0.01))
+ggplot(type.res, aes(x=PC3, y=PC4, color=type)) +
+  geom_point()
+  
+```
 
 
 ## Cell Line PCA

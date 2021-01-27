@@ -1,0 +1,69 @@
+---
+title: "ieQTL Comparisons Across Cell Types"
+output: html_notebook
+---
+
+
+```{r libloader, echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(qvalue)
+```
+
+## iPSC vs CM ieQTLs
+Similarly to the way we classify early/ late dynamic eQTLs, we can classify increase/decrease ieQTLs - increase are those that have increasing effect sizes for higher cell type proportions, decrease are those that have decreasing effect sizes for higher cell type proportions.
+
+```{r classifier, echo=FALSE, warning=FALSE, message=FALSE}
+classify.ieqtl <- function(beta.g, beta.gxt, beta.t, ..., t.low=0, t.high=1, thresh=1) {
+  beta.vgt.early = (beta.t*t.low + beta.gxt*0*t.low + beta.g*0) - (beta.t*t.low + beta.gxt*2*t.low + beta.g*2)
+  beta.vgt.late = (beta.t*t.high + beta.gxt*0*t.high + beta.g*0) - (beta.t*t.high + beta.gxt*2*t.high + beta.g*2)
+  
+  if (sign(beta.vgt.early)==sign(beta.vgt.late)) {
+    qtl.type = if_else(abs(beta.vgt.early)>=abs(beta.vgt.late), "decrease", "increase")
+  } else {
+    if ((abs(beta.vgt.early)>=abs(beta.vgt.late)) & (abs(beta.vgt.late)<thresh)) {
+      qtl.type = "decrease"
+    } else if ((abs(beta.vgt.early)<abs(beta.vgt.late)) & (abs(beta.vgt.early)<thresh)) {
+      qtl.type = "increase"
+    } else if ((abs(beta.vgt.early)>=thresh) & (abs(beta.vgt.late)>=thresh)) {
+      qtl.type = "switch"
+    }
+  }
+}
+```
+
+```{r}
+cell.type <- "CM"
+cm.ieqtl <- read_tsv("results/eqtl_dynamic/ieQTL/bulk/CM/50k-5clpcs-5pcs.tophits.tsv") %>%
+  filter(qval.unadj<=0.05) %>%
+  rename(beta.g=g, beta.t=cell.type, beta.gxt=coefficients)
+cm.ieqtl <- cm.ieqtl  %>%
+  mutate(qtl.type=pmap_chr(cm.ieqtl, classify.ieqtl)) %>%
+  group_by(qtl.type) 
+table(cm.ieqtl$qtl.type)
+
+cell.type <- "EPDC"
+epdc.ieqtl <- read_tsv("results/eqtl_dynamic/ieQTL/bulk/EPDC/50k-5clpcs-5pcs.tophits.tsv") %>%
+  filter(qval.unadj<=0.05) %>%
+  rename(beta.g=g, beta.t=cell.type, beta.gxt=coefficients)
+epdc.ieqtl <- epdc.ieqtl %>%
+  mutate(qtl.type=pmap_chr(epdc.ieqtl, classify.ieqtl)) %>%
+  group_by(qtl.type) 
+table(epdc.ieqtl$qtl.type)
+
+cell.type <- "iPSC"
+ipsc.ieqtl <- read_tsv("results/eqtl_dynamic/ieQTL/bulk/iPSC/50k-5clpcs-5pcs.tophits.tsv") %>%
+  filter(qval.unadj<=0.05) %>%
+  rename(beta.g=g, beta.t=cell.type, beta.gxt=coefficients)
+ipsc.ieqtl <- ipsc.ieqtl  %>%
+  mutate(qtl.type=pmap_chr(ipsc.ieqtl, classify.ieqtl)) %>%
+  group_by(qtl.type) 
+table(ipsc.ieqtl$qtl.type)
+```
+
+
+```{r}
+ipscs <- read_tsv("results/cibersort/bulk.inferred.tsv") %>%
+  ggplot(aes(x=iPSC)) + geom_histogram()
+ipscs
+```
+

@@ -293,12 +293,26 @@ epdc_heart <- map(heart_epis, annotate_hits, celltype="epdc") %>%
 
 epdc_muscle <- map(muscle_epis, annotate_hits, celltype="epdc") %>%
   reduce(inner_join, by=c("chr", "start", "stop")) %>%
+  select(!E078) %>%
   gather(!c(chr, start, stop), key="epi", value="annotation") %>%
   select(-epi) %>%
   group_by(chr, start, stop) %>%
   summarize(annotation=which.max(table(annotation))) %>%
   mutate(muscle=names(annotation), .keep="unused")
 
+test <- epdc_muscle %>%
+  left_join(epdc_hits, by=c("chr", "start", "stop")) %>%
+  group_by(qtl.type, annotation) %>%
+  count %>%
+  group_by(qtl.type) %>%
+  mutate(frac=n/sum(n)) %>%
+  mutate(activity=is_active(annotation)) %>%
+  mutate(annotation=factor(annotation, levels=annot.levels))
+ggplot(test, aes(x=annotation, y=frac, fill=activity)) +
+  facet_grid(cols=vars(qtl.type)) +
+  geom_bar(stat="identity") +
+  theme(axis.text.x=element_text(angle=45, hjust=1))
+  
 epdc_all <- list(epdc_ipsc, epdc_heart, epdc_muscle) %>%
   reduce(inner_join, by=c("chr", "start", "stop")) %>%
   gather(!c(chr, start, stop), key="celltype", value="annotation") %>%

@@ -1,37 +1,46 @@
 ---
-title: "R Notebook"
+title: "Cell Type Annotation"
 output: html_notebook
 ---
 
-```{r}
+```{r libloader, warning=FALSE, echo=FALSE, message=FALSE}
 library(Seurat)
 library(Nebulosa)
 library(tidyverse)
 ```
-```{r}
-sc <- readRDS("/project2/gilad/jpopp/sc3/data/mitofilt_singlets.full.leiden.cc.rds")
+```{r file_load, echo=FALSE, warning=FALSE, message=FALSE}
+sc <- readRDS("data/seurat.processed.rds")
 ```
 
-We can look at marker genes to get an idea for what cell types we are seeing here
-```{r}
-plot_density(sc, "POU5F1") # iPSC marker
-plot_density(sc, "MIXL1") # mesoderm marker
-plot_density(sc, "MESP1") # cardiac mesoderm marker
-plot_density(sc, "NKX2-5") # cardiac progenitor marker
-plot_density(sc, "MYL4") # CM marker
-plot_density(sc, "DDR2") # EPDC marker
+Louvain clustering (resolution 0.15) identifies subpopulations of cells present in the data
+```{r warning=FALSE, message=FALSE, echo=FALSE}
+DimPlot(sc, group.by="seurat_clusters")
+table(sc$seurat_clusters)
 ```
 
+We can look at marker genes to map these clusters to the predominant cell types in this differentiation
+*IPSC* - induced pluripotent stem cells (POU5F1)
+*MES* - early mesoderm (MIXL1)
+*CMES* - cardiac mesoderm (MESP1)
+*PROG* - cardiac progenitor (ISL1)
+*CM* - cardiomyocyte (TNNT2)
+*CF* - cardiac fibroblast (COL3A1)
 ```{r}
-DimPlot(sc, group.by="leiden")
-table(sc$leiden)
+plot_density(sc, "POU5F1")
+plot_density(sc, "MIXL1")
+plot_density(sc, "MESP1")
+plot_density(sc, "ISL1")
+plot_density(sc, "TNNT2")
+plot_density(sc, "COL3A1")
 ```
 
-We subset to those leiden clusters with at least 5000 cells
-```{r}
-sc <- sc[,sc$leiden %in% c(0, 1, 2, 3, 4, 5, 6)]
-DimPlot(sc, group.by="leiden")
+It is worth noting that a significant portion of cells (12k) belong to another cell population that we have not fully characterized. These cells overexpress several genes (AFP, APOA1, APOA2) that are typically associated with the endoderm germ layer (as opposed to the mesoderm which gives rise to cardiac cell types)
+```{r anon, warning=FALSE, message=FALSE, echo=FALSE}
+plot_density(sc, "AFP")
+plot_density(sc, "APOA1")
+plot_density(sc, "APOA2")
 ```
+
 
 Next, we'd like to measure cell type proportions in our samples. Let's look at how proportions of cardiomyocyte cells for each individual change over our collection time course. Note that in this plot, we are averaging over biological replicates
 ```{r}

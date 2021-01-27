@@ -428,3 +428,40 @@ for (i in seq(1, nrow(dynqtl))) {
   print(p1 + p2 + plot_layout(ncol=1))
 }
 ```
+
+# Permutation Analysis
+To check whether regressing out sample PCs is leading to an increase in false positives, we ran a permutation test
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+pcs <- tibble("n.cl.pcs"=rep(c(0, 3, 5, 10), each=4), 
+              "n.samp.pcs"=rep(c(0, 5, 10, 20), times=4))
+
+pval_comp <- function(n.cl.pcs, n.samp.pcs, ...) {
+  real.p <- read_tsv(paste0("results/eqtl_dynamic/linear_dQTL/bulk/day/50k-", n.cl.pcs, "clpcs-", n.samp.pcs, "pcs.mtc.tsv")) %>%
+    select(p.unadj) %>% 
+    arrange(p.unadj) %>% 
+    rename(p.real=p.unadj) %>% 
+    rowid_to_column() %>%
+    mutate("cl.pcs"=n.cl.pcs, "samp.pcs"=n.samp.pcs)
+  permute.p <- read_tsv(paste0("results/eqtl_dynamic/linear_dQTL/bulk/day/50k-", n.cl.pcs, "clpcs-", n.samp.pcs, "pcs.permuted.mtc.tsv")) %>%
+    select(p.unadj) %>% 
+    arrange(p.unadj) %>% 
+    rename(p.permuted=p.unadj) %>%
+    rowid_to_column() %>%
+    right_join(real.p, by="rowid") %>%
+    mutate(p.null=rowid/nrow(.), .keep="unused") %>%
+    mutate(across(starts_with("p."), (function(x){-log10(x)})))
+  permute.p
+}
+
+
+pvals <- pcs %>% 
+  pmap_dfr(pval_comp) %>% 
+  bind_rows %>% 
+  rename(permuted=p.permuted, real=p.real) %>%
+  gather(!c(p.null, samp.pcs, cl.pcs), key='model', value='-log10p')
+ggplot(pvals, aes(x=p.null, y=`-log10p`, color=model)) +
+  geom_abline(intercept=0, slope=1) +
+  facet_grid(cols=vars(samp.pcs), rows=vars(cl.pcs)) +
+  geom_point()
+```
+

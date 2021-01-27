@@ -11,7 +11,7 @@
 
 
 
-<title>Static eQTL</title>
+<title>Epigenetic Analysis</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -393,7 +393,7 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Static eQTL</h1>
+<h1 class="title toc-ignore">Epigenetic Analysis</h1>
 
 </div>
 
@@ -418,7 +418,7 @@ div.tocify {
 <div class="tab-content">
 <div id="summary" class="tab-pane fade in active">
 <p>
-<strong>Last updated:</strong> 2021-01-12
+<strong>Last updated:</strong> 2021-01-20
 </p>
 <p>
 <strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 6 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 1
@@ -442,7 +442,7 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 </div>
 <div id="strongRMarkdownfilestronguncommittedchanges" class="panel-collapse collapse">
 <div class="panel-body">
-<p>The R Markdown file has unstaged changes. To know which version of the R Markdown file created these results, you’ll want to first commit it to the Git repo. If you’re still working on the analysis, you can ignore this warning. When you’re finished, you can run <code>wflow_publish</code> to commit the R Markdown file and build the HTML.</p>
+<p>The R Markdown is untracked by Git. To know which version of the R Markdown file created these results, you’ll want to first commit it to the Git repo. If you’re still working on the analysis, you can ignore this warning. When you’re finished, you can run <code>wflow_publish</code> to commit the R Markdown file and build the HTML.</p>
 </div>
 </div>
 </div>
@@ -509,27 +509,30 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomjmp448scdynamiceqtltreeb4aafa83ce34c75d6f9d36c37d37e5285487166btargetblankb4aafa8a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/jmp448/sc-dynamic-eqtl/tree/b4aafa83ce34c75d6f9d36c37d37e5285487166b" target="_blank">b4aafa8</a> </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomjmp448scdynamiceqtltreef70d9d7f1f8f2a51f2c83e15cf71e71b9d9272e6targetblankf70d9d7a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/jmp448/sc-dynamic-eqtl/tree/f70d9d7f1f8f2a51f2c83e15cf71e71b9d9272e6" target="_blank">f70d9d7</a> </a>
 </p>
 </div>
-<div id="strongRepositoryversionstrongahrefhttpsgithubcomjmp448scdynamiceqtltreeb4aafa83ce34c75d6f9d36c37d37e5285487166btargetblankb4aafa8a" class="panel-collapse collapse">
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomjmp448scdynamiceqtltreef70d9d7f1f8f2a51f2c83e15cf71e71b9d9272e6targetblankf70d9d7a" class="panel-collapse collapse">
 <div class="panel-body">
 <p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility.
 </p>
 <p>
-The results in this page were generated with repository version <a href="https://github.com/jmp448/sc-dynamic-eqtl/tree/b4aafa83ce34c75d6f9d36c37d37e5285487166b" target="_blank">b4aafa8</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
+The results in this page were generated with repository version <a href="https://github.com/jmp448/sc-dynamic-eqtl/tree/f70d9d7f1f8f2a51f2c83e15cf71e71b9d9272e6" target="_blank">f70d9d7</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
 </p>
 <p>
 Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
 </p>
 <pre><code>
 Ignored files:
+    Ignored:    .Rhistory
     Ignored:    analysis/.Rhistory
     Ignored:    analysis/annotation.nb.html
     Ignored:    analysis/cell-line-pca.nb.html
     Ignored:    analysis/deconvolution.nb.html
+    Ignored:    analysis/dynamic-eqtl-2.nb.html
     Ignored:    analysis/dynamic-eqtl.nb.html
+    Ignored:    analysis/epigenetics.nb.html
     Ignored:    analysis/interaction-qtl.nb.html
     Ignored:    analysis/static_eqtl.nb.html
     Ignored:    code/.Rhistory
@@ -546,6 +549,7 @@ Ignored files:
     Ignored:    data/bulk_tpm.overlap.tsv
     Ignored:    data/cibersort/
     Ignored:    data/dynamic/
+    Ignored:    data/epigenomes/
     Ignored:    data/gene_locs.filtered.tsv
     Ignored:    data/genotypes.filtered.tsv
     Ignored:    data/gv_pairs.filtered.100k.tsv
@@ -562,6 +566,7 @@ Ignored files:
     Ignored:    data/pseudobulk_counts.col.overlap.tsv
     Ignored:    data/pseudobulk_counts.day.full.tsv
     Ignored:    data/pseudobulk_counts.day.overlap.tsv
+    Ignored:    data/pseudobulk_counts.epdcbin.full.tsv
     Ignored:    data/pseudobulk_counts.type.full.tsv
     Ignored:    data/pseudobulk_counts.type.overlap.tsv
     Ignored:    data/pseudobulk_cpm.cmbin.full.tsv
@@ -569,6 +574,7 @@ Ignored files:
     Ignored:    data/pseudobulk_cpm.col.overlap.tsv
     Ignored:    data/pseudobulk_cpm.day.full.tsv
     Ignored:    data/pseudobulk_cpm.day.overlap.tsv
+    Ignored:    data/pseudobulk_cpm.epdcbin.full.tsv
     Ignored:    data/pseudobulk_cpm.type.full.tsv
     Ignored:    data/pseudobulk_cpm.type.overlap.tsv
     Ignored:    data/pseudobulk_logcpm.cmbin.full.tsv
@@ -576,6 +582,7 @@ Ignored files:
     Ignored:    data/pseudobulk_logcpm.col.overlap.tsv
     Ignored:    data/pseudobulk_logcpm.day.full.tsv
     Ignored:    data/pseudobulk_logcpm.day.overlap.tsv
+    Ignored:    data/pseudobulk_logcpm.epdcbin.full.tsv
     Ignored:    data/pseudobulk_logcpm.type.full.tsv
     Ignored:    data/pseudobulk_logcpm.type.overlap.tsv
     Ignored:    data/seurat/
@@ -584,6 +591,7 @@ Ignored files:
     Ignored:    results/
 
 Untracked files:
+    Untracked:  analysis/epigenetics.Rmd
     Untracked:  analysis/interaction-qtl.Rmd
     Untracked:  code/cell_line_pca.R
     Untracked:  code/cibersort.R
@@ -608,10 +616,8 @@ Untracked files:
 Unstaged changes:
     Modified:   .gitignore
     Deleted:    analysis/cell-deconvolution.Rmd
-    Modified:   analysis/cell-line-pca.Rmd
     Deleted:    analysis/cibersort-calibration.Rmd
     Deleted:    analysis/deconvolution-results.Rmd
-    Modified:   analysis/index.Rmd
     Modified:   analysis/static_eqtl.Rmd
 
 </code></pre>
@@ -625,152 +631,45 @@ Note that any generated files, e.g. HTML, png, CSS, etc., are not included in t
 <hr>
 </div>
 <div id="versions" class="tab-pane fade">
-
 <p>
-These are the previous versions of the repository in which changes were made to the R Markdown (<code>analysis/static_eqtl.Rmd</code>) and HTML (<code>docs/static_eqtl.html</code>) files. If you’ve configured a remote Git repository (see <code>?wflow_git_remote</code>), click on the hyperlinks in the table below to view the files as they were in that past version.
+There are no past versions. Publish this analysis with <code>wflow_publish()</code> to start tracking its development.
 </p>
-<div class="table-responsive">
-<table class="table table-condensed table-hover">
-<thead>
-<tr>
-<th>
-File
-</th>
-<th>
-Version
-</th>
-<th>
-Author
-</th>
-<th>
-Date
-</th>
-<th>
-Message
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/jmp448/sc-dynamic-eqtl/b700aea5f1e689dba3d525f14bf36a5a2404b1bf/docs/static_eqtl.html" target="_blank">b700aea</a>
-</td>
-<td>
-jmp448
-</td>
-<td>
-2021-01-10
-</td>
-<td>
-Build site.
-</td>
-</tr>
-<tr>
-<td>
-Rmd
-</td>
-<td>
-<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/28a4a9e5c51ead1abb2cf8c9f8ff5ccc28ed7116/analysis/static_eqtl.Rmd" target="_blank">28a4a9e</a>
-</td>
-<td>
-jmp448
-</td>
-<td>
-2021-01-10
-</td>
-<td>
-Updated results with replication
-</td>
-</tr>
-</tbody>
-</table>
-</div>
 <hr>
 </div>
 </div>
 </div>
-<div id="gene-level-significant-eqtls-for-different-numbers-of-pcs" class="section level2">
-<h2>Gene-Level Significant eQTLs for Different Numbers of PCs</h2>
-<p>First, look at the number of significant eGenes for each cell type, at 10% FDR (based on Storey’s qvalue). We can see that there is much higher detection power in bulk than in pseudobulk. <img src="figure/static_eqtl.Rmd/unnamed-chunk-2-1.png" width="1440" style="display: block; margin: auto;" /></p>
-<p>
-<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-2-1">
-Past versions of unnamed-chunk-2-1.png
-</button>
-</p>
-<div id="fig-unnamed-chunk-2-1" class="collapse">
-<div class="table-responsive">
-<table class="table table-condensed table-hover">
-<thead>
-<tr>
-<th>
-Version
-</th>
-<th>
-Author
-</th>
-<th>
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/b700aea5f1e689dba3d525f14bf36a5a2404b1bf/docs/figure/static_eqtl.Rmd/unnamed-chunk-2-1.png" target="_blank">b700aea</a>
-</td>
-<td>
-jmp448
-</td>
-<td>
-2021-01-10
-</td>
-</tr>
-</tbody>
-</table>
+<div id="dynamic-eqtl-annotations-in-ipsc" class="section level2">
+<h2>Dynamic eQTL annotations in iPSC</h2>
+<div id="cardiomyocyte-lineage-dynamic-eqtls" class="section level3">
+<h3>Cardiomyocyte Lineage Dynamic eQTLs</h3>
+<p><img src="figure/epigenetics.Rmd/cm_ipsc_annotations-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="epdc-lineage-dynamic-eqtls" class="section level3">
+<h3>EPDC Lineage Dynamic eQTLs</h3>
+<p><img src="figure/epigenetics.Rmd/epdc_ipsc_annotations-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 </div>
+<div id="dynamic-eqtl-annotations-in-heart-tissue" class="section level2">
+<h2>Dynamic eQTL annotations in Heart Tissue</h2>
+<div id="cardiomyocyte-lineage-dynamic-eqtls-1" class="section level3">
+<h3>Cardiomyocyte Lineage Dynamic eQTLs</h3>
+<p><img src="figure/epigenetics.Rmd/cm_heart_annotations-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
-<div id="regulatory-sharing" class="section level2">
-<h2>Regulatory Sharing</h2>
-<p>We used <code>mashr</code> to examine the sharing patterns between</p>
-<!-- ## Replication of Non-Dynamic eQTLs -->
-<!-- By looking at the $\pi_1$ replication rates, we can determine whether the QTLs we detected in bulk are replicated in pseudobulk -->
-<!-- ```{r, warning=FALSE, message=FALSE, echo=FALSE} -->
-<!-- days <- paste0("day", c(0, 1, 3, 5, 7, 11, 15)) -->
-<!-- npcs <- seq(0, 5) -->
-<!-- rep.rates <- tibble("days"=character(), -->
-<!--                     "npcs"=numeric(),  -->
-<!--                     "pi1"=numeric()) -->
-<!-- for (d in days) { -->
-<!--   for (npc in npcs) { -->
-<!--     bulk.hits <- read_tsv(paste0("results/eqtl_static/bulk/day/", d, "/50k-", npc, "pcs.tophits.tsv")) %>%  -->
-<!--       filter(qval.bonf.unadj<=0.1) %>% -->
-<!--       mutate(gv=paste(gene, snp, sep="--")) -->
-<!--     if(nrow(bulk.hits) <= 5) { -->
-<!--       next -->
-<!--     } -->
-<!--     pseudobulk.stats <- read_tsv(paste0("results/eqtl_static/pseudobulk/day/", d, "/50k-", npc, "pcs.mtc.tsv")) %>% -->
-<!--       mutate(gv=paste(gene, snp, sep="--")) %>% -->
-<!--       filter(gv %in% bulk.hits$gv) %>% -->
-<!--       .$bonf.p.unadj -->
-<!--     if (length(pseudobulk.stats)<=5) { -->
-<!--       next -->
-<!--     } -->
-<!--     pseudobulk.stats <- pseudobulk.stats %>% -->
-<!--       qvalue %>% -->
-<!--       (function(x){1-x$pi0}) -->
-<!--     rep.rates <- bind_rows(rep.rates, tibble("days"=d, "npcs"=npc, "pi1"=pseudobulk.stats)) -->
-<!--   } -->
-<!-- } -->
-<!-- rep.rates$days <- factor(rep.rates$days, levels=days) -->
-<!-- ggplot(rep.rates, aes(x=npcs, y=pi1)) +  -->
-<!--   facet_grid(rows=vars(days)) + -->
-<!--   geom_bar(position="dodge", stat="identity") + -->
-<!--   theme_classic() -->
-<!-- ``` -->
+<div id="epdc-lineage-dynamic-eqtls-1" class="section level3">
+<h3>EPDC Lineage Dynamic eQTLs</h3>
+<p><img src="figure/epigenetics.Rmd/epdc_heart_annotations-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+<div id="dynamic-eqtl-annotations-in-smooth-muscle" class="section level2">
+<h2>Dynamic eQTL annotations in Smooth Muscle</h2>
+<div id="epdc-lineage-dynamic-eqtls-2" class="section level3">
+<h3>EPDC Lineage Dynamic eQTLs</h3>
+<p><img src="figure/epigenetics.Rmd/epdc_muscle_annotations-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+<div id="cm-dynamic-eqtls-across-cell-types" class="section level2">
+<h2>CM Dynamic eQTLs Across Cell Types</h2>
+<p>Merge by assigning each variant to the chromatin state to which it is most commonly assigned <img src="figure/epigenetics.Rmd/unnamed-chunk-1-1.png" width="672" style="display: block; margin: auto;" /></p>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
@@ -798,27 +697,26 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
- [1] qvalue_2.21.0   patchwork_1.0.1 forcats_0.5.0   stringr_1.4.0  
- [5] dplyr_1.0.2     purrr_0.3.4     readr_1.3.1     tidyr_1.1.2    
- [9] tibble_3.0.3    ggplot2_3.3.2   tidyverse_1.3.0 workflowr_1.6.2
+ [1] qvalue_2.21.0   forcats_0.5.0   stringr_1.4.0   dplyr_1.0.2    
+ [5] purrr_0.3.4     readr_1.3.1     tidyr_1.1.2     tibble_3.0.3   
+ [9] ggplot2_3.3.2   tidyverse_1.3.0 workflowr_1.6.2
 
 loaded via a namespace (and not attached):
- [1] Rcpp_1.0.5       lubridate_1.7.9  assertthat_0.2.1 rprojroot_1.3-2 
- [5] digest_0.6.25    R6_2.4.1         cellranger_1.1.0 plyr_1.8.6      
- [9] backports_1.1.10 reprex_0.3.0     evaluate_0.14    httr_1.4.2      
-[13] pillar_1.4.6     rlang_0.4.7      readxl_1.3.1     rstudioapi_0.11 
-[17] whisker_0.4      blob_1.2.1       rmarkdown_2.4    labeling_0.3    
-[21] splines_4.0.0    munsell_0.5.0    broom_0.7.0      compiler_4.0.0  
-[25] httpuv_1.5.4     modelr_0.1.8     xfun_0.18        pkgconfig_2.0.3 
-[29] htmltools_0.5.0  tidyselect_1.1.0 fansi_0.4.1      crayon_1.3.4    
-[33] dbplyr_1.4.4     withr_2.3.0      later_1.1.0.1    grid_4.0.0      
-[37] jsonlite_1.7.1   gtable_0.3.0     lifecycle_0.2.0  DBI_1.1.0       
-[41] git2r_0.27.1     magrittr_1.5     scales_1.1.1     cli_2.0.2       
-[45] stringi_1.5.3    farver_2.0.3     reshape2_1.4.4   fs_1.5.0        
-[49] promises_1.1.1   xml2_1.3.2       ellipsis_0.3.1   generics_0.0.2  
-[53] vctrs_0.3.4      tools_4.0.0      glue_1.4.2       hms_0.5.3       
-[57] yaml_2.2.1       colorspace_1.4-1 rvest_0.3.6      knitr_1.30      
-[61] haven_2.3.1     </code></pre>
+ [1] tidyselect_1.1.0 xfun_0.18        reshape2_1.4.4   splines_4.0.0   
+ [5] haven_2.3.1      colorspace_1.4-1 vctrs_0.3.4      generics_0.0.2  
+ [9] htmltools_0.5.0  yaml_2.2.1       blob_1.2.1       rlang_0.4.7     
+[13] later_1.1.0.1    pillar_1.4.6     withr_2.3.0      glue_1.4.2      
+[17] DBI_1.1.0        dbplyr_1.4.4     modelr_0.1.8     readxl_1.3.1    
+[21] plyr_1.8.6       lifecycle_0.2.0  munsell_0.5.0    gtable_0.3.0    
+[25] cellranger_1.1.0 rvest_0.3.6      evaluate_0.14    labeling_0.3    
+[29] knitr_1.30       httpuv_1.5.4     fansi_0.4.1      broom_0.7.0     
+[33] Rcpp_1.0.5       promises_1.1.1   backports_1.1.10 scales_1.1.1    
+[37] jsonlite_1.7.1   farver_2.0.3     fs_1.5.0         hms_0.5.3       
+[41] digest_0.6.25    stringi_1.5.3    rprojroot_1.3-2  grid_4.0.0      
+[45] cli_2.0.2        tools_4.0.0      magrittr_1.5     crayon_1.3.4    
+[49] pkgconfig_2.0.3  ellipsis_0.3.1   xml2_1.3.2       reprex_0.3.0    
+[53] lubridate_1.7.9  assertthat_0.2.1 rmarkdown_2.4    httr_1.4.2      
+[57] rstudioapi_0.11  R6_2.4.1         git2r_0.27.1     compiler_4.0.0  </code></pre>
 </div>
 </div>
 
