@@ -80,8 +80,8 @@ ggplot(p, aes(x=day, y=frac, fill=type)) +
 
 
 ## Bulk Deconvolution
-Bulk deconvolution suggests that while cell lines do not consistently follow the same differentiation trajectory between the two experiments, there does seem to be a notable trend of 
-```{r, fig.width=15, fig.height=10, echo=FALSE}
+Bulk deconvolution suggests that while cell lines do not consistently follow the same differentiation trajectory between the two experiments, there does seem to be a notable trend of a cell line following a consistent trajectory within an experiment.
+```{r, fig.width=15, fig.height=10, echo=FALSE, warning=FALSE, message=FALSE, echo=FALSE}
 bulk <- read_tsv("results/cibersort/bulk.inferred.tsv") %>% 
   select(!c(`P-value`, Correlation, RMSE)) %>%
   rename(sample=Mixture) %>%
