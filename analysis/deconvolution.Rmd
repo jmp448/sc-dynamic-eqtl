@@ -12,8 +12,8 @@ library(Metrics)
 ## CIBERSORTx Assessment
 Whether aggregating by (cell line, day) or by (cell line, sample), RMSE does not appear to be significantly impacted, and cell type deconvolution appears reasonably accurate
 ```{r, , warning=FALSE, message=FALSE, echo=FALSE}
-true.day <- read_tsv("results/cibersort/pseudobulk_fracs.indday.test.true.tsv")
-inferred.day <- read_tsv("results/cibersort/pseudobulk_fracs.indday.test.inferred.txt") %>% 
+true.day <- read_tsv("results/cibersort/pseudobulk_indday.test.true.tsv")
+inferred.day <- read_tsv("results/cibersort/pseudobulk_indday.test.inferred.tsv") %>% 
   select(!c(`P-value`, Correlation, RMSE)) %>%
   rename(sample=Mixture) %>%
   relocate(colnames(true.day))
@@ -22,8 +22,8 @@ stopifnot(all.equal(colnames(true.day), colnames(inferred.day)))
 cell.types <- colnames(true.day)[-c(1)]
 rmse.day <- bind_rows(lapply(cell.types, function(ct){tibble("type"=ct, "rmse"=rmse(true.day[[ct]], inferred.day[[ct]]))}))
 
-true.col <- read_tsv("results/cibersort/pseudobulk_fracs.indcol.test.true.tsv")
-inferred.col <- read_tsv("results/cibersort/pseudobulk_fracs.indcol.test.inferred.txt") %>% 
+true.col <- read_tsv("results/cibersort/pseudobulk_indcol.test.true.tsv")
+inferred.col <- read_tsv("results/cibersort/pseudobulk_indcol.test.inferred.tsv") %>% 
   select(!c(`P-value`, Correlation, RMSE)) %>%
   rename(sample=Mixture) %>%
   relocate(colnames(true.col))
@@ -45,10 +45,11 @@ ggplot(rmse.comp, aes(x=type, y=rmse, fill=aggregation)) +
 
 We can also visually see that the true and inferred cell type proportions as they change over time are similar
 ```{r, warning=FALSE, message=FALSE, echo=FALSE}
-cell.types <- c("iPSC", "meso", "EMT", "cardiomes", "prog", "CM", "EPDC")
+cell.types <- c("IPSC", "MES", "CMES", "PROG", "CM", "CF", "UNK")
 true.day <- true.day %>% 
   gather(!sample, key="type", value="frac") %>% 
   mutate(day=str_extract(sample, "[^_]+$")) %>%
+  mutate(day=str_replace(day, "day", "")) %>%
   mutate(ind=str_extract(sample, "[^_]+")) %>%
   mutate(type=factor(type, levels=cell.types)) %>%
   mutate(day=as.numeric(day)) %>%
@@ -60,6 +61,7 @@ true.day <- filter(true.day, ind %in% inds.3)
 inferred.day <- inferred.day %>% 
   gather(!sample, key="type", value="frac") %>% 
   mutate(day=str_extract(sample, "[^_]+$")) %>%
+  mutate(day=str_replace(day, "day", "")) %>%
   mutate(ind=str_extract(sample, "[^_]+")) %>%
   mutate(type=factor(type, levels=cell.types)) %>%
   mutate(day=as.numeric(day)) %>%
@@ -91,9 +93,10 @@ bulk <- read_tsv("results/cibersort/bulk.inferred.tsv") %>%
   mutate(ind=factor(ind)) %>%
   mutate(exp="bulk")
 
-pseudobulk <- read_tsv("results/cibersort/pseudobulk_fracs.indday.full.true.tsv") %>% 
+pseudobulk <- read_tsv("results/cibersort/pseudobulk_indday.full.true.tsv") %>% 
   gather(!sample, key="type", value="frac") %>% 
   mutate(day=str_extract(sample, "[^_]+$")) %>%
+  mutate(day=str_replace(day, "day", "")) %>%
   mutate(ind=str_extract(sample, "[^_]+")) %>%
   mutate(type=factor(type, levels=cell.types)) %>%
   mutate(day=as.numeric(day)) %>%
@@ -103,7 +106,7 @@ pseudobulk <- read_tsv("results/cibersort/pseudobulk_fracs.indday.full.true.tsv"
 p <- bind_rows(bulk, pseudobulk)
 
 ggplot(p, aes(x=day, y=frac, fill=type)) +
-  geom_area(alpha=0.6 , size=1, colour="black") +
+  geom_area(alpha=0.6 , size=0.5, colour="black") +
   facet_grid(rows=vars(ind), cols=vars(exp)) +
   theme_classic() + theme(axis.ticks.y = element_blank(), axis.text.y=element_blank())
 ```
