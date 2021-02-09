@@ -7,14 +7,20 @@ output: html_notebook
 library(Seurat)
 library(Nebulosa)
 library(tidyverse)
+library(Matrix)
+library(RColorBrewer)
+library(scales)
 ```
+
 ```{r file_load, echo=FALSE, warning=FALSE, message=FALSE}
-sc <- readRDS("data/seurat.processed.rds")
+sc <- readRDS("data/seurat.annotated.rds")
+#sc_cardiac <- readRDS("data/seurat.cardiac.rds")
 ```
 
 Louvain clustering (resolution 0.15) identifies subpopulations of cells present in the data
-```{r warning=FALSE, message=FALSE, echo=FALSE}
-DimPlot(sc, group.by="seurat_clusters")
+```{r clustering, warning=FALSE, message=FALSE, echo=FALSE}
+DimPlot(sc, group.by="diffday", pt.size=0.75)
+DimPlot(sc, group.by="type", pt.size=0.75)
 table(sc$seurat_clusters)
 ```
 
@@ -25,67 +31,35 @@ We can look at marker genes to map these clusters to the predominant cell types 
 *PROG* - cardiac progenitor (ISL1)
 *CM* - cardiomyocyte (TNNT2)
 *CF* - cardiac fibroblast (COL3A1)
-```{r}
+```{r marker_genes, warning=FALSE, message=FALSE, echo=FALSE}
 plot_density(sc, "POU5F1")
 plot_density(sc, "MIXL1")
 plot_density(sc, "MESP1")
-plot_density(sc, "ISL1")
+plot_density(sc, "GATA4")
+plot_density(sc, "TAGLN")
 plot_density(sc, "TNNT2")
 plot_density(sc, "COL3A1")
-```
-
-It is worth noting that a significant portion of cells (12k) belong to another cell population that we have not fully characterized. These cells overexpress several genes (AFP, APOA1, APOA2) that are typically associated with the endoderm germ layer (as opposed to the mesoderm which gives rise to cardiac cell types)
-```{r anon, warning=FALSE, message=FALSE, echo=FALSE}
-plot_density(sc, "AFP")
 plot_density(sc, "APOA1")
-plot_density(sc, "APOA2")
 ```
 
-
-Next, we'd like to measure cell type proportions in our samples. Let's look at how proportions of cardiomyocyte cells for each individual change over our collection time course. Note that in this plot, we are averaging over biological replicates
-```{r}
-altpaths <- tibble("sample"=sc$sample, "cm"=(sc$leiden==4), "epdc"=(sc$leiden==0), "diffday"=sc$diffday, "individual"=sc$individual)
-counts <- tibble("sample"=names(table(altpaths$sample)), "cells"=as.numeric(table(altpaths$sample)))
-sample2diffday <- unique(select(altpaths, c(sample, diffday, individual)))
-
-proportions <- altpaths %>% group_by(sample) %>%
-  summarize(cm.counts=sum(cm), epdc.counts=sum(epdc))
-proportions <- proportions %>% inner_join(counts, by="sample") %>% 
-  mutate(cm.frac=cm.counts/cells) %>%
-  mutate(epdc.frac=epdc.counts/cells) %>%
-  inner_join(sample2diffday, by="sample") %>%
-  mutate(diffday=as.numeric(str_sub(diffday, 5))) %>%
-  gather(`cm.frac`, `epdc.frac`, key="cell.type", value="proportion")
-
-ggplot(proportions, aes(x=diffday, y=proportion, color=individual)) + 
-  geom_line() +
-  facet_grid(cols=vars(cell.type))
+Using a subset of these marker genes, we can examine how expression changes over time to see that cell lines proceed through differentiation at different rates, and seem to preferentially produce either cardiomyocytes (blue, marker gene TNNT2) or cardiac fibroblasts (purple, marker gene COL3A1).
+```{r ct_prefs, warning=FALSE, message=FALSE, echo=FALSE}
+meta <- as_tibble(sc@meta.data[,c("diffday", "individual")], rownames="cell")
+rep.genes <- c("TNNT2", "COL3A1")
+rep.inds <- c("18499", "19209", "18505", "18517", "19127", "19190")
+exp.marker <- as_tibble(t(sc[["SCT"]]@data[rep.genes,]), rownames="cell") %>% 
+  inner_join(meta, by="cell") %>%
+  gather(!c(cell, diffday, individual), key="gene", value="exp")
+exp.sub <- exp.marker %>% 
+  filter(individual %in% rep.inds) %>%
+  mutate(gene=factor(gene, levels=c("TNNT2", "COL3A1"))) %>%
+  mutate(individual=factor(individual, levels=rep.inds))
+type.cols <- hue_pal()(7)[c(5,6)]
+ggplot(exp.sub, aes(x=diffday, y=exp, fill=gene)) +
+  geom_violin(position=position_dodge(), trim=T, scale="width") +
+  facet_grid(rows=vars(individual)) +
+  theme_classic() +
+  scale_fill_manual(values=type.cols) +
+  xlab("Differentiation Day") +
+  ylab("Normalized Expression")
 ```
-
-Next question, do cells from the same cell line seem to share a consistent rate of differentiation?
-```{r}
-pseudotimes <- tibble("sample"=sc$sample, "cm"=sc$CM_PC1, "epdc"=sc$EPDC_PC1, "diffday"=sc$diffday, "individual"=sc$individual)
-sample2diffday <- unique(select(pseudotimes, c(sample, diffday, individual)))
-
-proportions <-pseudotimes %>% group_by(sample) %>%
-  summarize(cm.mean=mean(cm, na.rm=T), cm.sd=sd(cm, na.rm=T), epdc.mean=mean(epdc, na.rm=T), epdc.sd=sd(epdc, na.rm=T))
-proportions <- proportions %>%  
-  inner_join(sample2diffday, by="sample") %>%
-  mutate(diffday=as.numeric(str_sub(diffday, 5))) %>%
-  gather(`cm.mean`, `cm.sd`, `epdc.mean`, `epdc.sd`, key="quantity", value="value") %>%
-  mutate(type=str_extract(quantity, "[^.]+"), quantity=str_extract(quantity, "[^.]+$")) %>% 
-  spread(quantity, value)
-  
-ggplot(proportions, aes(x=diffday, color=individual)) +
-  geom_line(aes(y=mean)) +
-  facet_grid(cols=vars(type)) + 
-  ylab("Average Pseudotime") +
-  xlab("Collection Day")
-ggplot(proportions, aes(x=diffday, color=individual)) +
-  geom_line(aes(y=mean)) +
-  geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd)) +
-  facet_grid(cols=vars(type)) + 
-  ylab("Average Pseudotime") +
-  xlab("Collection Day")
-```
-
