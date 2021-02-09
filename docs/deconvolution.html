@@ -43,7 +43,7 @@ div.section {
   div.column{display: inline-block; vertical-align: top; width: 50%;}
   div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
   ul.task-list{list-style: none;}
-      </style>
+    </style>
 
 <style type="text/css">code{white-space: pre;}</style>
 <style type="text/css">
@@ -89,6 +89,7 @@ h6 {
   text-align: left;
 }
 </style>
+
 
 
 
@@ -379,7 +380,7 @@ div.tocify {
       <ul class="nav navbar-nav navbar-right">
         <li>
   <a href="https://github.com/jmp448/sc-dynamic-eqtl">
-    <span class="fa fa-github"></span>
+    <span class="fas fa-github"></span>
      
     Source code
   </a>
@@ -418,7 +419,7 @@ div.tocify {
 <div class="tab-content">
 <div id="summary" class="tab-pane fade in active">
 <p>
-<strong>Last updated:</strong> 2021-01-10
+<strong>Last updated:</strong> 2021-02-08
 </p>
 <p>
 <strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 7 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 0
@@ -509,30 +510,41 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomjmp448scdynamiceqtltree28a4a9e5c51ead1abb2cf8c9f8ff5ccc28ed7116targetblank28a4a9ea"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/jmp448/sc-dynamic-eqtl/tree/28a4a9e5c51ead1abb2cf8c9f8ff5ccc28ed7116" target="_blank">28a4a9e</a> </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomjmp448scdynamiceqtltreebb0873fa4729c5a26a9a84a1570b748baf5e7c9btargetblankbb0873fa"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/jmp448/sc-dynamic-eqtl/tree/bb0873fa4729c5a26a9a84a1570b748baf5e7c9b" target="_blank">bb0873f</a> </a>
 </p>
 </div>
-<div id="strongRepositoryversionstrongahrefhttpsgithubcomjmp448scdynamiceqtltree28a4a9e5c51ead1abb2cf8c9f8ff5ccc28ed7116targetblank28a4a9ea" class="panel-collapse collapse">
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomjmp448scdynamiceqtltreebb0873fa4729c5a26a9a84a1570b748baf5e7c9btargetblankbb0873fa" class="panel-collapse collapse">
 <div class="panel-body">
 <p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility.
 </p>
 <p>
-The results in this page were generated with repository version <a href="https://github.com/jmp448/sc-dynamic-eqtl/tree/28a4a9e5c51ead1abb2cf8c9f8ff5ccc28ed7116" target="_blank">28a4a9e</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
+The results in this page were generated with repository version <a href="https://github.com/jmp448/sc-dynamic-eqtl/tree/bb0873fa4729c5a26a9a84a1570b748baf5e7c9b" target="_blank">bb0873f</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
 </p>
 <p>
 Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
 </p>
 <pre><code>
 Ignored files:
+    Ignored:    .Rhistory
     Ignored:    analysis/.Rhistory
     Ignored:    analysis/annotation.nb.html
     Ignored:    analysis/cell-line-pca.nb.html
     Ignored:    analysis/deconvolution.nb.html
+    Ignored:    analysis/dynamic-eqtl-2.nb.html
     Ignored:    analysis/dynamic-eqtl.nb.html
+    Ignored:    analysis/epigenetics-dynamic.nb.html
+    Ignored:    analysis/epigenetics-interaction.nb.html
+    Ignored:    analysis/epigenetics.nb.html
+    Ignored:    analysis/interaction-qtl-2.nb.html
     Ignored:    analysis/interaction-qtl.nb.html
+    Ignored:    analysis/samplepc_debug.nb.html
     Ignored:    analysis/static_eqtl.nb.html
+    Ignored:    analysis/ti.nb.html
     Ignored:    code/.Rhistory
+    Ignored:    data/ben/
+    Ignored:    data/bulk/
+    Ignored:    data/bulk7/
     Ignored:    data/bulk_counts.full.tsv
     Ignored:    data/bulk_counts.overlap.tsv
     Ignored:    data/bulk_cpm.full.tsv
@@ -545,6 +557,7 @@ Ignored files:
     Ignored:    data/bulk_tpm.overlap.tsv
     Ignored:    data/cibersort/
     Ignored:    data/dynamic/
+    Ignored:    data/epigenomes/
     Ignored:    data/gene_locs.filtered.tsv
     Ignored:    data/genotypes.filtered.tsv
     Ignored:    data/gv_pairs.filtered.100k.tsv
@@ -552,56 +565,116 @@ Ignored files:
     Ignored:    data/gv_pairs.filtered.25k.tsv
     Ignored:    data/gv_pairs.filtered.50k.tsv
     Ignored:    data/gv_pairs.filtered.tsv
+    Ignored:    data/pseudobulk-cf/
+    Ignored:    data/pseudobulk-cm/
+    Ignored:    data/pseudobulk-drop2_cpm.col.full.tsv
+    Ignored:    data/pseudobulk-drop2_cpm.day.full.tsv
+    Ignored:    data/pseudobulk-drop2_logcpm.col.full.tsv
+    Ignored:    data/pseudobulk-drop2_logcpm.day.full.tsv
+    Ignored:    data/pseudobulk/
+    Ignored:    data/pseudobulk_counts.cmbin.full.tsv
     Ignored:    data/pseudobulk_counts.col.full.tsv
     Ignored:    data/pseudobulk_counts.col.overlap.tsv
     Ignored:    data/pseudobulk_counts.day.full.tsv
     Ignored:    data/pseudobulk_counts.day.overlap.tsv
+    Ignored:    data/pseudobulk_counts.epdcbin.full.tsv
     Ignored:    data/pseudobulk_counts.type.full.tsv
     Ignored:    data/pseudobulk_counts.type.overlap.tsv
+    Ignored:    data/pseudobulk_cpm.cmbin.full.tsv
     Ignored:    data/pseudobulk_cpm.col.full.tsv
     Ignored:    data/pseudobulk_cpm.col.overlap.tsv
     Ignored:    data/pseudobulk_cpm.day.full.tsv
     Ignored:    data/pseudobulk_cpm.day.overlap.tsv
+    Ignored:    data/pseudobulk_cpm.epdcbin.full.tsv
     Ignored:    data/pseudobulk_cpm.type.full.tsv
     Ignored:    data/pseudobulk_cpm.type.overlap.tsv
+    Ignored:    data/pseudobulk_logcpm.cmbin.full.tsv
     Ignored:    data/pseudobulk_logcpm.col.full.tsv
     Ignored:    data/pseudobulk_logcpm.col.overlap.tsv
     Ignored:    data/pseudobulk_logcpm.day.full.tsv
     Ignored:    data/pseudobulk_logcpm.day.overlap.tsv
+    Ignored:    data/pseudobulk_logcpm.epdcbin.full.tsv
     Ignored:    data/pseudobulk_logcpm.type.full.tsv
     Ignored:    data/pseudobulk_logcpm.type.overlap.tsv
+    Ignored:    data/pseudotimes.hacky.tsv
+    Ignored:    data/seurat.annotated.h5Seurat
+    Ignored:    data/seurat.annotated.h5ad
+    Ignored:    data/seurat.annotated.loom
+    Ignored:    data/seurat.annotated.rds
+    Ignored:    data/seurat.cardiac.h5Seurat
+    Ignored:    data/seurat.cardiac.h5ad
+    Ignored:    data/seurat.cardiac.loom
+    Ignored:    data/seurat.cardiac.pseudotime.h5ad
+    Ignored:    data/seurat.cardiac.pseudotime2.h5ad
+    Ignored:    data/seurat.cardiac.rds
+    Ignored:    data/seurat.cf.rds
+    Ignored:    data/seurat.cm.rds
+    Ignored:    data/seurat.filtered.rds
+    Ignored:    data/seurat.normalized.rds
+    Ignored:    data/seurat.processed.rds
+    Ignored:    data/seurat.processed2.rds
     Ignored:    data/seurat/
+    Ignored:    data/slingshot.cm.rds
     Ignored:    data/snp_locs.filtered.tsv
     Ignored:    data/static/
     Ignored:    results/
+    Ignored:    wrappers/.Rhistory
+    Ignored:    wrappers/figures/
 
 Untracked files:
-    Untracked:  analysis/dynamic-eqtl.Rmd
-    Untracked:  analysis/interaction-qtl.Rmd
-    Untracked:  code/cell_line_pca.R
-    Untracked:  code/cibersort.R
-    Untracked:  code/correlation.R
-    Untracked:  code/debug.R
-    Untracked:  code/eqtl_dynamic.R
-    Untracked:  code/eqtl_interaction.R
-    Untracked:  code/eqtl_static.R
-    Untracked:  code/helpers.R
-    Untracked:  code/list_tests.R
-    Untracked:  code/mashr.R
-    Untracked:  code/mtc_dynamic.R
-    Untracked:  code/mtc_interaction.R
-    Untracked:  code/mtc_static.R
-    Untracked:  code/prediction_clusters.R
-    Untracked:  code/prediction_lasso.R
-    Untracked:  code/preprocessing.R
-    Untracked:  figs/
-    Untracked:  wrappers/
+    Untracked:  analysis/figs/
+    Untracked:  analysis/samplepc_debug.Rmd
+    Untracked:  analysis/ti.Rmd
+    Untracked:  code/add_ti_seurat.R
+    Untracked:  code/annotate_seurat.R
+    Untracked:  code/debug.Rmd
+    Untracked:  code/debug.nb.html
+    Untracked:  code/figs/
+    Untracked:  code/scanpy.Rmd
+    Untracked:  code/scanpy.nb.html
+    Untracked:  code/seurat2h5ad.R
+    Untracked:  code/ti.py
+    Untracked:  code/trajectory_inference.R
+    Untracked:  figs/paga.png
+    Untracked:  figs/paga2.png
+    Untracked:  figs/pca.png
+    Untracked:  figs/umap.png
+    Untracked:  figs/umap_paga.png
+    Untracked:  figs/umap_pseudo.png
+    Untracked:  figs/umap_pseudo2.png
+    Untracked:  figs/umap_pseudotime.png
+    Untracked:  figs/venn05.png
+    Untracked:  figs/venn05.png.2021-02-01_13-36-16.log
+    Untracked:  figs/venn_05.png
+    Untracked:  figs/venn_05.png.2021-02-01_13-37-28.log
+    Untracked:  figs/venn_05.png.2021-02-01_13-39-40.log
+    Untracked:  figs/venn_05.png.2021-02-01_13-40-06.log
+    Untracked:  figs/venn_0_5.png
+    Untracked:  figs/venn_0_5.png.2021-02-01_23-05-23.log
+    Untracked:  figs/venn_0_5_10.png
+    Untracked:  figs/venn_0_5_10.png.2021-02-01_13-50-26.log
+    Untracked:  figs/venn_0_5_10_gene.png
+    Untracked:  figs/venn_0_5_10_gene.png.2021-02-01_13-51-44.log
+    Untracked:  figs/venn_0_5_gene.png
+    Untracked:  figs/venn_0_5_gene.png.2021-02-01_23-06-16.log
+    Untracked:  figs/venn_0_5_gene.png.2021-02-01_23-06-30.log
+    Untracked:  wrappers/logs/
+    Untracked:  wrappers/seurat2h5ad.sh
+    Untracked:  wrappers/ti.sh
 
 Unstaged changes:
-    Modified:   .gitignore
-    Deleted:    analysis/cell-deconvolution.Rmd
-    Deleted:    analysis/cibersort-calibration.Rmd
-    Deleted:    analysis/deconvolution-results.Rmd
+    Modified:   analysis/dynamic-eqtl.Rmd
+    Modified:   code/cibersort.R
+    Modified:   code/debug.R
+    Modified:   code/eqtl_dynamic.R
+    Modified:   code/eqtl_interaction.R
+    Modified:   code/mtc_dynamic.R
+    Modified:   code/preprocessing.R
+    Modified:   code/process_seurat.R
+    Modified:   wrappers/eqtl_dynamic_mtc_queue.sh
+    Modified:   wrappers/eqtl_dynamic_queue.sh
+    Modified:   wrappers/eqtl_interaction_mtc_queue.sh
+    Modified:   wrappers/eqtl_interaction_queue.sh
 
 </code></pre>
 <p>
@@ -645,6 +718,40 @@ Message
 Rmd
 </td>
 <td>
+<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/bb0873fa4729c5a26a9a84a1570b748baf5e7c9b/analysis/deconvolution.Rmd" target="_blank">bb0873f</a>
+</td>
+<td>
+jmp448
+</td>
+<td>
+2021-02-08
+</td>
+<td>
+wflow_publish(“analysis/deconvolution.Rmd”)
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/jmp448/sc-dynamic-eqtl/b700aea5f1e689dba3d525f14bf36a5a2404b1bf/docs/deconvolution.html" target="_blank">b700aea</a>
+</td>
+<td>
+jmp448
+</td>
+<td>
+2021-01-10
+</td>
+<td>
+Build site.
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
 <a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/28a4a9e5c51ead1abb2cf8c9f8ff5ccc28ed7116/analysis/deconvolution.Rmd" target="_blank">28a4a9e</a>
 </td>
 <td>
@@ -667,7 +774,81 @@ Updated results with replication
 <div id="cibersortx-assessment" class="section level2">
 <h2>CIBERSORTx Assessment</h2>
 <p>Whether aggregating by (cell line, day) or by (cell line, sample), RMSE does not appear to be significantly impacted, and cell type deconvolution appears reasonably accurate <img src="figure/deconvolution.Rmd/unnamed-chunk-2-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-2-1">
+Past versions of unnamed-chunk-2-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-2-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/b700aea5f1e689dba3d525f14bf36a5a2404b1bf/docs/figure/deconvolution.Rmd/unnamed-chunk-2-1.png" target="_blank">b700aea</a>
+</td>
+<td>
+jmp448
+</td>
+<td>
+2021-01-10
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <p>We can also visually see that the true and inferred cell type proportions as they change over time are similar <img src="figure/deconvolution.Rmd/unnamed-chunk-3-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-3-1">
+Past versions of unnamed-chunk-3-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-3-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/b700aea5f1e689dba3d525f14bf36a5a2404b1bf/docs/figure/deconvolution.Rmd/unnamed-chunk-3-1.png" target="_blank">b700aea</a>
+</td>
+<td>
+jmp448
+</td>
+<td>
+2021-01-10
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </div>
 <div id="bulk-deconvolution" class="section level2">
 <h2>Bulk Deconvolution</h2>
@@ -675,13 +856,13 @@ Updated results with replication
 <pre><code>Parsed with column specification:
 cols(
   Mixture = col_character(),
-  iPSC = col_double(),
-  meso = col_double(),
-  cardiomes = col_double(),
-  prog = col_double(),
+  IPSC = col_double(),
+  MES = col_double(),
+  CMES = col_double(),
+  PROG = col_double(),
   CM = col_double(),
-  EPDC = col_double(),
-  EMT = col_double(),
+  CF = col_double(),
+  UNK = col_double(),
   `P-value` = col_double(),
   Correlation = col_double(),
   RMSE = col_double()
@@ -689,15 +870,52 @@ cols(
 <pre><code>Parsed with column specification:
 cols(
   sample = col_character(),
-  iPSC = col_double(),
-  meso = col_double(),
-  cardiomes = col_double(),
-  prog = col_double(),
+  IPSC = col_double(),
+  MES = col_double(),
+  CMES = col_double(),
+  PROG = col_double(),
   CM = col_double(),
-  EPDC = col_double(),
-  EMT = col_double()
+  CF = col_double(),
+  UNK = col_double()
 )</code></pre>
 <p><img src="figure/deconvolution.Rmd/unnamed-chunk-4-1.png" width="1440" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-4-1">
+Past versions of unnamed-chunk-4-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-4-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/jmp448/sc-dynamic-eqtl/blob/b700aea5f1e689dba3d525f14bf36a5a2404b1bf/docs/figure/deconvolution.Rmd/unnamed-chunk-4-1.png" target="_blank">b700aea</a>
+</td>
+<td>
+jmp448
+</td>
+<td>
+2021-01-10
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
@@ -725,26 +943,26 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
- [1] Metrics_0.1.4   patchwork_1.0.1 forcats_0.5.0   stringr_1.4.0  
- [5] dplyr_1.0.2     purrr_0.3.4     readr_1.3.1     tidyr_1.1.2    
- [9] tibble_3.0.3    ggplot2_3.3.2   tidyverse_1.3.0 workflowr_1.6.2
+ [1] Metrics_0.1.4   patchwork_1.1.1 forcats_0.5.0   stringr_1.4.0  
+ [5] dplyr_1.0.3     purrr_0.3.4     readr_1.3.1     tidyr_1.1.2    
+ [9] tibble_3.0.5    ggplot2_3.3.3   tidyverse_1.3.0 workflowr_1.6.2
 
 loaded via a namespace (and not attached):
- [1] tidyselect_1.1.0 xfun_0.18        haven_2.3.1      colorspace_1.4-1
- [5] vctrs_0.3.4      generics_0.0.2   htmltools_0.5.0  yaml_2.2.1      
- [9] blob_1.2.1       rlang_0.4.7      later_1.1.0.1    pillar_1.4.6    
-[13] withr_2.3.0      glue_1.4.2       DBI_1.1.0        dbplyr_1.4.4    
-[17] modelr_0.1.8     readxl_1.3.1     lifecycle_0.2.0  munsell_0.5.0   
-[21] gtable_0.3.0     cellranger_1.1.0 rvest_0.3.6      evaluate_0.14   
-[25] labeling_0.3     knitr_1.30       httpuv_1.5.4     fansi_0.4.1     
-[29] broom_0.7.0      Rcpp_1.0.5       promises_1.1.1   backports_1.1.10
-[33] scales_1.1.1     jsonlite_1.7.1   farver_2.0.3     fs_1.5.0        
-[37] hms_0.5.3        digest_0.6.25    stringi_1.5.3    rprojroot_1.3-2 
-[41] grid_4.0.0       cli_2.0.2        tools_4.0.0      magrittr_1.5    
-[45] crayon_1.3.4     whisker_0.4      pkgconfig_2.0.3  ellipsis_0.3.1  
-[49] xml2_1.3.2       reprex_0.3.0     lubridate_1.7.9  assertthat_0.2.1
-[53] rmarkdown_2.4    httr_1.4.2       rstudioapi_0.11  R6_2.4.1        
-[57] git2r_0.27.1     compiler_4.0.0  </code></pre>
+ [1] Rcpp_1.0.6        lubridate_1.7.9.2 assertthat_0.2.1  rprojroot_2.0.2  
+ [5] digest_0.6.27     R6_2.5.0          cellranger_1.1.0  backports_1.2.1  
+ [9] reprex_0.3.0      evaluate_0.14     httr_1.4.2        pillar_1.4.7     
+[13] rlang_0.4.10      readxl_1.3.1      rstudioapi_0.13   whisker_0.4      
+[17] blob_1.2.1        rmarkdown_2.6     labeling_0.4.2    munsell_0.5.0    
+[21] broom_0.7.3       compiler_4.0.0    httpuv_1.5.5      modelr_0.1.8     
+[25] xfun_0.20         pkgconfig_2.0.3   htmltools_0.5.1.1 tidyselect_1.1.0 
+[29] fansi_0.4.2       crayon_1.3.4      dbplyr_1.4.4      withr_2.4.1      
+[33] later_1.1.0.1     grid_4.0.0        jsonlite_1.7.2    gtable_0.3.0     
+[37] lifecycle_0.2.0   DBI_1.1.0         git2r_0.27.1      magrittr_2.0.1   
+[41] scales_1.1.1      cli_2.2.0         stringi_1.5.3     farver_2.0.3     
+[45] fs_1.5.0          promises_1.1.1    xml2_1.3.2        ellipsis_0.3.1   
+[49] generics_0.1.0    vctrs_0.3.6       tools_4.0.0       glue_1.4.2       
+[53] hms_0.5.3         yaml_2.2.1        colorspace_2.0-0  rvest_0.3.6      
+[57] knitr_1.30        haven_2.3.1      </code></pre>
 </div>
 </div>
 
@@ -771,7 +989,7 @@ footer is added to webpages before the MathJax javascript. -->
 
 // add bootstrap table styles to pandoc tables
 function bootstrapStylePandocTables() {
-  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
 }
 $(document).ready(function () {
   bootstrapStylePandocTables();
