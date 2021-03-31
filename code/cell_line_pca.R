@@ -9,16 +9,16 @@ cell.line.pca <- function(x, npc=5) {
   x <- x %>% gather(!gene, key="sample", value="counts") %>% 
             mutate(day=str_extract(sample, "[^_]+$")) %>%
             mutate(ind=str_extract(sample, "[^_]+")) %>%
-            select(!sample) %>% spread(ind, counts) %>%
+            dplyr::select(!sample) %>% spread(ind, counts) %>%
             drop_na()
-  x <- x %>% select(!c(gene, day)) %>% apply(1, center.scale) %>% 
+  x <- x %>% dplyr::select(!c(gene, day)) %>% apply(1, center.scale) %>% 
             t %>% as_tibble %>% 
             mutate(gene_day=paste(x$gene, x$day, sep="_")) %>%
             relocate(gene_day)
-  novargenes <- x %>% select(!gene_day) %>% apply(1, var) %>% as_tibble %>%
+  novargenes <- x %>% dplyr::select(!gene_day) %>% apply(1, var) %>% as_tibble %>%
               mutate(gene_day=x$gene_day) %>% filter(value==0) %>% .$gene_day
   x <- x %>% filter(!gene_day %in% novargenes)
-  x.svd <- x %>% select(!gene_day) %>% t %>% svd(nu=npc, nv=npc)
+  x.svd <- x %>% dplyr::select(!gene_day) %>% t %>% svd(nu=npc, nv=npc)
   pcgenes <- x.svd %>% .$v %>% as_tibble %>% mutate(gene_day=x$gene_day)
   cell.line.pcs <- x.svd %>% .$u %>% as_tibble %>% 
                     `colnames<-`(paste0("PC_", seq(1, npc))) %>%
@@ -31,12 +31,12 @@ regular.pca <- function(x, npc=10) {
   if (!is_tibble(x)) {
     x <- as_tibble(x)
   }
-  x <- x %>% select(!c(gene)) %>% apply(1, center.scale) %>% 
+  x <- x %>% dplyr::select(!c(gene)) %>% apply(1, center.scale) %>% 
     t %>% as_tibble %>% mutate(gene=x$gene) %>% relocate(gene)
-  novargenes <- x %>% select(!gene) %>% apply(1, var) %>% as_tibble %>%
+  novargenes <- x %>% dplyr::select(!gene) %>% apply(1, var) %>% as_tibble %>%
     mutate(gene=x$gene) %>% filter(value==0) %>% .$gene
   x <- x %>% filter(!gene %in% novargenes)
-  x.svd <- x %>% select(!gene) %>% t %>% svd(nu=npc, nv=npc)
+  x.svd <- x %>% dplyr::select(!gene) %>% t %>% svd(nu=npc, nv=npc)
   x.svd$u <- x.svd$u %>% as_tibble() %>% `colnames<-`(paste0("PC", seq(1,npc))) %>%
               mutate(sample=colnames(x)[-c(1)]) %>% relocate(sample)
   x.svd$v <- x.svd$v %>% as_tibble() %>% `colnames<-`(paste0("PC", seq(1,npc))) %>%

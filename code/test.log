@@ -1,0 +1,12 @@
+
+VCFtools - 0.1.15
+(C) Adam Auton and Anthony Marcketta 2009
+
+Parameters as interpreted:
+	--vcf ../data/gwas/ref1000g/chr11_1000genomes.GRCh38.vcf
+	--out test
+	--positions ../data/gwas/ref1000g/test.tsv
+
+After filtering, kept 2548 out of 2548 Individuals
+After filtering, kept 100000 out of a possible 2032963 Sites
+Run Time = 59.00 seconds

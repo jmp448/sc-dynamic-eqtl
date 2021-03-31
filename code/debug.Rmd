@@ -1,0 +1,83 @@
+---
+title: "Sample PC Collider Problem"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(limma)
+library(patchwork)
+```
+
+```{r}
+design <- read_tsv("../data/bulk/day/pcs.tsv") %>%
+  mutate(ind=str_extract(sample, "[^_]+")) %>%
+  mutate(day=as.numeric(str_extract(sample, "[^_]+$")))
+getr2 <- function(i) {
+  summary(lm(formula(paste0("PC", i, "~ind:day")), design))$adj.r.squared
+}
+pve <- sapply(seq(1, 50), getr2)
+
+ggplot(tibble("pc"=as.numeric(seq(1, 50)), "r2"=pve), aes(x=pc, y=r2)) +
+  geom_point() + 
+  geom_segment(aes(x=pc, xend=pc, y=0, yend=r2))
+```
+
+How many hits do we gain as we regress out additional PCs?
+```{r}
+count.hits <- function(i) {
+  n <- read_tsv(paste0("../results/eqtl_dynamic/linear_dQTL/bulk/day/50k-5clpcs-", i, "pcs.tophits.tsv")) %>%
+    filter(qval.unadj <= 0.05) %>%
+    nrow
+  n
+}
+hits <- sapply(seq(0, 10), count.hits)
+```
+
+```{r}
+r2 <- sapply(seq(1, 10), getr2)
+r2 <- c(0, r2)
+hitcounts <- tibble("pcs"=seq(0, 10), "nhits"=hits) 
+corrs <- tibble("pcs"=seq(0, 10), "r2"=r2)
+p1 <- ggplot(hitcounts, aes(x=pcs, y=nhits)) +
+  geom_point() + 
+  geom_segment(aes(x=pcs, xend=pcs, y=0, yend=nhits))
+p2 <- ggplot(hitcounts, aes(x=pcs, y=r2)) +
+  geom_point() + 
+  geom_segment(aes(x=pcs, xend=pcs, y=0, yend=r2))
+p2 + p1 + plot_layout(ncol=1)
+```
+
+For the new hits we detect, is Gxt correlated with the PC we just regressed out? 
+First, when we regress out PC1
+```{r}
+r2 <- sapply(seq(1, 10), getr2)
+r2 <- c(0, r2)
+hitcounts <- tibble("pcs"=seq(0, 10), "nhits"=hits) 
+corrs <- tibble("pcs"=seq(0, 10), "r2"=r2)
+p2 <- ggplot(hitcounts, aes(x=pcs, y=nhits)) +
+  geom_point() + 
+  geom_segment(aes(x=pcs, xend=pcs, y=0, yend=nhits)) +
+  xlab("Sample PC") + ylab("# Dynamic eQTLs")
+p1 <- ggplot(hitcounts, aes(x=pcs, y=r2)) +
+  geom_point() + 
+  geom_segment(aes(x=pcs, xend=pcs, y=0, yend=r2)) +
+  xlab("Sample PC") + ylab("R2 with Ixt")
+
+corrtest <- read_tsv("../results/eqtl_dynamic/linear_dQTL/bulk/day/corr.analysis.tsv")
+corrtest <- corrtest %>% mutate(pc=factor(pc))
+
+p3 <- ggplot(corrtest, aes(x=pc, y=ucorr, fill=group)) +
+  geom_boxplot(position="dodge") +
+  xlab("Sample PC") + ylab("R2 with Gxt")
+
+p1 + p2 + p3 + plot_layout(ncol=1)
+```
+
+# are the new hits detected after PC regression due to colliders?
+
+
+
+
+
+

@@ -10,7 +10,8 @@ dataset <- as.character(inputArgs[1])
 cis.dist <- as.character(inputArgs[2])
 n.samp.pcs <- as.numeric(inputArgs[3])
 n.cl.pcs <- as.numeric(inputArgs[4])
-cell.type <- as.character(inputArgs[5])
+cell.type.reg <- as.logical(inputArgs[5])
+cell.type <- as.character(inputArgs[6])
 
 message(paste0("dataset, ", dataset, 
                "\ncis.dist, ", cis.dist, 
@@ -18,12 +19,21 @@ message(paste0("dataset, ", dataset,
                "\ncl pcs, ", n.cl.pcs,
                "\ncell.type, ", cell.type))
 
-stopifnot(dataset %in% c("bulk", "pseudobulk"))
+stopifnot(dataset %in% c("bulk", "bulk7", "pseudobulk"))
 stopifnot(cis.dist %in% c("10k", "25k", "50k", "100k"))
 stopifnot(n.samp.pcs<=50)
-stopifnot(n.cl.pcs<=20)
+stopifnot(n.cl.pcs<=30)
 
-results <- read_tsv(paste0("../results/eqtl_dynamic/ieQTL/", dataset, "/", cell.type, "/", cis.dist, "-", n.cl.pcs, "clpcs-", n.samp.pcs ,"pcs.tsv"))
+if (cell.type.reg) {
+  cell.type.reg <- "regtypes"
+} else {
+  cell.type.reg <- "notypes"
+}
+
+qtl_files <- paste0("../results/eqtl_dynamic/ieQTL/", dataset, "/", cell.type, "/", cis.dist, "-", n.cl.pcs, "clpcs-", n.samp.pcs, "pcs-", cell.type.reg, "-", seq(1,10), ".tsv")
+results <- map(qtl_files, read_tsv) %>% 
+  bind_rows %>%
+  filter(!duplicated(paste(gene, snp, sep="_")))
 
 results.ct <- results %>%
   rename(stdev.unscaled=paste0("stdev.unscaled.g:", cell.type)) %>%
@@ -53,7 +63,7 @@ results.ct <- results.ct %>%
 
 # save the fitted model
 g <- get_fitted_g(ashr.fit)
-saveRDS(g, paste0("../results/eqtl_dynamic/ieQTL/", dataset, "/", cell.type, "/", cis.dist, "-", n.cl.pcs, "clpcs-", n.samp.pcs ,"pcs.ashr.g.rds"))
+saveRDS(g, paste0("../results/eqtl_dynamic/ieQTL/", dataset, "/", cell.type, "/", cis.dist, "-", n.cl.pcs, "clpcs-", n.samp.pcs ,"pcs-", cell.type.reg, ".ashr.g.rds"))
 
 # subset to top hits per gene
 top.hits  <- results.ct %>% arrange(p.adj) %>%
@@ -61,5 +71,5 @@ top.hits  <- results.ct %>% arrange(p.adj) %>%
   mutate(qval.unadj=qvalue(bonf.p.unadj)$q) %>%
   mutate(qval.adj=qvalue(bonf.p.adj)$q)
 
-write_tsv(results.ct, paste0("../results/eqtl_dynamic/ieQTL/", dataset, "/", cell.type, "/", cis.dist, "-", n.cl.pcs, "clpcs-", n.samp.pcs ,"pcs.adj.tsv"))
-write_tsv(top.hits, paste0("../results/eqtl_dynamic/ieQTL/", dataset, "/", cell.type, "/", cis.dist, "-", n.cl.pcs, "clpcs-", n.samp.pcs ,"pcs.tophits.tsv"))
+write_tsv(results.ct, paste0("../results/eqtl_dynamic/ieQTL/", dataset, "/", cell.type, "/", cis.dist, "-", n.cl.pcs, "clpcs-", n.samp.pcs ,"pcs-", cell.type.reg, ".mtc.tsv"))
+write_tsv(top.hits, paste0("../results/eqtl_dynamic/ieQTL/", dataset, "/", cell.type, "/", cis.dist, "-", n.cl.pcs, "clpcs-", n.samp.pcs ,"pcs-", cell.type.reg, ".tophits.tsv"))

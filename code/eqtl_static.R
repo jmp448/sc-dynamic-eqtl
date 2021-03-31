@@ -1,5 +1,6 @@
 library(tidyverse)
 library(limma)
+library(vroom)
 
 inputArgs <- commandArgs(trailingOnly=T)
 
@@ -14,12 +15,13 @@ expr <- read_tsv(paste0("../data/static/", dataset, "/", aggregate, "/", cell.ty
 covariates <- read_tsv(paste0("../data/static/", dataset, "/", aggregate, "/", cell.type, "/covariates.tsv")) %>% 
   select(1:(1+npcs)) %>%
   mutate(ind=as.character(sample), .keep="unused", .after=1)
-genotypes <- read_tsv("../data/genotypes.filtered.tsv")
-colnames(genotypes) <- colnames(genotypes) %>% str_replace("NA", "")
+all.tests <- read_tsv(paste0("../data/filtered_tests.", cis.dist, ".tsv")) %>%
+  arrange(snp)
+genotypes <- vroom("../data/genotypes/standardized_genotypes.tsv") %>%
+  filter(snp %in% all.tests$snp)
 genotypes <- genotypes %>% select(c(snp, expr$ind))
 
-all.tests <- read_tsv(paste0("../data/gv_pairs.filtered.", cis.dist, ".tsv")) %>%
-  filter(gene %in% colnames(expr))
+
 
 # filter expression to genes we'll test
 expr <- select(expr, c(ind, unique(all.tests$gene)))

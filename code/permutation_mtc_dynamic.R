@@ -10,22 +10,33 @@ dataset <- as.character(inputArgs[1])
 cis.dist <- as.character(inputArgs[2])
 n.samp.pcs <- as.numeric(inputArgs[3])
 n.cl.pcs <- as.numeric(inputArgs[4])
-agg <- as.character(inputArgs[5])
+cell.type.reg <- as.logical(inputArgs[5])
+agg <- as.character(inputArgs[6])
+chunks_tot <- as.numeric(inputArgs[7])
 
 message(paste0("dataset, ", dataset, 
                "\ncis.dist, ", cis.dist, 
                "\nsample pcs, ", n.samp.pcs,
                "\ncell line pcs, ", n.cl.pcs,
-               "\naggregate, ", agg))
+               "\nregress props, ", cell.type.reg,
+               "\naggregate, ", agg,
+               "\ntotal chunks, ", chunks_tot))
 
-stopifnot(dataset %in% c("bulk", "bulk7", "pseudobulk", "pseudobulk-drop2"))
+stopifnot(dataset %in% c("bulk", "bulk7", "pseudobulk", "pseudobulk-cm", "pseudobulk-cf"))
 stopifnot(cis.dist %in% c("10k", "25k", "50k", "100k"))
 stopifnot(n.samp.pcs<=50)
 stopifnot(n.cl.pcs<=10)
-stopifnot(agg %in% c("day", "cmbin", "epdcbin"))
 
-results <- read_tsv(paste0("../results/eqtl_dynamic/linear_dQTL/", 
-                           dataset, "/", agg, "/", cis.dist, "-", n.cl.pcs, "clpcs-", n.samp.pcs, "pcs.permuted.tsv"))
+if (cell.type.reg) {
+  cell.type.reg <- "regtypes"
+} else {
+  cell.type.reg <- "notypes"
+}
+
+qtl_files <- paste0("../results/eqtl_dynamic/linear_dQTL/", dataset, "/", agg, "/", cis.dist, "-", n.cl.pcs, "clpcs-", n.samp.pcs, "pcs-", cell.type.reg, "-", seq(1, chunks_tot), ".permuted.tsv")
+results <- map(qtl_files, read_tsv) %>% 
+  bind_rows %>%
+  filter(!duplicated(paste(gene, snp, sep="_")))
 
 # Bonferroni multiple testing correction
 results <- results %>%
@@ -49,13 +60,12 @@ betahat <- results$beta.gxt
 sehat <- results$stdev.unscaled.gxt * sqrt(results$s2.post)
 df <- results$df.total[1]
 ashr.fit <- ash(betahat, sehat, df=df)
-
 results <- results %>%
   mutate(lfsr=ashr.fit$result$lfsr)
 
 # save the fitted model
 g <- get_fitted_g(ashr.fit)
-saveRDS(g, paste0("../results/eqtl_dynamic/linear_dQTL/", dataset, "/", agg, "/", cis.dist, "-", n.cl.pcs, "clpcs-", n.samp.pcs, "pcs.permuted.ashr.g.rds"))
+saveRDS(g, paste0("../results/eqtl_dynamic/linear_dQTL/", dataset, "/", agg, "/", cis.dist, "-", n.cl.pcs, "clpcs-", n.samp.pcs, "pcs.ashr.g.permuted.rds"))
 
 # subset to top hits per gene and compute Storey's q value
 top.hits  <- results %>% arrange(p.unadj) %>%
@@ -63,5 +73,5 @@ top.hits  <- results %>% arrange(p.unadj) %>%
   mutate(qval.unadj=qvalue(bonf.p.unadj)$q) %>%
   mutate(qval.adj=qvalue(bonf.p.adj)$q)
 
-write_tsv(results, paste0("../results/eqtl_dynamic/linear_dQTL/", dataset, "/", agg, "/", cis.dist, "-", n.cl.pcs, "clpcs-", n.samp.pcs, "pcs.permuted.mtc.tsv"))
-write_tsv(top.hits, paste0("../results/eqtl_dynamic/linear_dQTL/", dataset, "/", agg, "/", cis.dist, "-", n.cl.pcs, "clpcs-", n.samp.pcs, "pcs.permuted.tophits.tsv"))
+write_tsv(results, paste0("../results/eqtl_dynamic/linear_dQTL/", dataset, "/", agg, "/", cis.dist, "-", n.cl.pcs, "clpcs-", n.samp.pcs, "pcs-", cell.type.reg, ".mtc.permuted.tsv"))
+write_tsv(top.hits, paste0("../results/eqtl_dynamic/linear_dQTL/", dataset, "/", agg, "/", cis.dist, "-", n.cl.pcs, "clpcs-", n.samp.pcs, "pcs-", cell.type.reg, ".tophits.permuted.tsv"))
