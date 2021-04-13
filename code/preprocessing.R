@@ -122,7 +122,7 @@ pseudobulk.cm.day.clpcs <- cell.line.pca(cm.logcpm.day, npc=10)$cell.line.pcs %>
 pseudobulk.cm.day.pcs <- regular.pca(cm.logcpm.day, 50)$u %>% write_tsv("../data/pseudobulk-cm/day/pcs.tsv")
 
 # bin CM by pseudotime
-nbins <- c(25, 30)
+nbins <- c(16)
 for (nb in nbins) {
   cm.bins <- as_tibble(sc_cm$pseudotime, rownames="cell") %>%
     rename(t=value) %>% arrange(t) %>%
@@ -133,6 +133,10 @@ for (nb in nbins) {
     rename(ind=value) %>%
     left_join(cm.bins, by="cell") %>%
     mutate(binind=paste(ind, bin, sep="_")) 
+  cm.ncells <- cm.binind %>%
+    group_by(binind) %>%
+    count %>%
+    write_tsv(paste0("../results/eqtl_dynamic/linear_dQTL/pseudobulk-cm/bin", nb, "/bin_ncells.tsv"))
   cm.medians <- cm.binind %>%
     group_by(binind) %>%
     summarize(t=median(t)) %>%
@@ -141,6 +145,15 @@ for (nb in nbins) {
     as_tibble(rownames="gene") %>% arrange(gene)
   drop.samples <- cm.counts.bin %>% filter_by_depth %>% write_tsv(paste0("../data/pseudobulk-cm/bin", nb, "/dropped_samples.tsv"))
   cm.counts.bin <- cm.counts.bin %>% select(setdiff(colnames(.), drop.samples$sample)) %>% write_tsv(paste0("../data/pseudobulk-cm/bin", nb, "/counts.tsv"))
+  cm.libsize <- cm.counts.bin %>% 
+    select(setdiff(colnames(.), drop.samples$sample)) %>%
+    select(-c(gene)) %>%
+    DGEList %>%
+    calcNormFactors(method="TMMwsp") %>%
+    .$samples %>%
+    as_tibble(rownames="sample") %>%
+    select(!group) %>%
+    write_tsv(paste0("../results/eqtl_dynamic/linear_dQTL/pseudobulk-cm/bin", nb, "/bin_libsize.tsv"))
   cm.cpm.bin <- cm.counts.bin %>% counts2cpm %>% write_tsv(paste0("../data/pseudobulk-cm/bin", nb, "/cpm.tsv"))
   cm.logcpm.bin <- cm.counts.bin %>% counts2cpm(lognorm=T) %>% write_tsv(paste0("../data/pseudobulk-cm/bin", nb, "/logcpm.tsv"))
   
@@ -175,6 +188,10 @@ for (nb in nbins) {
     rename(ind=value) %>%
     left_join(cf.bins, by="cell") %>%
     mutate(binind=paste(ind, bin, sep="_")) 
+  cf.ncells <- cf.binind %>%
+    group_by(binind) %>%
+    count %>%
+    write_tsv(paste0("../results/eqtl_dynamic/linear_dQTL/pseudobulk-cf/bin", nb, "/bin_ncells.tsv"))
   cf.medians <- cf.binind %>%
     group_by(binind) %>%
     summarize(t=median(t)) %>%
@@ -183,6 +200,15 @@ for (nb in nbins) {
     as_tibble(rownames="gene") %>% arrange(gene) 
   drop.samples <- cf.counts.bin %>% filter_by_depth %>% write_tsv(paste0("../data/pseudobulk-cf/bin", nb, "/dropped_samples.tsv"))
   cf.counts.bin <- cf.counts.bin %>% select(setdiff(colnames(.), drop.samples$sample)) %>% write_tsv(paste0("../data/pseudobulk-cf/bin", nb, "/counts.tsv"))
+  cf.libsize <- cf.counts.bin %>% 
+    select(setdiff(colnames(.), drop.samples$sample)) %>%
+    select(-c(gene)) %>%
+    DGEList %>%
+    calcNormFactors(method="TMMwsp") %>%
+    .$samples %>%
+    as_tibble(rownames="sample") %>%
+    select(!group) %>%
+    write_tsv(paste0("../results/eqtl_dynamic/linear_dQTL/pseudobulk-cf/bin", nb, "/bin_libsize.tsv"))
   cf.cpm.bin <- cf.counts.bin %>% counts2cpm %>% write_tsv(paste0("../data/pseudobulk-cf/bin", nb, "/cpm.tsv"))
   cf.logcpm.bin <- cf.counts.bin %>% counts2cpm(lognorm=T) %>% write_tsv(paste0("../data/pseudobulk-cf/bin", nb, "/logcpm.tsv"))
   

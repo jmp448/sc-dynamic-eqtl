@@ -11,22 +11,89 @@ library(rgl)
 knitr::knit_hooks$set(webgl = hook_webgl)
 library(RColorBrewer)
 library(ggpubr)
+library(vroom)
 ```
 
 ## Regular PCA
 ```{r fileload, warning=FALSE, message=FALSE, echo=FALSE}
-pseudobulk <- read_tsv( "data/pseudobulk_logcpm.day.full.tsv") 
-bulk <- read_tsv("data/bulk_logtpm.full.tsv")
+bulk_pcs <- read_tsv("data/bulk/day/pcs.tsv") %>%
+  mutate(ind=str_extract(sample, "[^_]+")) %>%
+  mutate(day=as.numeric(str_extract(sample, "[^_]+$")))
+pseudobulk_pcs <- read_tsv( "data/pseudobulk/day/pcs.tsv") %>%
+  mutate(ind=str_extract(sample, "[^_]+")) %>%
+  mutate(day=as.numeric(str_extract(sample, "[^_]+$")))
+pseudobulk_cm_pcs <- read_tsv( "data/pseudobulk-cm/bin16/pcs.tsv") %>%
+  mutate(ind=str_extract(sample, "[^_]+")) %>%
+  mutate(bin=as.numeric(str_extract(sample, "[^_]+$")))
+pseudobulk_cf_pcs <- read_tsv( "data/pseudobulk-cf/bin16/pcs.tsv") %>%
+  mutate(ind=str_extract(sample, "[^_]+")) %>%
+  mutate(bin=as.numeric(str_extract(sample, "[^_]+$")))
 ```
 
 When we run PCA on both the bulk and pseudobulk data, we see that the primary source of variation between samples appears to be their progression through differentiation.
 ```{r regpca, warning=FALSE, echo=FALSE, message=FALSE}
-pb.pca <- regular.pca(pseudobulk)
-pb.loadings <- pb.pca$u %>% mutate(day=as.numeric(str_extract(sample, "[^_]+$")))
-p1 <- ggplot(pb.loadings, aes(x=PC1, y=PC2, color=day)) + 
+ps1a <- ggplot(bulk_pcs, aes(x=PC1, y=PC2, color=day)) + 
   geom_point() + 
   theme_classic() +
-  ggtitle("Pseudobulk PCA")
+  ggtitle("Bulk PCA") +
+  scale_color_gradient(low = "gray", high = "#800000", na.value = NA) +
+  theme(legend.position="none")
+
+ps1b <- ggplot(bulk_pcs, aes(x=PC1, y=PC2, color=ind)) + 
+  geom_point() + 
+  theme_classic() +
+  ggtitle("Bulk PCA") +
+  theme(legend.position="none")
+
+ps1c <- ggplot(pseudobulk_pcs, aes(x=PC1, y=PC2, color=day)) + 
+  geom_point() + 
+  theme_classic() +
+  ggtitle("Pseudobulk PCA") +
+  scale_color_gradient(low = "gray", high = "#800000", na.value = NA) +
+  labs(color="Collection Day")
+
+ps1d <- ggplot(pseudobulk_pcs, aes(x=PC1, y=PC2, color=ind)) + 
+  geom_point() + 
+  theme_classic() +
+  ggtitle("Pseudobulk PCA") +
+  labs(color="Individual")
+
+ps1e <- ggplot(pseudobulk_cm_pcs, aes(x=PC1, y=PC2, color=bin)) + 
+  geom_point() + 
+  theme_classic() +
+  ggtitle("CM Pseudobulk PCs") +
+  scale_color_gradient(low = "gray", high = "#800000", na.value = NA) +
+  theme(legend.position="none")
+
+ps1f <- ggplot(pseudobulk_cm_pcs, aes(x=PC1, y=PC2, color=ind)) + 
+  geom_point() + 
+  theme_classic() +
+  ggtitle("CM Pseudobulk PCs") +
+  theme(legend.position="none")
+
+ps1g <- ggplot(pseudobulk_cf_pcs, aes(x=PC1, y=PC2, color=bin)) + 
+  geom_point() + 
+  theme_classic() +
+  ggtitle("CF Pseudobulk PCs") +
+  scale_color_gradient(low = "gray", high = "#800000", na.value = NA) +
+  theme(legend.position="none")
+
+ps1h <- ggplot(pseudobulk_cf_pcs, aes(x=PC1, y=PC2, color=ind)) + 
+  geom_point() + 
+  theme_classic() +
+  ggtitle("CF Pseudobulk PCs") +
+  theme(legend.position="none")
+```
+
+```{r}
+s1 <- ps1a + ps1b + ps1c + ps1d + ps1e + ps1f + ps1g + ps1h + plot_layout(ncol=2)
+png('figs/supp1/supp1.png', width=600, height=900)
+plot(s1)
+dev.off()
+```
+
+
+```{r}
 pve <- pb.pca$d^2/sum(pb.pca$d^2)
 p2 <- tibble("PVE"=pve[1:100]) %>%
   rowid_to_column("PC") %>%
@@ -91,6 +158,158 @@ ggplot(type.res, aes(x=PC3, y=PC4, color=type)) +
   
 ```
 
+## PCs and technical covariates
+First, we look at sample PCs, taken for each cell line/collection, to see how much variance is explained by known technical covariates
+```{r}
+technical.covariates <- vroom("/project2/gilad/reem/singlecellCM/SingleCellCMMetadataAllRounds-LineInfo.txt") %>%
+  mutate(orig.ident=paste0("E", `Experiment Batch`, "CD", CD, "col", col)) %>%
+  mutate(sample=paste(str_replace(Line, "NA", ""), orig.ident, sep="_"))
+  
+recorded <- colnames(technical.covariates)
+revised <- c("Cell Line_fct", "Differentiation Day", "Feeder Psg", "Feeder Free Psg",
+             "Date_fct", "CD_fct", "Collection_fct", "orig.ident", 
+             "Exp_fct", "Differentiation Start Batch_fct", "Wells Collected",
+             "Confluence (at Collection)", "Confluence (Day 0)", 
+             "Beating (at Collection)", "First Day of Beating (of Well)", 
+             "Pct Beating (at Collection)", 
+             "First Day of Beating (of cell line/ diffstart)", 
+             "Avg Day of Beating (of cell line/ diffstart)",
+             "Network Appearance_fct", "Freezing_fct", "Sheet Appearance_fct", 
+             "Debris_fct", "Swirls_fct", "Comments", "sample")
+colnames(technical.covariates) <- revised
+technical.covariates <- technical.covariates %>%
+  select(-Comments) %>%
+  mutate(across(ends_with("_fct"), as_factor)) %>%
+  rename_with(~str_replace(., "_fct", ""), ends_with("_fct"))
+
+samp.pcs <- read_tsv("/project2/gilad/jpopp/sc-dynamic-eqtl/data/pseudobulk/col/pcs.tsv")
+```
+
+
+```{r}
+pb_day <- technical.covariates %>%
+  inner_join(samp.pcs, by="sample")
+```
+
+```{r}
+pcs <- paste0("PC", seq(1, 10))
+covs <- setdiff(colnames(technical.covariates), c("Comments", "sample", "orig.ident"))
+pve <- tibble("pc"=c(), "covariate"=c(), "r2"=c())
+for (pc in pcs) {
+  for (cov in covs) {
+    pve <- bind_rows(pve, tibble("pc"=pc, "covariate"=cov, "r2"=summary(lm(paste0(pc, "~`", cov, "`"), pb_day))$r.squared))
+  }
+}
+pve$pc <- factor(pve$pc, levels=paste0("PC", seq(1, 10)))
+# arrange covariates by pve pc1
+cov.levels <- pve %>%
+  filter(pc=="PC1") %>%
+  arrange(r2) %>%
+  .$covariate
+pve$covariate <- factor(pve$covariate, levels=cov.levels)
+p <- ggplot(pve, aes(x=pc, y=covariate, fill=r2)) +
+  geom_tile() +
+  xlab("Sample PC") +
+  ylab("Technical Covariate") +
+  labs(fill="R2") +
+  theme_classic()
+png('../figs/supp/pb_day_pc_covs.png', width=600, height=400)
+plot(p)
+dev.off()
+```
+
+Now we look at a few additional covariates from our pseudotime binning samples
+```{r}
+lineage <- "cm"
+nb <- "16"
+
+libsize <- read_tsv(paste0("../results/eqtl_dynamic/linear_dQTL/pseudobulk-", lineage, "/bin", nb, "/bin_libsize.tsv"))
+ncells <- read_tsv(paste0("../results/eqtl_dynamic/linear_dQTL/pseudobulk-", lineage, "/bin", nb, "/bin_ncells.tsv")) %>%
+  rename(sample=binind)
+pseudotime <- read_tsv(paste0("../results/eqtl_dynamic/linear_dQTL/pseudobulk-", lineage, "/bin", nb, "/bin_medians.tsv")) %>%
+  rename(sample=binind)
+
+samp.pcs <- read_tsv(paste0("../data/pseudobulk-", lineage, "/bin", nb, "/pcs.tsv"))
+covariates <- inner_join(libsize, ncells, by="sample") %>% 
+  inner_join(pseudotime, by="sample") %>%
+  mutate(ind=str_extract(sample, "[^_]+"))
+colnames(covariates) <- c("sample", "Library Size", "TMM Norm Factor", "Num. Cells", "Median Pseudotime", "Cell Line")
+
+cm_bin <- inner_join(covariates, samp.pcs, by="sample")
+```
+
+```{r}
+pcs <- paste0("PC", seq(1, 10))
+covs <- setdiff(colnames(covariates), "sample")
+pve <- tibble("pc"=c(), "covariate"=c(), "r2"=c())
+for (pc in pcs) {
+  for (cov in covs) {
+    pve <- bind_rows(pve, tibble("pc"=pc, "covariate"=cov, "r2"=summary(lm(paste0(pc, "~`", cov, "`"), cm_bin))$r.squared))
+  }
+}
+pve$pc <- factor(pve$pc, levels=paste0("PC", seq(1, 10)))
+cov.levels <- pve %>%
+  filter(pc=="PC1") %>%
+  arrange(r2) %>%
+  .$covariate
+pve$covariate <- factor(pve$covariate, levels=cov.levels)
+p <- ggplot(pve, aes(x=pc, y=covariate, fill=r2)) +
+  geom_tile() +
+  xlab("Sample PC") +
+  ylab("Technical Covariate") +
+  labs(fill="R2") + 
+  theme_classic()
+png('../figs/supp/pb_cm16_pc_covs.png', width=600, height=400)
+plot(p)
+dev.off()
+```
+
+Same for the cardiac fibroblast lineage
+```{r}
+lineage <- "cf"
+nb <- "16"
+
+libsize <- read_tsv(paste0("../results/eqtl_dynamic/linear_dQTL/pseudobulk-", lineage, "/bin", nb, "/bin_libsize.tsv"))
+ncells <- read_tsv(paste0("../results/eqtl_dynamic/linear_dQTL/pseudobulk-", lineage, "/bin", nb, "/bin_ncells.tsv")) %>%
+  rename(sample=binind)
+pseudotime <- read_tsv(paste0("../results/eqtl_dynamic/linear_dQTL/pseudobulk-", lineage, "/bin", nb, "/bin_medians.tsv")) %>%
+  rename(sample=binind)
+
+samp.pcs <- read_tsv(paste0("../data/pseudobulk-", lineage, "/bin", nb, "/pcs.tsv"))
+covariates <- inner_join(libsize, ncells, by="sample") %>% 
+  inner_join(pseudotime, by="sample") %>%
+  mutate(ind=str_extract(sample, "[^_]+"))
+colnames(covariates) <- c("sample", "Library Size", "TMM Norm Factor", "Num. Cells", "Median Pseudotime", "Cell Line")
+
+cf_bin <- inner_join(covariates, samp.pcs, by="sample")
+```
+
+```{r}
+pcs <- paste0("PC", seq(1, 10))
+covs <- setdiff(colnames(covariates), "sample")
+pve <- tibble("pc"=c(), "covariate"=c(), "r2"=c())
+for (pc in pcs) {
+  for (cov in covs) {
+    pve <- bind_rows(pve, tibble("pc"=pc, "covariate"=cov, "r2"=summary(lm(paste0(pc, "~`", cov, "`"), cf_bin))$r.squared))
+  }
+}
+pve$pc <- factor(pve$pc, levels=paste0("PC", seq(1, 10)))
+cov.levels <- pve %>%
+  filter(pc=="PC1") %>%
+  arrange(r2) %>%
+  .$covariate
+pve$covariate <- factor(pve$covariate, levels=cov.levels)
+p <- ggplot(pve, aes(x=pc, y=covariate, fill=r2)) +
+  geom_tile() +
+  xlab("Sample PC") +
+  ylab("Technical Covariate") +
+  labs(fill="R2") + 
+  theme_classic()
+
+png('../figs/supp/pb_cf16_pc_covs.png', width=600, height=400)
+plot(p)
+dev.off()
+```
 
 ## Cell Line PCA
 ```{r clpca, warning=FALSE, message=FALSE, echo=FALSE}

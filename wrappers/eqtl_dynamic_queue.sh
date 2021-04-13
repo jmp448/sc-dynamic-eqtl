@@ -1,27 +1,47 @@
 #!/bin/bash
 #SBATCH --time=10:0
-#SBATCH --mem-per-cpu=15G
-#SBATCH --ntasks=80
 #SBATCH --output=logs/eqtl_dynamic_queue.out
 #SBATCH --error=logs/eqtl_dynamic_queue.err
 
-rm -r logs/dynamic-eqtl-calling/
-mkdir logs/dynamic-eqtl-calling/
+# rm -r logs/dynamic-eqtl-calling/
+# mkdir logs/dynamic-eqtl-calling/
 
 declare -a CisDists=("50k")
-declare -a NumSampPCs=(0 5 10 20)
-declare -a NumCLPCs=(0 3 5 10)
+declare -a NumSampPCs=(0)
+declare -a NumCLPCs=(6 7 8 9 10)
+declare -a Bins=("bin16")
+declare -a Chunks=(1 2 3 4 5 6 7 8 9 10)
 
-for cdist in ${CisDists[@]}; do
-  for nspc in ${NumSampPCs[@]}; do
-    for ncpc in ${NumCLPCs[@]}; do
-      sbatch -N 1 -n 1 --exclusive -J dyn-b --error=logs/dynamic-eqtl-calling/bulk-$cdist-$nspc-$ncpc.err --output=logs/dynamic-eqtl-calling/bulk-$cdist-$nspc-$ncpc.out eqtl_dynamic.sh "bulk" $cdist $nspc $ncpc "day" &
-      sbatch -N 1 -n 1 --exclusive -J dyn-b7 --error=logs/dynamic-eqtl-calling/bulk7-$cdist-$nspc-$ncpc.err --output=logs/dynamic-eqtl-calling/bulk7-$cdist-$nspc-$ncpc.out eqtl_dynamic.sh "bulk7" $cdist $nspc $ncpc "day" &
-      sbatch -N 1 -n 1 --exclusive -J dyn-pbd --error=logs/dynamic-eqtl-calling/pbd-$cdist-$nspc-$ncpc.err --output=logs/dynamic-eqtl-calling/pbd-$cdist-$nspc-$ncpc.out eqtl_dynamic.sh "pseudobulk" $cdist $nspc $ncpc "day" &
-      sbatch -N 1 -n 1 --exclusive -J dyn --error=logs/dynamic-eqtl-calling/pbt-$cdist-$nspc-$ncpc.err --output=logs/dynamic-eqtl-calling/pbt-$cdist-$nspc-$ncpc.out eqtl_dynamic.sh "pseudobulk" $cdist $nspc $ncpc "cmbin" &
-      sbatch -N 1 -n 1 --exclusive -J dyn --error=logs/dynamic-eqtl-calling/pbt-$cdist-$nspc-$ncpc.err --output=logs/dynamic-eqtl-calling/pbt-$cdist-$nspc-$ncpc.out eqtl_dynamic.sh "pseudobulk" $cdist $nspc $ncpc "epdcbin" &
+# without regressing out cell type proportions
+for c in ${Chunks[@]}; do
+  for cdist in ${CisDists[@]}; do
+    for nspc in ${NumSampPCs[@]}; do
+      for ncpc in ${NumCLPCs[@]}; do
+        sbatch --mem=15G -J dyn-$c --error=logs/dynamic-eqtl-calling/bulk-$cdist-$nspc-$ncpc-F-$c.err --output=logs/dynamic-eqtl-calling/bulk-$cdist-$nspc-$ncpc-F-$c.out eqtl_dynamic.sh "bulk" $cdist $nspc $ncpc "F" "day" $c 10 &
+#         sbatch --mem=15G -J dyn-$c --error=logs/dynamic-eqtl-calling/bulk7-$cdist-$nspc-$ncpc-F-$c.err --output=logs/dynamic-eqtl-calling/bulk7-$cdist-$nspc-$ncpc-F-$c.out eqtl_dynamic.sh "bulk7" $cdist $nspc $ncpc "F" "day" $c 10 &
+#         sbatch --mem=15G -J dyn-$c --error=logs/dynamic-eqtl-calling/pb-d-$cdist-$nspc-$ncpc-F-$c.err --output=logs/dynamic-eqtl-calling/pb-d-$cdist-$nspc-$ncpc-F-$c.out eqtl_dynamic.sh "pseudobulk" $cdist $nspc $ncpc "F" "day" $c 10 &
+#         sbatch --mem=15G -J dyn-$c --error=logs/dynamic-eqtl-calling/pb-cm-d-$cdist-$nspc-$ncpc-F-$c.err --output=logs/dynamic-eqtl-calling/pb-cm-d-$cdist-$nspc-$ncpc-F-$c.out eqtl_dynamic.sh "pseudobulk-cm" $cdist $nspc $ncpc "F" "day" $c 10 &
+#         sbatch --mem=15G -J dyn-$c --error=logs/dynamic-eqtl-calling/pb-cf-d-$cdist-$nspc-$ncpc-F-$c.err --output=logs/dynamic-eqtl-calling/pb-cf-d-$cdist-$nspc-$ncpc-F-$c.out eqtl_dynamic.sh "pseudobulk-cf" $cdist $nspc $ncpc "F" "day" $c 10 &
+        for b in ${Bins[@]}; do
+          sbatch --mem=15G -J dyn-$c --error=logs/dynamic-eqtl-calling/pb-cm-$b-$cdist-$nspc-$ncpc-F-$b-$c.err --output=logs/dynamic-eqtl-calling/pb-cm-$b-$cdist-$nspc-$ncpc-F-$c.out eqtl_dynamic.sh "pseudobulk-cm" $cdist $nspc $ncpc "F" $b $c 10 &
+          sbatch --mem=15G -J dyn-$c --error=logs/dynamic-eqtl-calling/pb-cf-$b-$cdist-$nspc-$ncpc-F-$b-$c.err --output=logs/dynamic-eqtl-calling/pb-cf-$b-$cdist-$nspc-$ncpc-F-$c.out eqtl_dynamic.sh "pseudobulk-cf" $cdist $nspc $ncpc "F" $b $c 10 &
+        done
+      done
     done
   done
 done
+
+# with cell type proportion regression
+# for c in ${Chunks[@]}; do
+#   for cdist in ${CisDists[@]}; do
+#     for nspc in ${NumSampPCs[@]}; do
+#       for ncpc in ${NumCLPCs[@]}; do
+#         # sbatch --mem=15G -J dyn-$c --error=logs/dynamic-eqtl-calling/bulk-$cdist-$nspc-$ncpc-T-$c.err --output=logs/dynamic-eqtl-calling/bulk-$cdist-$nspc-$ncpc-T-$c.out eqtl_dynamic.sh "bulk" $cdist $nspc $ncpc "T" "day" $c 10 &
+#         sbatch --mem=15G -J dyn-$c --error=logs/dynamic-eqtl-calling/bulk7-$cdist-$nspc-$ncpc-T-$c.err --output=logs/dynamic-eqtl-calling/bulk7-$cdist-$nspc-$ncpc-T-$c.out eqtl_dynamic.sh "bulk7" $cdist $nspc $ncpc "T" "day" $c 10 &
+#         # sbatch --mem=15G -J dyn-$c --error=logs/dynamic-eqtl-calling/pb-d-$cdist-$nspc-$ncpc-T-$c.err --output=logs/dynamic-eqtl-calling/pb-d-$cdist-$nspc-$ncpc-T-$c.out eqtl_dynamic.sh "pseudobulk" $cdist $nspc $ncpc "T" "day" $c 10 &
+#       done
+#     done
+#   done
+# done
 
 wait

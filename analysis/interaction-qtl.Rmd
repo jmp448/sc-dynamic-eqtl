@@ -25,11 +25,11 @@ This model is applied to each gene-variant pair, in each cell type that was anno
 
 ## Impact of PC Regression on Detection Rates
 ```{r sighits, warning=FALSE, message=FALSE, echo=FALSE}
-cell.types <- c("iPSC", "meso", "cardiomes", "prog", "CM", "EPDC")
+cell.types <- c("IPSC", "MES", "CMES", "PROG", "CM", "CF")
 sighits <- tibble("type"=character(), "samp.pcs"=numeric(), "cl.pcs"=numeric(), "hits"=numeric())
 for (ct in cell.types) {
-  for (n.samp.pc in c(0, 5, 10, 20)) {
-    for (n.cl.pc in c(0, 3, 5, 10)) {
+  for (n.samp.pc in c(0)) {
+    for (n.cl.pc in c(5)) {
       nhits <- read_tsv(paste0("results/eqtl_dynamic/ieQTL/bulk/", ct, "/50k-", n.cl.pc, "clpcs-", n.samp.pc, "pcs.tophits.tsv")) %>% filter(qval.unadj<=0.05) %>% nrow
       sighits <- bind_rows(sighits, tibble("type"=ct, "n.samp.pcs"=n.samp.pc, "n.cl.pcs"=n.cl.pc, "hits"=nhits))
     }

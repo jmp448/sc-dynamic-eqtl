@@ -10,4 +10,11 @@ analysis/*html
 analysis/*_cache
 analysis/site_libs
 data/*
+data-bigunk/*
+data-nodrop/*
 results/*
+code/gsea/py_gsea/*
+tables/*
+marcc_transfer/*
+marcc_transfer2/*
+wrappers/logs/*

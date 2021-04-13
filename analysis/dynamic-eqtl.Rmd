@@ -9,6 +9,24 @@ library(qvalue)
 library(plotly)
 library(patchwork)
 library(ggpubr)
+library(scales)
+library(Seurat)
+```
+
+## Lineage Subsetting
+One of the major advantages of this approach is that we are able to isolate each lineage, and consequently identify lineage-specific dynamic eQTLs. 
+```{r}
+sc <- readRDS("data/seurat.annotated.rds")
+DimPlot(sc, group.by="type")
+
+sc_cm <- readRDS("data/seurat.cm.rds")
+cm_endcol <- hue_pal()(7)[1]
+FeaturePlot(sc_cm, "pseudotime", cols=c("#F5F5F5", cm_endcol))
+
+
+sc_cf <- readRDS("data/seurat.cf.rds")
+cf_endcol <- hue_pal()(7)[6]
+FeaturePlot(sc_cf, "pseudotime", cols=c("#F5F5F5", cf_endcol))
 ```
 
 ## Model Overview
@@ -138,7 +156,7 @@ get.matched <- function(tests) {
 }
 
 for (npc.bulk in c(0, 3, 5, 10)) {
-  bulk.hits <- read_tsv(paste0("results/eqtl_dynamic/linear_dQTL/bulk/day/50k-", npc.bulk, "clpcs-0pcs.tophits.tsv")) %>%
+  bulk.hits <- read_tsv(paste0("results/eqtl_dynamic/linear_dQTL/bulk7/day/50k-", npc.bulk, "clpcs-0pcs.tophits.tsv")) %>%
     filter(qval.unadj<=0.1) %>% 
     mutate(gv=paste(gene, snp, sep="--")) %>% 
     rename(bulk.p=bonf.p.unadj) %>% 
@@ -369,99 +387,387 @@ classify.dynqtl <- function(beta.g, beta.gxt, beta.t, ..., t.low=0, t.high=15, t
     }
   }
 }
+
+nbin <- 15
+cm.medians <- read_tsv(paste0("results/eqtl_dynamic/linear_dQTL/pseudobulk-cm/bin", nbin, "/bin_medians.tsv"))
+t.low.cm <- cm.medians %>% 
+  mutate(bin=str_extract(binind, "[^_]+$")) %>%
+  filter(bin == 0) %>%
+  .$t %>%
+  median
+t.high.cm <- cm.medians %>% 
+  mutate(bin=str_extract(binind, "[^_]+$")) %>%
+  filter(bin == nbin-1) %>%
+  .$t %>%
+  median
+
+cf.medians <- read_tsv(paste0("results/eqtl_dynamic/linear_dQTL/pseudobulk-cf/bin", nbin, "/bin_medians.tsv"))
+t.low.cf <- cf.medians %>% 
+  mutate(bin=str_extract(binind, "[^_]+$")) %>%
+  filter(bin == 0) %>%
+  .$t %>%
+  median
+t.high.cf <- cf.medians %>% 
+  mutate(bin=str_extract(binind, "[^_]+$")) %>%
+  filter(bin == nbin-1) %>%
+  .$t %>%
+  median
 ```
 
-Visualize both early and late dynamic eQTLs that were detected in bulk
+Visualize for both CF and CM an early and a late dynamic eQTL
 ```{r dynqtl_vis, warning=FALSE, message=FALSE, echo=FALSE}
-n.qtls <- 2
-dynqtl <- read_tsv("results/eqtl_dynamic/linear_dQTL/bulk/day/50k-5clpcs-5pcs.tophits.tsv") %>%
-  filter(qval.unadj<=0.05)
-dynqtl <- dynqtl %>%
-  mutate(qtl.type=pmap_chr(dynqtl, classify.dynqtl)) %>%
+n.qtls <- 5
+dynqtl_cm <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk-cm/bin15/25k-5clpcs-0pcs-notypes.tophits.tsv") %>%
+  filter(lfsr<=0.05) %>% 
+  arrange(p.unadj) %>%
+  mutate(qtl.type=pmap_chr(., classify.dynqtl, t.low=t.low.cm, t.high=t.high.cm)) %>%
   group_by(qtl.type) %>%
-  arrange(bonf.p.unadj) %>% 
-  slice_head(n=n.qtls)
-bulk_expr_all <- read_tsv("data/bulk_logtpm.full.tsv")
-pseudobulk_expr_all <- read_tsv("data/pseudobulk_logcpm.cmbin.full.tsv")
-geno_all <- read_tsv("data/genotypes.filtered.tsv")
+  slice_head(n=n.qtls) %>%
+  mutate(celltype="CM")
+dynqtl_cf <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk-cf/bin15/25k-5clpcs-0pcs-notypes.tophits.tsv") %>%
+  filter(lfsr<=0.05) %>% 
+  arrange(p.unadj) %>%
+  mutate(qtl.type=pmap_chr(., classify.dynqtl, t.low=t.low.cf, t.high=t.high.cf)) %>%
+  group_by(qtl.type) %>%
+  slice_head(n=n.qtls) %>%
+  mutate(celltype="CF")
+dynqtl <- bind_rows(dynqtl_cm, dynqtl_cf)
+cm_expr_all <- read_tsv("data/pseudobulk-cm/bin15/logcpm.tsv")
+cf_expr_all <- read_tsv("data/pseudobulk-cf/bin15/logcpm.tsv")
+geno_all <- vroom("data/genotypes/genotypes.tsv") %>%
+  filter(snp %in% dynqtl$snp)
 
 for (i in seq(1, nrow(dynqtl))) {
   egene <- dynqtl$gene[i]
   evar <- dynqtl$snp[i]
-  bulk_expr <- bulk_expr_all %>% filter(gene==!!egene) %>% 
+  cm_expr <- cm_expr_all %>% filter(gene==!!egene) %>% 
     column_to_rownames("gene") %>% t %>% 
     as_tibble(rownames="ind") %>% 
-    `colnames<-`(c("sample", "logtpm")) %>%
+    `colnames<-`(c("sample", "logcpm")) %>%
     mutate(day=str_extract(sample, "[^_]+$")) %>%
     mutate(ind=str_extract(sample, "[^_]+")) %>%
-    mutate(exp="bulk")
-  pseudobulk_expr <- pseudobulk_expr_all %>% filter(gene==!!egene) %>% 
+    mutate(exp="cm")
+  cf_expr <- cf_expr_all %>% filter(gene==!!egene) %>% 
     column_to_rownames("gene") %>% t %>% 
     as_tibble(rownames="ind") %>% 
-    `colnames<-`(c("sample", "logtpm")) %>%
+    `colnames<-`(c("sample", "logcpm")) %>%
     mutate(day=str_extract(sample, "[^_]+$")) %>%
     mutate(ind=str_extract(sample, "[^_]+")) %>%
-    mutate(exp="pseudobulk")
-  expr <- bind_rows(bulk_expr, pseudobulk_expr)
+    mutate(exp="cf")
+  expr <- bind_rows(cm_expr, cf_expr)
   geno <- geno_all %>% filter(snp==evar) %>%
     column_to_rownames("snp") %>% t %>% 
     as_tibble(rownames="ind") %>% 
     `colnames<-`(c("ind", "genotype")) %>%
     mutate(ind=str_replace(ind, "NA", ""))
   dynvis <- left_join(expr, geno, by="ind") %>%
-    mutate(logtpm=as.numeric(logtpm)) %>%
+    mutate(logtpm=as.numeric(logcpm)) %>%
     mutate(genotype=factor(genotype, levels=c("0","1","2"))) %>%
     mutate(ind=factor(ind)) %>%
     mutate(day=factor(day, levels=seq(0, 15)))
-  p1<-ggplot(filter(dynvis, exp=="bulk"), aes(x=day, y=logtpm, fill=genotype)) + 
+  p1<-ggplot(filter(dynvis, exp=="cm"), aes(x=day, y=logcpm, fill=genotype)) + 
     facet_grid(rows=vars(exp)) +
     geom_boxplot() +
     ylab(egene) +
-    ggtitle(evar) +
+    ggtitle(paste0(evar, "--", dynqtl$qtl.type[i], "--", dynqtl$celltype[i])) +
     theme_classic()
-  p2 <- ggplot(filter(dynvis, exp=="pseudobulk"), aes(x=day, y=logtpm, fill=genotype)) + 
-    facet_grid(rows=vars(exp)) +
+  p2 <- ggplot(filter(dynvis, exp=="cf"), aes(x=day, y=logcpm, fill=genotype)) +     facet_grid(rows=vars(exp)) +
     geom_boxplot() +
     ylab(egene) +
-    ggtitle(evar) +
+    ggtitle(paste0(evar, "--", dynqtl$qtl.type[i], "--", dynqtl$celltype[i])) +
     theme_classic()
   print(p1 + p2 + plot_layout(ncol=1))
 }
 ```
 
-# Permutation Analysis
-To check whether regressing out sample PCs is leading to an increase in false positives, we ran a permutation test
-```{r echo=FALSE, warning=FALSE, message=FALSE}
-pcs <- tibble("n.cl.pcs"=rep(c(0, 3, 5, 10), each=4), 
-              "n.samp.pcs"=rep(c(0, 5, 10, 20), times=4))
-
-pval_comp <- function(n.cl.pcs, n.samp.pcs, ...) {
-  real.p <- read_tsv(paste0("results/eqtl_dynamic/linear_dQTL/bulk/day/50k-", n.cl.pcs, "clpcs-", n.samp.pcs, "pcs.mtc.tsv")) %>%
-    select(p.unadj) %>% 
-    arrange(p.unadj) %>% 
-    rename(p.real=p.unadj) %>% 
-    rowid_to_column() %>%
-    mutate("cl.pcs"=n.cl.pcs, "samp.pcs"=n.samp.pcs)
-  permute.p <- read_tsv(paste0("results/eqtl_dynamic/linear_dQTL/bulk/day/50k-", n.cl.pcs, "clpcs-", n.samp.pcs, "pcs.permuted.mtc.tsv")) %>%
-    select(p.unadj) %>% 
-    arrange(p.unadj) %>% 
-    rename(p.permuted=p.unadj) %>%
-    rowid_to_column() %>%
-    right_join(real.p, by="rowid") %>%
-    mutate(p.null=rowid/nrow(.), .keep="unused") %>%
-    mutate(across(starts_with("p."), (function(x){-log10(x)})))
-  permute.p
+Find a late hit that's shared by the two lineages
+```{r}
+dynqtl_cm <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk-cm/bin20/50k-5clpcs-0pcs-notypes.tophits.tsv") %>%
+  filter(lfsr<=0.1) %>% 
+  arrange(p.unadj) %>%
+  mutate(qtl.type=pmap_chr(., classify.dynqtl, t.low=t.low.cm, t.high=t.high.cm)) %>%
+  select(gene, snp, p.unadj, lfsr, qtl.type) %>%
+  group_by(qtl.type) %>%
+  mutate(celltype="CM")
+dynqtl_cf <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk-cf/bin20/50k-5clpcs-0pcs-notypes.tophits.tsv") %>%
+  filter(lfsr<=0.1) %>% 
+  arrange(p.unadj) %>%
+  mutate(qtl.type=pmap_chr(., classify.dynqtl, t.low=t.low.cf, t.high=t.high.cf)) %>%
+  select(gene, snp, p.unadj, lfsr, qtl.type) %>%
+  group_by(qtl.type) %>%
+  mutate(celltype="CF")
+dynqtl_shared <- inner_join(dynqtl_cm, dynqtl_cf, by=c("gene","snp", "qtl.type")) 
+cm_expr_all <- read_tsv("data/pseudobulk-cm/bin20/logcpm.tsv")
+cf_expr_all <- read_tsv("data/pseudobulk-cf/bin20/logcpm.tsv")
+geno_all <- read_tsv("data/genotypes.filtered.tsv")
+for (i in seq(1, nrow(dynqtl_shared))) {
+  egene <- dynqtl_shared$gene[i]
+  evar <- dynqtl_shared$snp[i]
+  cm_expr <- cm_expr_all %>% filter(gene==!!egene) %>% 
+    column_to_rownames("gene") %>% t %>% 
+    as_tibble(rownames="ind") %>% 
+    `colnames<-`(c("sample", "logcpm")) %>%
+    mutate(day=str_extract(sample, "[^_]+$")) %>%
+    mutate(ind=str_extract(sample, "[^_]+")) %>%
+    mutate(exp="cm")
+  cf_expr <- cf_expr_all %>% filter(gene==!!egene) %>% 
+    column_to_rownames("gene") %>% t %>% 
+    as_tibble(rownames="ind") %>% 
+    `colnames<-`(c("sample", "logcpm")) %>%
+    mutate(day=str_extract(sample, "[^_]+$")) %>%
+    mutate(ind=str_extract(sample, "[^_]+")) %>%
+    mutate(exp="cf")
+  expr <- bind_rows(cm_expr, cf_expr)
+  geno <- geno_all %>% filter(snp==evar) %>%
+    column_to_rownames("snp") %>% t %>% 
+    as_tibble(rownames="ind") %>% 
+    `colnames<-`(c("ind", "genotype")) %>%
+    mutate(ind=str_replace(ind, "NA", ""))
+  dynvis <- left_join(expr, geno, by="ind") %>%
+    mutate(logtpm=as.numeric(logcpm)) %>%
+    mutate(genotype=factor(genotype, levels=c("0","1","2"))) %>%
+    mutate(ind=factor(ind)) %>%
+    mutate(day=factor(day, levels=seq(0, 15)))
+  p1<-ggplot(filter(dynvis, exp=="cm"), aes(x=day, y=logcpm, fill=genotype)) + 
+    facet_grid(rows=vars(exp)) +
+    geom_boxplot() +
+    ylab(egene) +
+    ggtitle(paste0(evar, "--", dynqtl_shared$qtl.type[i], "--", dynqtl_shared$celltype[i])) +
+    theme_classic()
+  p2 <- ggplot(filter(dynvis, exp=="cf"), aes(x=day, y=logcpm, fill=genotype)) +     facet_grid(rows=vars(exp)) +
+    geom_boxplot() +
+    ylab(egene) +
+    ggtitle(paste0(evar, "--", dynqtl_shared$qtl.type[i], "--", dynqtl_shared$celltype[i])) +
+    theme_classic()
+  print(p1 + p2 + plot_layout(ncol=1))
 }
+```
+
+Identify late dynamic hits that are unique to CM
+```{r}
+nbin <- 15
+dynqtl_cm_uniq <- read_tsv(paste0("results/eqtl_dynamic/linear_dQTL/pseudobulk-cm/bin", nbin, "/50k-5clpcs-0pcs-notypes.tophits.tsv")) %>%
+  filter(lfsr<=0.1) %>% 
+  arrange(p.unadj) %>%
+  mutate(qtl.type=pmap_chr(., classify.dynqtl, t.low=t.low.cm, t.high=t.high.cm)) %>%
+  select(gene, snp, p.unadj, lfsr, qtl.type) %>%
+  group_by(qtl.type) %>%
+  mutate(celltype="CM") %>%
+  mutate(log10p_cm=-log10(p.unadj))
+cf_comp <- read_tsv(paste0("results/eqtl_dynamic/linear_dQTL/pseudobulk-cf/bin", nbin, "/50k-5clpcs-0pcs-notypes.mtc.tsv")) %>%
+  filter((gene %in% dynqtl_cm_uniq$gene) & (snp %in% dynqtl_cm_uniq$snp)) %>%
+  mutate(log10p_cf=-log10(p.unadj)) %>%
+  select(gene, snp, log10p_cf) %>%
+  right_join(dynqtl_cm_uniq, by=c("snp", "gene"))
+cf_comp <- cf_comp %>%
+  mutate(logdiff=log10p_cm-log10p_cf) %>%
+  arrange(logdiff)
+for (i in seq(1, 10)) {
+  egene <- cf_comp$gene[i]
+  evar <- cf_comp$snp[i]
+  cm_expr <- cm_expr_all %>% filter(gene==!!egene) %>% 
+    column_to_rownames("gene") %>% t %>% 
+    as_tibble(rownames="ind") %>% 
+    `colnames<-`(c("sample", "logcpm")) %>%
+    mutate(day=str_extract(sample, "[^_]+$")) %>%
+    mutate(ind=str_extract(sample, "[^_]+")) %>%
+    mutate(exp="cm")
+  cf_expr <- cf_expr_all %>% filter(gene==!!egene) %>% 
+    column_to_rownames("gene") %>% t %>% 
+    as_tibble(rownames="ind") %>% 
+    `colnames<-`(c("sample", "logcpm")) %>%
+    mutate(day=str_extract(sample, "[^_]+$")) %>%
+    mutate(ind=str_extract(sample, "[^_]+")) %>%
+    mutate(exp="cf")
+  expr <- bind_rows(cm_expr, cf_expr)
+  geno <- geno_all %>% filter(snp==evar) %>%
+    column_to_rownames("snp") %>% t %>% 
+    as_tibble(rownames="ind") %>% 
+    `colnames<-`(c("ind", "genotype")) %>%
+    mutate(ind=str_replace(ind, "NA", ""))
+  dynvis <- left_join(expr, geno, by="ind") %>%
+    mutate(logtpm=as.numeric(logcpm)) %>%
+    mutate(genotype=factor(genotype, levels=c("0","1","2"))) %>%
+    mutate(ind=factor(ind)) %>%
+    mutate(bin=factor(day, levels=seq(0, nbin-1)))
+  p1<-ggplot(filter(dynvis, exp=="cm"), aes(x=bin, y=logcpm, fill=genotype)) + 
+    facet_grid(rows=vars(exp)) +
+    geom_boxplot() +
+    ylab(egene) +
+    theme_classic()
+  p2 <- ggplot(filter(dynvis, exp=="cf"), aes(x=bin, y=logcpm, fill=genotype)) +     facet_grid(rows=vars(exp)) +
+    geom_boxplot() +
+    ylab(egene) +
+    theme_classic()
+  print(p1 + p2 + plot_layout(ncol=1))
+}
+```
 
 
-pvals <- pcs %>% 
-  pmap_dfr(pval_comp) %>% 
-  bind_rows %>% 
-  rename(permuted=p.permuted, real=p.real) %>%
-  gather(!c(p.null, samp.pcs, cl.pcs), key='model', value='-log10p')
-ggplot(pvals, aes(x=p.null, y=`-log10p`, color=model)) +
-  geom_abline(intercept=0, slope=1) +
-  facet_grid(cols=vars(samp.pcs), rows=vars(cl.pcs)) +
+Replication rate of early and late hits between CF and CM
+```{r}
+cm_hits <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk-cm/bin/50k-5clpcs-0pcs-notypes.tophits.tsv") %>%
+  filter(lfsr<=0.1) %>%
+  mutate(qtl.type=pmap_chr(., classify.dynqtl, t.low=t.low.cm, t.high=t.high.cm)) %>%
+  mutate(gv=paste(gene, snp, sep="--"))
+cf_tests <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk-cf/bin/50k-5clpcs-0pcs-notypes.mtc.tsv") %>%
+  mutate(gv=paste(gene, snp, sep="--")) %>%
+  filter(gv %in% cm_hits$gv) %>%
+  left_join(select(cm_hits, gv, qtl.type), by="gv")
+ggplot(filter(cf_tests, qtl.type=="early"), aes(x=p.unadj)) + 
+  geom_histogram()
+ggplot(filter(cf_tests, qtl.type=="late"), aes(x=p.unadj)) + 
+  geom_histogram()
+ggplot(filter(cf_tests, qtl.type=="switch"), aes(x=p.unadj)) + 
+  geom_histogram()
+qvalue(filter(cm_hits, qtl.type=="late")$p.unadj)$pi0
+```
+Compare all metrics - qvalue
+```{r}
+bulk <- read_tsv("results/eqtl_dynamic/linear_dQTL/bulk/day/50k-5clpcs-0pcs-notypes.tophits.tsv") %>%
+  filter(lfsr<=0.05) %>%
+  nrow()
+bulk7_day <- read_tsv("results/eqtl_dynamic/linear_dQTL/bulk7/day/50k-5clpcs-0pcs-notypes.tophits.tsv") %>%
+  filter(lfsr<=0.05) %>%
+  nrow()
+pseudobulk_day <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk/day/50k-5clpcs-0pcs-notypes.tophits.tsv") %>%
+  filter(lfsr<=0.05) %>%
+  nrow()
+pseudobulk_cm_day <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk-cm/day/50k-5clpcs-0pcs-notypes.tophits.tsv") %>%
+  filter(lfsr<=0.05) %>%
+  nrow()
+pseudobulk_cf_day <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk-cf/day/50k-5clpcs-0pcs-notypes.tophits.tsv") %>%
+  filter(lfsr<=0.05) %>%
+  nrow()
+pseudobulk_cm_bin16 <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk-cm/bin16/50k-5clpcs-0pcs-notypes.tophits.tsv") %>%
+  filter(lfsr<=0.05) %>%
+  nrow()
+pseudobulk_cf_bin16 <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk-cf/bin16/50k-5clpcs-0pcs-notypes.tophits.tsv") %>%
+  filter(lfsr<=0.05) %>%
+  nrow()
+methods_used <- c("bulk (day)", 
+                                  "pseudobulk (day)", 
+                                  "pseudobulk-CM (day)", 
+                                  "pseudobulk-CF (day)", 
+                                  "pseudobulk-CM (dpt)", 
+                                  "pseudobulk-CF (dpt)")
+method_comps <- tibble("Method"=factor(methods_used, 
+                                       levels=methods_used),
+                       "qtlcount"=c(bulk7_day,
+                                    pseudobulk_day,
+                                    pseudobulk_cm_day, 
+                                    pseudobulk_cf_day, 
+                                    pseudobulk_cm_bin16,
+                                    pseudobulk_cf_bin16),
+                       "grp"=c("bulk", "pb", "pb-lin", "pb-lin", "pb-lin-t", "pb-lin-t")
+                       )
+my_cols <- c(hue_pal()(7)[c(5,4,3,2,1,6)], "#949494")
+method_cols <- c("#808080", "#808080", my_cols[5], my_cols[6], "#bf0c00", "#8360f7")
+ggplot(method_comps, aes(x=grp, y=qtlcount, fill=Method)) +
+  geom_bar(stat="identity", position="dodge") +
+  xlab("") +
+  ylab("Number of Dynamic eQTLs Detected") +
+  theme_classic() +
+  scale_fill_manual(values=method_cols) +
+  theme(axis.text.x=element_blank(), axis.ticks.x=element_blank())
+```
+
+```{r}
+bulk <- read_tsv("results/eqtl_dynamic/linear_dQTL/bulk/day/50k-5clpcs-0pcs-notypes.tophits.tsv") %>%
+  filter(qval.unadj<=0.05) %>%
+  nrow()
+bulk7_day <- read_tsv("results/eqtl_dynamic/linear_dQTL/bulk7/day/50k-5clpcs-0pcs-notypes.tophits.tsv") %>%
+  filter(qval.unadj<=0.05) %>%
+  nrow()
+pseudobulk_day <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk/day/50k-5clpcs-0pcs-notypes.tophits.tsv") %>%
+  filter(qval.unadj<=0.05) %>%
+  nrow()
+pseudobulk_cm_day <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk-cm/day/50k-5clpcs-0pcs-notypes.tophits.tsv") %>%
+  filter(qval.unadj<=0.05) %>%
+  nrow()
+pseudobulk_cf_day <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk-cf/day/50k-5clpcs-0pcs-notypes.tophits.tsv") %>%
+  filter(qval.unadj<=0.05) %>%
+  nrow()
+pseudobulk_cm_bin16 <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk-cm/bin16/50k-5clpcs-0pcs-notypes.tophits.tsv") %>%
+  filter(qval.unadj<=0.05) %>%
+  nrow()
+pseudobulk_cf_bin16 <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk-cf/bin16/50k-5clpcs-0pcs-notypes.tophits.tsv") %>%
+  filter(qval.unadj<=0.05) %>%
+  nrow()
+methods_used <- c("bulk (day)", 
+                                  "pseudobulk (day)", 
+                                  "pseudobulk-CM (day)", 
+                                  "pseudobulk-CF (day)", 
+                                  "pseudobulk-CM (dpt)", 
+                                  "pseudobulk-CF (dpt)")
+method_comps <- tibble("Method"=factor(methods_used, 
+                                       levels=methods_used),
+                       "qtlcount"=c(bulk7_day,
+                                    pseudobulk_day,
+                                    pseudobulk_cm_day, 
+                                    pseudobulk_cf_day, 
+                                    pseudobulk_cm_bin20,
+                                    pseudobulk_cf_bin20),
+                       "grp"=c("bulk", "pb", "pb-lin", "pb-lin", "pb-lin-t", "pb-lin-t")
+                       )
+my_cols <- c(hue_pal()(7)[c(5,4,3,2,1,6)], "#949494")
+method_cols <- c("#808080", "#808080", my_cols[5], my_cols[6], "#bf0c00", "#8360f7")
+ggplot(method_comps, aes(x=grp, y=qtlcount, fill=Method)) +
+  geom_bar(stat="identity", position="dodge") +
+  xlab("") +
+  ylab("Number of Dynamic eQTLs Detected") +
+  theme_classic() +
+  scale_fill_manual(values=method_cols) +
+  theme(axis.text.x=element_blank(), axis.ticks.x=element_blank())
+```
+
+```{r}
+fig3d <- ggplot(method_comps, aes(x=grp, y=qtlcount, fill=Method)) +
+  geom_bar(stat="identity", position="dodge") +
+  xlab("") +
+  ylab("Number of Dynamic eQTLs Detected") +
+  theme_classic() +
+  scale_fill_manual(values=method_cols) +
+  theme(axis.text.x=element_blank(), axis.ticks.x=element_blank())
+
+png('figs/fig3/fig3d.png', width=400, height=600)
+plot(fig3d)
+dev.off()
+```
+
+
+Count nonlinear dynamic eQTLs
+```{r}
+bulk_nonlinear <- read_tsv("results/eqtl_dynamic/nonlinear_dQTL/bulk/day/t_test/50k-5clpcs-0pcs-notypes.tophits.tsv") %>%
+  filter(qval.unadj<=0.05) %>%
+  nrow()
+pseudobulk_cm_nonlinear_bin16 <- read_tsv("results/eqtl_dynamic/nonlinear_dQTL/pseudobulk-cm/bin16/t_test/50k-5clpcs-0pcs-notypes.tophits.tsv") %>%
+  filter(qval.unadj<=0.05) %>%
+  nrow()
+pseudobulk_cf_nonlinear_bin16 <- read_tsv("results/eqtl_dynamic/nonlinear_dQTL/pseudobulk-cf/bin16/t_test/50k-5clpcs-0pcs-notypes.tophits.tsv") %>%
+  filter(qval.unadj<=0.05) %>%
+  nrow()
+
+bulk_nonlinear_lfsr <- read_tsv("results/eqtl_dynamic/nonlinear_dQTL/bulk/day/t_test/50k-5clpcs-0pcs-notypes.tophits.tsv") %>%
+  filter(lfsr<=0.05) %>%
+  nrow()
+pseudobulk_cm_nonlinear_bin16_lfsr <- read_tsv("results/eqtl_dynamic/nonlinear_dQTL/pseudobulk-cm/bin16/t_test/50k-5clpcs-0pcs-notypes.tophits.tsv") %>%
+  filter(lfsr<=0.05) %>%
+  nrow()
+pseudobulk_cf_nonlinear_bin16_lfsr <- read_tsv("results/eqtl_dynamic/nonlinear_dQTL/pseudobulk-cf/bin16/t_test/50k-5clpcs-0pcs-notypes.tophits.tsv") %>%
+  filter(lfsr<=0.05) %>%
+  nrow()
+```
+
+
+
+```{r}
+t <- read_tsv("data/pseudobulk-cm/bin15/pcs.tsv") %>%
+  mutate(day=as.numeric(str_extract(sample, "[^_]+$"))) %>%
+  mutate(day=factor(day, levels=seq(0,19)))
+
+
+ggplot(t, aes(x=PC1, y=PC2, color=day)) + 
   geom_point()
 ```
 

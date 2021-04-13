@@ -1,0 +1,109 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+library(Seurat)
+library(tidyverse)
+library(vroom)
+library(RColorBrewer)
+library(scales)
+library(patchwork)
+```
+
+Cell line differentiation differences
+```{r}
+my_cols <- c(hue_pal()(7)[c(5,4,3,2,1,6)], "#949494")
+sc <- readRDS("data/seurat.annotated.rds")
+fa.emb <- as_tibble(sc@reductions$fa@cell.embeddings, rownames="cell")
+cl_types <- as_tibble(sc@meta.data, rownames="cell") %>%
+  select(pseudotime, type, individual, cell) %>%
+  inner_join(fa.emb, by="cell")
+inds <- unique(cl_types$individual)
+
+p <- ggplot(filter(cl_types, individual==inds[1]), aes(x=FA_1, y=FA_2, color=type)) +
+  geom_point(size=0.05) + theme_classic() + ggtitle(inds[1]) +
+  scale_color_manual(values=my_cols[1:6])  +
+  theme(axis.text.x=element_blank(), axis.text.y=element_blank(), legend.position="none")
+for (i in seq(2, 19)) {
+  p <- p + ggplot(filter(cl_types, individual==inds[i]), aes(x=FA_1, y=FA_2, color=type)) +
+  geom_point(size=0.05) + theme_classic() + ggtitle(inds[i]) +
+  scale_color_manual(values=my_cols[1:6]) + theme(axis.text.x=element_blank(), axis.text.y=element_blank(), legend.position="none")
+}
+
+png('figs/supp/ind_diff_difference.png', width=600, height=600)
+plot(p)
+dev.off()
+```
+
+How many cells per sample?
+```{r}
+sc.full <- readRDS("data/seurat.filtered.rds")
+meta <- as_tibble(sc.full@meta.data, rownames="cell") %>%
+  select(cell, individual, sample) %>%
+  group_by(sample, individual) %>%
+  count
+p <- ggplot(arrange(meta, sample), aes(x=sample, y=n, fill=individual)) + 
+  geom_bar(stat="identity") +
+  theme_classic() + 
+  theme(axis.text.x=element_text(angle=45, hjust=1)) +
+  xlab("Sample") + ylab("Number of Cells") + labs(fill="Cell Line")
+png('figs/supp/cells_per_sample.png', width=800, height=600)
+plot(p)
+dev.off()
+```
+
+Pre-filtering metrics
+```{r}
+full_file_loc <- "/project2/gilad/reem/singlecellCM/Sobjs/xfinalmerged/Sobj_allrounds_finalmerged_withNA_demuxlabelsastry2.rds"
+
+sc <- readRDS(full_file_loc)
+sc.filt <- readRDS("data/seurat.filtered.rds")
+
+p1 <- VlnPlot(sc, "nCount_RNA", group.by="diffday", pt.size=0) + 
+  ggtitle("UMI per cell") + xlab("Collection Day") +
+  theme(legend.position = "none")
+p2 <- VlnPlot(sc, "nFeature_RNA", group.by="diffday", pt.size=0) + 
+  ggtitle("Features per cell") + xlab("Collection Day") +
+  theme(legend.position = "none")
+p3 <- VlnPlot(sc, "percent.mito", group.by="diffday", pt.size=0) + 
+  ggtitle("Percent mito per cell") + xlab("Collection Day") +
+  theme(legend.position = "none")
+p4 <- VlnPlot(sc.filt, "nCount_RNA", group.by="diffday", pt.size=0) + 
+  ggtitle("UMI per cell") + xlab("Collection Day") +
+  theme(legend.position = "none")
+p5 <- VlnPlot(sc.filt, "nFeature_RNA", group.by="diffday", pt.size=0) + 
+  ggtitle("Features per cell") + xlab("Collection Day") +
+  theme(legend.position = "none")
+p6 <- VlnPlot(sc.filt, "percent.mito", group.by="diffday", pt.size=0) + 
+  ggtitle("Percent mito per cell") + xlab("Collection Day") +
+  theme(legend.position = "none")
+p1 + p2 + p3 + p4 + p5 + p6 + plot_layout(ncol=3)
+
+p1 <- VlnPlot(sc, "nCount_RNA", group.by="individual", pt.size=0) + 
+  ggtitle("UMI per cell") + xlab("Cell Line") +
+  theme(legend.position = "none")
+p2 <- VlnPlot(sc, "nFeature_RNA", group.by="individual", pt.size=0) + 
+  ggtitle("Features per cell") + xlab("Cell Line") +
+  theme(legend.position = "none")
+p3 <- VlnPlot(sc, "percent.mito", group.by="individual", pt.size=0) + 
+  ggtitle("Percent mito per cell") + xlab("Cell Line") +
+  theme(legend.position = "none")
+p4 <- VlnPlot(sc.filt, "nCount_RNA", group.by="individual", pt.size=0) + 
+  ggtitle("UMI per cell") + xlab("Cell Line") +
+  theme(legend.position = "none")
+p5 <- VlnPlot(sc.filt, "nFeature_RNA", group.by="individual", pt.size=0) + 
+  ggtitle("Features per cell") + xlab("Cell Line") +
+  theme(legend.position = "none")
+p6 <- VlnPlot(sc.filt, "percent.mito", group.by="individual", pt.size=0) + 
+  ggtitle("Percent mito per cell") + xlab("Cell Line") +
+  theme(legend.position = "none")
+p1 + p2 + p3 + p4 + p5 + p6 + plot_layout(ncol=3)
+```
+
+

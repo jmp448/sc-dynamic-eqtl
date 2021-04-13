@@ -29,22 +29,11 @@ classify.dynqtl <- function(beta.g, beta.gxt, beta.t, ..., t.low=0, t.high=15, t
     }
   }
 }
+```
 
-all.tests <- read_tsv("data/gv_pairs.filtered.50k.tsv") %>%
-  mutate(gv=paste(gene, snp, sep="--"))
-get.matched <- function(tests) {
-  elim.genes <- str_extract(tests, "[^-]+")
-  match.dists <- all.tests %>% 
-    filter(gv %in% tests) %>%
-    .$dist2tss
-  candidates <- all.tests %>%
-    filter(!gene %in% elim.genes)
-  matched.tests <- bind_rows(map_dfr(match.dists, function(d){slice(candidates, which.min(abs(dist2tss-d)))}))$gv
-  matched.tests
-}
-
+```{r}
 annotate_hits <- function(epi, celltype) {
-  read_tsv(paste0("results/epigenetics/linear_dQTL/pseudobulk/", celltype, "bin/50k-5clpcs-5pcs.", epi, ".bed"), col_names=F) %>%
+  read_tsv(paste0("results/epigenetics/linear_dQTL/pseudobulk-", celltype, "/bin20/50k-5clpcs-0pcs.", epi, ".bed"), col_names=F) %>%
     `colnames<-`(c("chr", "start", "stop", "annotation")) %>%
     rename("{epi}":=annotation)
 }
@@ -57,39 +46,39 @@ ipsc_epis <- c("E018", "E019", "E020", "E021", "E022")
 heart_epis <- c("E083", "E104", "E095", "E105", "E065")
 muscle_epis <- c("E076", "E078", "E103", "E111")
 
-cm_hits <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk/cmbin/50k-5clpcs-5pcs.sighits.bed")
+cm_hits <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk-cm/bin15/50k-5clpcs-0pcs.sighits.bed")
 
-epdc_hits <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk/epdcbin/50k-5clpcs-5pcs.sighits.bed")
+cf_hits <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk-cf/bin15/50k-5clpcs-5pcs.sighits.bed")
 ```
 
 ```{r time_ranges, echo=FALSE, message=FALSE, warning=FALSE}
-cm.medians <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk/cmbin/15bin_medians.tsv")
+cm.medians <- read_tsv("../results/eqtl_dynamic/linear_dQTL/pseudobulk-cm/bin15/bin_medians.tsv")
 t.low.cm <- cm.medians %>% 
-  mutate(bin=str_extract(bin.ind, "[^_]+$")) %>%
-  filter(bin == 1) %>%
+  mutate(bin=str_extract(binind, "[^_]+$")) %>%
+  filter(bin == 0) %>%
   .$t %>%
   median
 t.high.cm <- cm.medians %>% 
-  mutate(bin=str_extract(bin.ind, "[^_]+$")) %>%
-  filter(bin == 15) %>%
+  mutate(bin=str_extract(binind, "[^_]+$")) %>%
+  filter(bin == 14) %>%
   .$t %>%
   median
 
-epdc.medians <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk/epdcbin/15bin_medians.tsv")
-t.low.epdc <- epdc.medians %>% 
-  mutate(bin=str_extract(bin.ind, "[^_]+$")) %>%
-  filter(bin == 1) %>%
+cf.medians <- read_tsv("../results/eqtl_dynamic/linear_dQTL/pseudobulk-cf/bin15/bin_medians.tsv")
+t.low.cf <- cf.medians %>% 
+  mutate(bin=str_extract(binind, "[^_]+$")) %>%
+  filter(bin == 0) %>%
   .$t %>%
   median
-t.high.epdc <- epdc.medians %>% 
-  mutate(bin=str_extract(bin.ind, "[^_]+$")) %>%
-  filter(bin == 15) %>%
+t.high.cf <- cf.medians %>% 
+  mutate(bin=str_extract(binind, "[^_]+$")) %>%
+  filter(bin == 14) %>%
   .$t %>%
   median
 ```
 
 ```{r cm_dynqtl_bed, warning=FALSE, message=FALSE, echo=FALSE, include=FALSE, eval=FALSE}
-cm.dynqtl <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk/cmbin/50k-5clpcs-5pcs.tophits.tsv") %>%
+cm.dynqtl <- read_tsv("../results/eqtl_dynamic/linear_dQTL/pseudobulk-cm/bin15/50k-5clpcs-5pcs-notypes.tophits.tsv") %>%
   filter(qval.unadj<=0.05) %>% 
   mutate(qtl.type=pmap_chr(., classify.dynqtl, t.low=t.low.cm, t.high=t.high.cm)) %>%
   filter(qtl.type != "switch")
@@ -105,11 +94,11 @@ cm.dynqtl.bed <- cm.dynqtl %>%
   mutate(stop=as.numeric(str_extract(snp, "[^_]+$"))) %>%
   mutate(start=stop-1) %>%
   select(chr, start, stop, qtl.type) %>%
-  write_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk/cmbin/50k-5clpcs-5pcs.sighits.bed")
+  write_tsv("../results/eqtl_dynamic/linear_dQTL/pseudobulk/cmbin/50k-5clpcs-5pcs.sighits.bed")
 ```
 
 ```{r epdc_dynqtl_bed, warning=FALSE, message=FALSE, echo=FALSE, include=FALSE, eval=FALSE}
-epdc.dynqtl <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk/epdcbin/50k-5clpcs-5pcs.tophits.tsv") %>%
+epdc.dynqtl <- read_tsv("../results/eqtl_dynamic/linear_dQTL/pseudobulk-cf/bin15/50k-5clpcs-0pcs-notypes.tophits.tsv") %>%
   filter(qval.unadj<=0.05) %>%
   mutate(qtl.type=pmap_chr(., classify.dynqtl, t.low=t.low.epdc, t.high=t.high.epdc)) %>%
   filter(qtl.type != "switch")
@@ -132,7 +121,7 @@ epdc.dynqtl.bed <- epdc.dynqtl %>%
 declare -a ipsc_epis=( "E018" "E019" "E020" "E021" "E022" )
 for epi in ${ipsc_epis[@]}; do
   bedtools intersect -a data/epigenomes/iPSC/${epi}_15state.bed \
-  -b results/eqtl_dynamic/linear_dQTL/pseudobulk/cmbin/50k-5clpcs-5pcs.sighits.bed \
+  -b results/eqtl_dynamic/linear_dQTL/pseudobulk-cf/16bin/50k-5clpcs-5pcs.sighits.bed \
   > results/epigenetics/linear_dQTL/pseudobulk/cmbin/50k-5clpcs-5pcs.${epi}.bed
 done
 ```

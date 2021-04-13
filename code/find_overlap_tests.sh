@@ -1,3 +1,6 @@
 #!/bin/bash
 
-all_tests="../data/gtex/GTEx_Analysis_v8_eQTL/Whole_Blood.v8.egenes.txt.gz"
+all_tests="file1.txt"
+dqtl_tests="file2.txt"
+
+comm -12 $all_tests $dqtl_tests

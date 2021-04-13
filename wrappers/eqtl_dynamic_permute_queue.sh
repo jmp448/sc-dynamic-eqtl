@@ -1,27 +1,47 @@
 #!/bin/bash
 #SBATCH --time=10:0
-#SBATCH --mem-per-cpu=15G
-#SBATCH --ntasks=32
 #SBATCH --output=logs/eqtl_dynamic_permute_queue.out
 #SBATCH --error=logs/eqtl_dynamic_permute_queue.err
 
 # rm -r logs/dynamic-eqtl-permute/
-mkdir logs/dynamic-eqtl-permute/
+# mkdir logs/dynamic-eqtl-permute
 
 declare -a CisDists=("50k")
-declare -a NumSampPCs=(0 5 10 20)
-declare -a NumCLPCs=(0 3 5 10)
+declare -a NumSampPCs=(0)
+declare -a NumCLPCs=(5)
+declare -a Bins=("bin16")
+declare -a Chunks=(1 2 3 4 5 6 7 8 9 10)
 
-for cdist in ${CisDists[@]}; do
-  for nspc in ${NumSampPCs[@]}; do
-    for ncpc in ${NumCLPCs[@]}; do
-      sbatch -N 1 -n 1 --exclusive -J dyn-b --error=logs/dynamic-eqtl-permute/bulk-$cdist-$nspc-$ncpc.err --output=logs/dynamic-eqtl-permute/bulk-$cdist-$nspc-$ncpc.out eqtl_dynamic_permute.sh "bulk" $cdist $nspc $ncpc "day" &
-      #sbatch -N 1 -n 1 --exclusive -J dyn-b7 --error=logs/dynamic-eqtl-calling/bulk7-$cdist-$nspc-$ncpc.err --output=logs/dynamic-eqtl-calling/bulk7-$cdist-$nspc-$ncpc.out eqtl_dynamic_permute.sh "bulk7" $cdist $nspc $ncpc "day" &
-      #sbatch -N 1 -n 1 --exclusive -J dyn-pbd --error=logs/dynamic-eqtl-calling/pbd-$cdist-$nspc-$ncpc.err --output=logs/dynamic-eqtl-calling/pbd-$cdist-$nspc-$ncpc.out eqtl_dynamic_permute.sh "pseudobulk" $cdist $nspc $ncpc "day" &
-      sbatch -N 1 -n 1 --exclusive -J dyn --error=logs/dynamic-eqtl-permute/pbt-$cdist-$nspc-$ncpc.err --output=logs/dynamic-eqtl-permute/pbt-$cdist-$nspc-$ncpc.out eqtl_dynamic_permute.sh "pseudobulk" $cdist $nspc $ncpc "cmbin" &
-      #sbatch -N 1 -n 1 --exclusive -J dyn --error=logs/dynamic-eqtl-calling/pbt-$cdist-$nspc-$ncpc.err --output=logs/dynamic-eqtl-calling/pbt-$cdist-$nspc-$ncpc.out eqtl_dynamic_permute.sh "pseudobulk" $cdist $nspc $ncpc "epdcbin" &
+# without regressing cell type proportions
+for c in ${Chunks[@]}; do
+  for cdist in ${CisDists[@]}; do
+    for nspc in ${NumSampPCs[@]}; do
+      for ncpc in ${NumCLPCs[@]}; do
+        sbatch --mem=15G -J pdyn-$c --error=logs/dynamic-eqtl-permute/bulk-$cdist-$nspc-$ncpc-F-$c.err --output=logs/dynamic-eqtl-permute/bulk-$cdist-$nspc-$ncpc-F-$c.out eqtl_dynamic_permute.sh "bulk" $cdist $nspc $ncpc "F" "day" $c 10 &
+        # sbatch --mem=15G -J pdyn-$c --error=logs/dynamic-eqtl-permute/bulk7-$cdist-$nspc-$ncpc-F-$c.err --output=logs/dynamic-eqtl-permute/bulk7-$cdist-$nspc-$ncpc-F-$c.out eqtl_dynamic_permute.sh "bulk7" $cdist $nspc $ncpc "F" "day" $c 10 &
+        # sbatch --mem=15G -J pdyn-$c --error=logs/dynamic-eqtl-permute/pb-d-$cdist-$nspc-$ncpc-F-$c.err --output=logs/dynamic-eqtl-permute/pb-d-$cdist-$nspc-$ncpc-F-$c.out eqtl_dynamic_permute.sh "pseudobulk" $cdist $nspc $ncpc "F" "day" $c 10 &
+        # sbatch --mem=15G -J pdyn-$c --error=logs/dynamic-eqtl-permute/pb-cm-d-$cdist-$nspc-$ncpc-F-$c.err --output=logs/dynamic-eqtl-permute/pb-cm-d-$cdist-$nspc-$ncpc-F-$c.out eqtl_dynamic_permute.sh "pseudobulk-cm" $cdist $nspc $ncpc "F" "day" $c 10 &
+        # sbatch --mem=15G -J pdyn-$c --error=logs/dynamic-eqtl-permute/pb-cf-d-$cdist-$nspc-$ncpc-F-$c.err --output=logs/dynamic-eqtl-permute/pb-cf-d-$cdist-$nspc-$ncpc-F-$c.out eqtl_dynamic_permute.sh "pseudobulk-cf" $cdist $nspc $ncpc "F" "day" $c 10 &
+        for b in ${Bins[@]}; do
+          sbatch --mem=15G -J pdyn-$c --error=logs/dynamic-eqtl-permute/pb-cm-$b-$cdist-$nspc-$ncpc-F-$b-$c.err --output=logs/dynamic-eqtl-permute/pb-cm-$b-$cdist-$nspc-$ncpc-F-$c.out eqtl_dynamic_permute.sh "pseudobulk-cm" $cdist $nspc $ncpc "F" $b $c 10 &
+          sbatch --mem=15G -J pdyn-$c --error=logs/dynamic-eqtl-permute/pb-cf-$b-$cdist-$nspc-$ncpc-F-$b-$c.err --output=logs/dynamic-eqtl-permute/pb-cf-$b-$cdist-$nspc-$ncpc-F-$c.out eqtl_dynamic_permute.sh "pseudobulk-cf" $cdist $nspc $ncpc "F" $b $c 10 &
+        done
+      done
     done
   done
 done
+
+# without regressing cell type proportions
+# for c in ${Chunks[@]}; do
+#   for cdist in ${CisDists[@]}; do
+#     for nspc in ${NumSampPCs[@]}; do
+#       for ncpc in ${NumCLPCs[@]}; do
+#         sbatch --mem=15G -J pdyn-$c --error=logs/dynamic-eqtl-permute/bulk-$cdist-$nspc-$ncpc-T-$c.err --output=logs/dynamic-eqtl-permute/bulk-$cdist-$nspc-$ncpc-T-$c.out eqtl_dynamic_permute.sh "bulk" $cdist $nspc $ncpc "T" "day" $c 10 &
+#         sbatch --mem=15G -J pdyn-$c --error=logs/dynamic-eqtl-permute/bulk7-$cdist-$nspc-$ncpc-T-$c.err --output=logs/dynamic-eqtl-permute/bulk7-$cdist-$nspc-$ncpc-T-$c.out eqtl_dynamic_permute.sh "bulk7" $cdist $nspc $ncpc "T" "day" $c 10 &
+#         sbatch --mem=15G -J pdyn-$c --error=logs/dynamic-eqtl-permute/pb-d-$cdist-$nspc-$ncpc-T-$c.err --output=logs/dynamic-eqtl-permute/pb-d-$cdist-$nspc-$ncpc-T-$c.out eqtl_dynamic_permute.sh "pseudobulk" $cdist $nspc $ncpc "T" "day" $c 10 &
+#       done
+#     done
+#   done
+# done
 
 wait

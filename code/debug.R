@@ -630,3 +630,6 @@ bulk.cf.ieqtl.egenes <- filter(bulk.cf.ieqtl, qval.unadj<=0.05)$gene
 
 
 sc <- readRDS("../data/seurat.normalized.rds")
+
+# check gtex overlap 
+reem.overlaps <- read_tsv("/project2/gilad/reem/singlecellCM/dynamicqtl/gtexoverlap/output_eqtloverlap/")

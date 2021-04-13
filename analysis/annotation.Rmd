@@ -8,20 +8,37 @@ library(Seurat)
 library(Nebulosa)
 library(tidyverse)
 library(Matrix)
-library(RColorBrewer)
+library(RColorBrewer) 
 library(scales)
 ```
 
 ```{r file_load, echo=FALSE, warning=FALSE, message=FALSE}
-sc <- readRDS("data/seurat.annotated.rds")
-#sc_cardiac <- readRDS("data/seurat.cardiac.rds")
+sc <- readRDS("data/seurat.clustered.rds")
 ```
+```{r color_scheme, echo=FALSE, warning=FALSE, message=FALSE}
+my_cols <- c(hue_pal()(7)[c(5,4,3,2,1,6)], "#949494")
+my_cols <- c("#0077BB", "#70d1d0", "#117733", "#E69F00", "#BF0202", "#663a82", "#949494")
+my_cols <- c("#0077BB", "#70d1d0", "#117733", "#E69F00", "#BF0202", "#9640CE", "#949494")
+```
+
+UMAP shows that cells from early differentiation days are most uniform, 
 
 Louvain clustering (resolution 0.15) identifies subpopulations of cells present in the data
 ```{r clustering, warning=FALSE, message=FALSE, echo=FALSE}
 DimPlot(sc, group.by="diffday", pt.size=0.75)
-DimPlot(sc, group.by="type", pt.size=0.75)
-table(sc$seurat_clusters)
+DimPlot(sc, group.by="type", pt.size=0.75, cols=my_cols)
+```
+
+```{r include=FALSE}
+fig1a <- DimPlot(sc, group.by="diffday", pt.size=0.75)
+png('figs/fig1/fig1a.png', width=500, height=400)
+plot(fig1a)
+dev.off()
+
+fig1c <- DimPlot(sc, group.by="type", pt.size=0.75, cols=my_cols)
+png('figs/fig1/fig1c.png', width=500, height=400)
+plot(fig1c)
+dev.off()
 ```
 
 We can look at marker genes to map these clusters to the predominant cell types in this differentiation
@@ -32,29 +49,71 @@ We can look at marker genes to map these clusters to the predominant cell types 
 *CM* - cardiomyocyte (TNNT2)
 *CF* - cardiac fibroblast (COL3A1)
 ```{r marker_genes, warning=FALSE, message=FALSE, echo=FALSE}
-plot_density(sc, "POU5F1")
-plot_density(sc, "MIXL1")
-plot_density(sc, "MESP1")
-plot_density(sc, "GATA4")
-plot_density(sc, "TAGLN")
-plot_density(sc, "TNNT2")
-plot_density(sc, "COL3A1")
-plot_density(sc, "APOA1")
+p1 <- plot_density(sc, "POU5F1")
+p2 <- plot_density(sc, "MIXL1")
+p3 <- plot_density(sc, "MESP1")
+p4 <- plot_density(sc, "GATA4")
+p5 <- plot_density(sc, "APOA1")
+p6 <- plot_density(sc, "COL3A1")
+p7 <- plot_density(sc, "VIM")
+p8 <- plot_density(sc, "TAGLN")
+p9 <- plot_density(sc, "TNNT2")
+p10 <- plot_density(sc, "MYL7")
+p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9 + p10 + plot_layout(ncol=2)
+```
+
+```{r fig1b, include=FALSE}
+fig1b <- p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9 + p10 + plot_layout(ncol=2)
+png('figs/fig1/fig1b.png', width=1000, height=1800)
+plot(fig1b)
+dev.off()
+```
+
+Early days are relatively uniform, consisting primarily of a single cell type, while more heterogeneity arises as cells progress through differentiation.
+```{r}
+daytype <- as_tibble(sc@meta.data[,c("diffday", "type")]) %>%
+  mutate(n=1) %>%
+  group_by(diffday) %>%
+  mutate(day_tot=n()) %>%
+  group_by(diffday, type, day_tot) %>%
+  count %>%
+  mutate(day_frac=n/day_tot)
+test <- daytype %>%
+  group_by(diffday) %>%
+  mutate(x=n())
+ggplot(daytype, aes(x=diffday, y=day_frac, fill=type)) +
+  geom_bar(position="stack", stat="identity") +
+  theme_classic() +
+  ylab("Number of Cells") + 
+  xlab("Differentiation Day") +
+  scale_fill_manual(values=my_cols)
+```
+
+```{r fig1d, include=FALSE}
+fig1d <- ggplot(daytype, aes(x=diffday, y=day_frac, fill=type)) +
+  geom_bar(position="stack", stat="identity") +
+  theme_classic() +
+  ylab("Number of Cells") + 
+  xlab("Differentiation Day") +
+  scale_fill_manual(values=my_cols)
+png('figs/fig1/fig1d.png', width=400, height=600)
+plot(fig1d)
+dev.off()
 ```
 
 Using a subset of these marker genes, we can examine how expression changes over time to see that cell lines proceed through differentiation at different rates, and seem to preferentially produce either cardiomyocytes (blue, marker gene TNNT2) or cardiac fibroblasts (purple, marker gene COL3A1).
 ```{r ct_prefs, warning=FALSE, message=FALSE, echo=FALSE}
 meta <- as_tibble(sc@meta.data[,c("diffday", "individual")], rownames="cell")
-rep.genes <- c("TNNT2", "COL3A1")
-rep.inds <- c("18499", "19209", "18505", "18517", "19127", "19190")
+rep.genes <- c("L1TD1", "TNNT2", "COL3A1")
+rep.inds <- c("19209", "18489", "18505", "18912", "19127", "18508")
 exp.marker <- as_tibble(t(sc[["SCT"]]@data[rep.genes,]), rownames="cell") %>% 
   inner_join(meta, by="cell") %>%
   gather(!c(cell, diffday, individual), key="gene", value="exp")
 exp.sub <- exp.marker %>% 
   filter(individual %in% rep.inds) %>%
-  mutate(gene=factor(gene, levels=c("TNNT2", "COL3A1"))) %>%
+  mutate(gene=factor(gene, levels=rep.genes)) %>%
   mutate(individual=factor(individual, levels=rep.inds))
-type.cols <- hue_pal()(7)[c(5,6)]
+type.cols <- my_cols[c(1,5,6)]
 ggplot(exp.sub, aes(x=diffday, y=exp, fill=gene)) +
   geom_violin(position=position_dodge(), trim=T, scale="width") +
   facet_grid(rows=vars(individual)) +
@@ -62,4 +121,17 @@ ggplot(exp.sub, aes(x=diffday, y=exp, fill=gene)) +
   scale_fill_manual(values=type.cols) +
   xlab("Differentiation Day") +
   ylab("Normalized Expression")
+```
+
+```{r fig1e, include=FALSE}
+fig1e <- ggplot(exp.sub, aes(x=diffday, y=exp, fill=gene)) +
+  geom_violin(position=position_dodge(), trim=T, scale="width") +
+  facet_grid(rows=vars(individual)) +
+  theme_classic() +
+  scale_fill_manual(values=type.cols) +
+  xlab("Differentiation Day") +
+  ylab("Normalized Expression")
+png('figs/fig1/fig1e.png', width=400, height=600)
+plot(fig1e)
+dev.off()
 ```
