@@ -18,7 +18,7 @@ library(patchwork)
 
 Cell line differentiation differences
 ```{r}
-my_cols <- c(hue_pal()(7)[c(5,4,3,2,1,6)], "#949494")
+my_cols <- c("#0077BB", "#70d1d0", "#117733", "#E69F00", "#BF0202", "#9640CE", "#949494")
 sc <- readRDS("data/seurat.annotated.rds")
 fa.emb <- as_tibble(sc@reductions$fa@cell.embeddings, rownames="cell")
 cl_types <- as_tibble(sc@meta.data, rownames="cell") %>%
@@ -51,7 +51,7 @@ meta <- as_tibble(sc.full@meta.data, rownames="cell") %>%
 p <- ggplot(arrange(meta, sample), aes(x=sample, y=n, fill=individual)) + 
   geom_bar(stat="identity") +
   theme_classic() + 
-  theme(axis.text.x=element_text(angle=45, hjust=1)) +
+  theme(axis.text.x=element_blank(), axis.ticks.x=element_blank()) +
   xlab("Sample") + ylab("Number of Cells") + labs(fill="Cell Line")
 png('figs/supp/cells_per_sample.png', width=800, height=600)
 plot(p)

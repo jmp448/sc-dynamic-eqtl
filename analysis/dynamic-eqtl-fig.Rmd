@@ -279,12 +279,15 @@ evar <- filter(sig_qtl_cf, gene==egene)$snp
 evar.ref <- filter(genodict, snp==evar)$REF
 evar.alt <- filter(genodict, snp==evar)$ALT
 evar.rsid <- filter(genodict, snp==evar)$ID
-p1 <- viz_residuals(egene, evar, "pseudobulk-cf", "bin16", nclpcs=1, ref=evar.ref, alt=evar.alt, rsid=evar.rsid)
+p1 <- viz_residuals(egene, evar, "pseudobulk-cf", "bin16", nclpcs=1, ref=evar.ref, alt=evar.alt, rsid=evar.rsid) +
+  scale_fill_manual(values=c("#BF0202", "#9640CE", "#0077BB"))
+"#E08EF3"
+"#9640CE"
 ```
 
 ```{r}
 png('figs/fig2/fig2a.png', width=600, height=300)
-plot(p1)
+plot(p1 + scale_fill_manual(values=c("#0077BB", "#E08EF3", "#BF0202")))
 dev.off()
 ```
 
@@ -311,7 +314,8 @@ p2b <- ggplot(manhattan_combined, aes(x=pos, y=log10p, color=assay)) +
   theme_classic() +
   theme(legend.position="none") +
   ylab("-Log10(P-value)") +
-  xlab("Position (Chromosome 11)")
+  xlab("Position (Chromosome 11)") +
+  scale_color_manual(values=c("#038EDC", "#E63434"))
 ```
 
 ```{r}
@@ -336,6 +340,6 @@ p2c <- viz_residuals_nonlinear(vizhit$gene, vizhit$snp, "pseudobulk-cf", "bin16"
 
 ```{r}
 png('figs/fig2/fig2c.png', width=600, height=300)
-plot(p2c)
+plot(p2c + scale_fill_manual(values=c("#0077BB", "#E08EF3", "#BF0202")))
 dev.off()
 ```

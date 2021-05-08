@@ -13,7 +13,7 @@ library("vroom"))
 # Permutation Analysis - First Approach
 Here, we permute the full (nsamples=ncelllines*ndays) time column within the interaction term, so we don't maintain any structure 
 ```{r echo=FALSE, warning=FALSE, message=FALSE}
-dataset<-"bulk7"
+dataset<-"bulk"
 agg<-"day"
  
 plot_permutations <- function (dataset, agg, ...) {
@@ -34,7 +34,11 @@ plot_permutations <- function (dataset, agg, ...) {
     mutate(group=str_extract(group, "[^.]+$"))
   p <- ggplot(permute.p, aes(x=p.null, y=p, color=group)) +
     geom_point() +
-    geom_abline(slope=1, intercept=0, linetype="dashed")
+    geom_abline(slope=1, intercept=0, linetype="dashed") + 
+    labs(color="Group") + 
+    ylab("Empirical log10(p)") +
+    xlab("Theoretical log10(p)") +
+    theme_classic()
 }
 
 ggsave(
@@ -46,7 +50,7 @@ ggsave(
 )
 
 ggsave(
-  paste0("../figs/supp/perm1_cm.png"),
+  paste0("../figs/supp/perm1_cf.png"),
   plot_permutations("pseudobulk-cf", "bin16"),
   width = 5,
   height = 3.5,
@@ -54,7 +58,7 @@ ggsave(
 )
 
 ggsave(
-  paste0("../figs/supp/perm1_cf.png"),
+  paste0("../figs/supp/perm1_cm.png"),
   plot_permutations("pseudobulk-cm", "bin16"),
   width = 5,
   height = 3.5,
@@ -62,7 +66,7 @@ ggsave(
 )
 ```
 
-![](../figs/supp/perm1_bulk.png)
+![](../figs/supp/perm1_cm.png)
 
 ![](../figs/perm1.bulk7.day.png)
 

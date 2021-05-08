@@ -1,7 +1,20 @@
 library(Seurat)
 library(tidyverse)
+library(Matrix)
 
 sc <- readRDS("../data/seurat.normalized.rds")
+
+# save uncorrected counts 
+counts <- sc@assays$RNA@counts
+writeMM(counts, "../data/geo/cell_counts.mtx")
+
+# save SCTransform adjusted counts 
+corrected_counts <- sc@assays$SCT@counts
+writeMM(corrected_counts, "../data/geo/cell_counts_sctransform.mtx")
+
+# save pearson residuals from sctransform
+pearson <- as_tibble(t(sc@assays$SCT@scale.data), rownames="cell")
+write_tsv(pearson, "../data/geo/pearson_residuals_sctransform.tsv")
 
 # add cluster assignments
 leiden <- read_tsv("../data/marcc_transfer3/leiden.tsv")
@@ -29,6 +42,16 @@ clust2type <- function(c) {
 
 cell.types <- c("IPSC", "MES", "CMES", "PROG", "CM", "CF", "UNK")
 sc$type <- factor(sapply(sc$leiden, clust2type), levels=cell.types)
+
+# save metadata
+sc_metadata <- as_tibble(sc@meta.data, rownames="cell") %>%
+  select(cell, orig.ident, sample, diffday, individual, S.Score, G2M.Score, CC.Difference, PRB.DBL, leiden, type) %>%
+  rename(demux.dbl.prb=PRB.DBL, exp.grp=orig.ident)
+
+# add pseudotime
+pseudotime <- read_tsv("../data/marcc_transfer3/pseudotime.tsv", col_names=c("cell", "dpt_pseudotime"))
+sc_metadata <- left_join(sc_metadata, pseudotime, by="cell")
+write_tsv(sc_metadata, "../data/geo/cell_metadata.tsv")
 
 umap <- read_tsv("../data/marcc_transfer3/umap.tsv") %>%
   rename(UMAP_1=`0`, UMAP_2=`1`) %>% 

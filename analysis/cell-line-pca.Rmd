@@ -253,6 +253,8 @@ cov.levels <- pve %>%
   arrange(r2) %>%
   .$covariate
 pve$covariate <- factor(pve$covariate, levels=cov.levels)
+pve$lineage <- "CM"
+pve_combined <- pve
 p <- ggplot(pve, aes(x=pc, y=covariate, fill=r2)) +
   geom_tile() +
   xlab("Sample PC") +
@@ -299,14 +301,17 @@ cov.levels <- pve %>%
   arrange(r2) %>%
   .$covariate
 pve$covariate <- factor(pve$covariate, levels=cov.levels)
-p <- ggplot(pve, aes(x=pc, y=covariate, fill=r2)) +
+pve$lineage <- "CF"
+pve_combined <- bind_rows(pve, pve_combined)
+p <- ggplot(pve_combined, aes(x=pc, y=covariate, fill=r2)) +
   geom_tile() +
   xlab("Sample PC") +
   ylab("Technical Covariate") +
   labs(fill="R2") + 
+  facet_grid(cols=vars(lineage)) +
   theme_classic()
 
-png('../figs/supp/pb_cf16_pc_covs.png', width=600, height=400)
+png('../figs/supp/pb_combined_pc_covs.png', width=800, height=400)
 plot(p)
 dev.off()
 ```

@@ -19,18 +19,19 @@ sc <- readRDS("data/seurat.clustered.rds")
 my_cols <- c(hue_pal()(7)[c(5,4,3,2,1,6)], "#949494")
 my_cols <- c("#0077BB", "#70d1d0", "#117733", "#E69F00", "#BF0202", "#663a82", "#949494")
 my_cols <- c("#0077BB", "#70d1d0", "#117733", "#E69F00", "#BF0202", "#9640CE", "#949494")
+my_cols_type <- c("#BF0202", "#E69F00", "#117733", "#70d1d0", "#0077BB", "#E08EF3", "#9640CE")
 ```
 
 UMAP shows that cells from early differentiation days are most uniform, 
 
 Louvain clustering (resolution 0.15) identifies subpopulations of cells present in the data
 ```{r clustering, warning=FALSE, message=FALSE, echo=FALSE}
-DimPlot(sc, group.by="diffday", pt.size=0.75)
+DimPlot(sc, group.by="diffday", pt.size=0.75, cols=my_cols_type) 
 DimPlot(sc, group.by="type", pt.size=0.75, cols=my_cols)
 ```
 
 ```{r include=FALSE}
-fig1a <- DimPlot(sc, group.by="diffday", pt.size=0.75)
+fig1a <- DimPlot(sc, group.by="diffday", pt.size=0.75, cols=my_cols_type)
 png('figs/fig1/fig1a.png', width=500, height=400)
 plot(fig1a)
 dev.off()

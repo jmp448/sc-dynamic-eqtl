@@ -19,7 +19,7 @@ source("code/cell_line_pca.R")
 ```
 
 ```{r}
-my_cols <- c("#0077BB", "#70d1d0", "#117733", "#E69F00", "#BF0202", "#663a82", "#949494")
+my_cols <- c("#0077BB", "#70d1d0", "#117733", "#E69F00", "#BF0202", "#9640CE", "#949494")
 ```
 
 ## Bulk Deconvolution
@@ -49,12 +49,13 @@ pseudobulk <- read_tsv("results/cibersort/pseudobulk_indday.full.true.tsv") %>%
 props <- bind_rows(bulk, pseudobulk) 
 
 ind.subset <- c("19209", "18489", "18505", "18912", "19127", "18508")
+ind.subset <- c("18489", "18912", "19127")
 props <- bind_rows(bulk, pseudobulk) %>%
   filter(ind %in% ind.subset) %>%
   mutate(ind=factor(ind, levels=ind.subset))
 
-ggplot(props, aes(x=day, y=frac, fill=type)) +
-, size=0.5, colour="black") +
+ggplot(props, aes(x=day, y=frac, fill=type)) + 
+  geom_area(alpha=1, size=0.5, colour="black") +
   facet_grid(rows=vars(ind), cols=vars(exp)) +
   theme_classic() + theme(axis.ticks.y = element_blank(), axis.text.y=element_blank()) +
   scale_fill_manual(values=my_cols)
@@ -67,7 +68,7 @@ fig4a <- ggplot(props, aes(x=day, y=frac, fill=type)) +
   theme_classic() + theme(axis.ticks.y = element_blank(), axis.text.y=element_blank()) +
   scale_fill_manual(values=my_cols) +
   xlab("Differentiation Day") + ylab("Cell Type Proportions")
-png('figs/fig4/fig4a.png', width=400, height=600)
+png('figs/fig4/fig4a-poster.png', width=400, height=300)
 plot(fig4a)
 dev.off()
 ```
@@ -322,7 +323,7 @@ proportions <- vroom("results/cibersort/bulk.inferred.tsv") %>%
   rename(sample=Mixture)
 
 cm.hits <- vroom("results/eqtl_dynamic/ieQTL/bulk/CM/50k-5clpcs-0pcs-notypes.tophits.tsv") %>% filter(qval.unadj<=0.05) %>% select(gene, snp, bonf.p.unadj) %>% arrange(bonf.p.unadj) %>% mutate(celltype="CM")
-cf.hits <- vroom("results/eqtl_dynamic/ieQTL/bulk/CF/50k-5clpcs-0pcs-regtypes.tophits.tsv") %>% filter(qval.unadj<=0.05) %>% select(gene, snp, bonf.p.unadj) %>% mutate(celltype="CF")
+cf.hits <- vroom("results/eqtl_dynamic/ieQTL/bulk/CF/50k-5clpcs-0pcs-notypes.tophits.tsv") %>% filter(qval.unadj<=0.05) %>% select(gene, snp, bonf.p.unadj) %>% mutate(celltype="CF")
 cm.hits <- filter(cm.hits, !snp %in% cf.hits$snp) %>% arrange(bonf.p.unadj) %>% select(!bonf.p.unadj)
 cf.hits <- filter(cf.hits, !gene %in% cm.hits$gene) %>% arrange(bonf.p.unadj) %>% select(!bonf.p.unadj)
 
@@ -363,7 +364,7 @@ dosage2geno <- function(evariant, genotype, ..., genodict.snp) {
 ```{r}
 
 cm.qtl <- cm.hits %>% 
-  filter(gene=="CORIN") %>% 
+  filter(gene=="CMYA5") %>% 
   rename(egene = gene) %>% 
   rename(evariant=snp) %>% 
   pmap_df(.l=., .f=ieqtl_info) %>% 
@@ -396,7 +397,8 @@ fig4c <- ggplot(cm.qtl, aes(x=CM, y=expression, color=Genotype))+
   xlab("Percent CM") +
   ggtitle(filter(genodict, snp==cm.qtl$evariant[1])$ID) +
   theme_classic() +
-  geom_smooth(method="lm")
+  geom_smooth(method="lm") +
+  scale_color_manual(values=c("#038EDC", "#E63434"))
 png('figs/fig4/fig4c.png', width=400, height=200)
 plot(fig4c)
 dev.off()
@@ -407,7 +409,8 @@ fig4d <- ggplot(cm.qtl, aes(x=CF, y=expression, color=Genotype))+
   xlab("Percent CF") +
   ggtitle(filter(genodict, snp==cm.qtl$evariant[1])$ID) +
   theme_classic() +
-  geom_smooth(method="lm")
+  geom_smooth(method="lm") +
+  scale_color_manual(values=c("#038EDC", "#E63434"))
 png('figs/fig4/fig4d.png', width=400, height=200)
 plot(fig4d)
 dev.off()
