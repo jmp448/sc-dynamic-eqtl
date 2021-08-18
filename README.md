@@ -1,11 +1,9 @@
 # Single-Cell Sequencing Reveals Lineage-Specific Dynamic Genetic Regulation of Gene Expression During Human Cardiomyocyte Differentiation
 Reem Elorbany,  Joshua M Popp, Katherine Rhodes, Benjamin J Strober, Kenneth Barr, Guanghao Qi, Yoav Gilad, and Alexis Battle
 
-A [workflowr][] project.
-[workflowr]: https://github.com/jdblischak/workflowr
+A [workflowr](https://github.com/jdblischak/workflowr) project.
 
-Preprint available online at [bioRxiv][]
-[bioRxiv]: https://www.biorxiv.org/content/10.1101/2021.06.03.446970v1
+Preprint available online at [bioRxiv](https://www.biorxiv.org/content/10.1101/2021.06.03.446970v1)
 
 ## Preprocessing of Single Cell Data
 - Quality control filtering of single cell data is done at `code/create_seurat.R`

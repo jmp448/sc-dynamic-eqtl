@@ -12,6 +12,11 @@ writeMM(counts, "../data/geo/cell_counts.mtx")
 corrected_counts <- sc@assays$SCT@counts
 writeMM(corrected_counts, "../data/geo/cell_counts_sctransform.mtx")
 
+cell_names <- tibble("cell_name"=colnames(sc)) %>% rowid_to_column("cell_index") %>%
+  write_tsv("../data/geo/processed/cell_indices.tsv")
+gene_names <- tibble("gene_name"=rownames(sc)) %>% rowid_to_column("gene_index") %>%
+  write_tsv("../data/geo/processed/gene_indices.tsv")
+
 # save pearson residuals from sctransform
 pearson <- as_tibble(t(sc@assays$SCT@scale.data), rownames="cell")
 write_tsv(pearson, "../data/geo/pearson_residuals_sctransform.tsv")
