@@ -18,33 +18,23 @@ sc_cf <- readRDS("data/seurat.cf.rds")
 ```
 
 ```{r}
-my_cols <- c(hue_pal()(7)[c(5,4,3,2,1,6)], "#949494")
+my_cols <- c("#0077BB", "#70d1d0", "#117733", "#BF0202", "#9640CE")
 ```
 
 Visualize the distribution of pseudotime across our data
-```{r}
-FeaturePlot(sc_cm, "pseudotime", reduction="fa", cols=viridis_pal()(100)) + ggtitle("")
-```
-
-```{r}
-FeaturePlot(sc_cf, "pseudotime", reduction="fa", cols=c("#DEDEDE", my_cols[6])) + ggtitle("")
-```
-
 ```{r include=FALSE}
-fig3a <- DimPlot(sc_cardiac, group.by="type", reduction="fa", cols=my_cols) + ggtitle("")
-png('figs/fig3/fig3a.png', width=600, height=600)
-plot(fig3a)
-dev.off()
+fig2a <- DimPlot(sc_cardiac, group.by="type", reduction="fa", cols=my_cols) + 
+  theme(title=element_text(size=0), axis.title=element_text(size=20), 
+        legend.text=element_text(size=15), legend.title=element_text(size=20))
 
-fig3b <- FeaturePlot(sc_cardiac, "pseudotime", reduction="fa", cols=viridis_pal()(100)) + ggtitle("")
-png('figs/fig3/fig3b.png', width=600, height=600)
-plot(fig3b)
-dev.off()
+fig2b <- FeaturePlot(sc_cardiac, "pseudotime", reduction="fa", cols=viridis_pal()(100)) + 
+  theme(title=element_text(size=0), axis.title=element_text(size=20), 
+        legend.text=element_text(size=15), legend.title=element_text(size=20))
 ```
 
 Look at the distribution of pseudotime within each day, cell type, and pseudotime bin
 ```{r}
-pseudo <- as_tibble(sc_cm@meta.data[,c("diffday", "type", "pseudotime")], rownames="cell") %>%
+pseudo.cm <- as_tibble(sc_cm@meta.data[,c("diffday", "type", "pseudotime")], rownames="cell") %>%
   rowid_to_column("orig_order") %>%
   arrange(pseudotime) %>%
   rowid_to_column("time_order") %>% 
@@ -52,90 +42,30 @@ pseudo <- as_tibble(sc_cm@meta.data[,c("diffday", "type", "pseudotime")], rownam
   mutate(bin=sapply(bin, function(x){min(x, 14)})) %>%
   mutate(day=as.numeric(str_replace(diffday, "day", ""))) %>%
   arrange(orig_order)
-ggplot(pseudo, aes(x=day, y=pseudotime, fill=day, group=diffday)) +
-  geom_violin() +
-  theme_classic() +
-  xlab("Differentiation Day") +
-  ylab("Pseudotime") +
-  scale_fill_gradient(low="#DEDEDE", high=my_cols[5]) +
-  theme(legend.position="none")
-ggplot(pseudo, aes(x=bin, y=pseudotime, fill=bin, group=bin)) +
-  geom_violin()+
-  theme_classic() +
-  theme(legend.position="none") +
-  xlab("Pseudotime Bin") +
-  ylab("Pseudotime") +
-  scale_fill_gradient(low="#DEDEDE", high=my_cols[5])
-```
-
-Look at expression of TNNT2 in each time point/ pseudotime bin
-```{r}
-pseudo$TNNT2 <- sc_cm[["SCT"]]@data["TNNT2",]
-ggplot(pseudo, aes(x=day, y=TNNT2, fill=day, group=diffday)) +
-  geom_violin(trim=T, scale="width")+
-  theme_classic() +
-  theme(legend.position="none") +
-  xlab("Differentiation Day") +
-  ylab("TNNT2") +
-  scale_fill_gradient(low="#DEDEDE", high=my_cols[5])
-ggplot(pseudo, aes(x=bin, y=TNNT2, fill=bin, group=bin)) +
-  geom_violin(trim=T, scale="width")+
-  theme_classic() +
-  theme(legend.position="none") +
-  xlab("Pseudotime Bin") +
-  ylab("TNNT2") +
-  scale_fill_gradient(low="#DEDEDE", high=my_cols[5])
+pseudo.cm$TNNT2 <- sc_cm[["SCT"]]@data["TNNT2",]
 ```
 
 ```{r include=FALSE}
-fig3c <- ggplot(pseudo, aes(x=day, y=pseudotime, fill=day, group=diffday)) +
-  geom_violin(trim=T, scale="width") +
-  theme_classic() +
-  xlab("Differentiation Day") +
-  ylab("Pseudotime") +
-  scale_fill_gradient(low="#DEDEDE", high=my_cols[5]) +
-  theme(legend.position="none")
-png('figs/fig3/fig3c.png', width=600, height=300)
-plot(fig3c)
-dev.off()
-
-fig3d <- ggplot(pseudo, aes(x=bin, y=pseudotime, fill=bin, group=bin)) +
+fig2c <- ggplot(pseudo.cm, aes(x=day, y=TNNT2, fill=day, group=diffday)) +
   geom_violin(trim=T, scale="width")+
-  theme_classic() +
+  theme_classic(base_size=20) +
   theme(legend.position="none") +
-  xlab("Pseudotime Bin") +
-  ylab("Pseudotime") +
-  scale_fill_gradient(low="#DEDEDE", high=my_cols[5])
-png('figs/fig3/fig3d.png', width=600, height=300)
-plot(fig3d)
-dev.off()
-
-fig3e <- ggplot(pseudo, aes(x=day, y=TNNT2, fill=day, group=diffday)) +
-  geom_violin(trim=T, scale="width")+
-  theme_classic() +
-  theme(legend.position="none") +
-  xlab("Differentiation Day") +
+  xlab("Day") +
   ylab("TNNT2") +
   scale_fill_gradient(low="#DEDEDE", high=my_cols[5])
-png('figs/fig3/fig3e.png', width=600, height=300)
-plot(fig3e)
-dev.off()
 
-fig3f <- ggplot(pseudo, aes(x=bin, y=TNNT2, fill=bin, group=bin)) +
+fig2d <- ggplot(pseudo.cm, aes(x=bin, y=TNNT2, fill=bin, group=bin)) +
   geom_violin(trim=T, scale="width")+
-  theme_classic() +
+  theme_classic(base_size=20) +
   theme(legend.position="none") +
   xlab("Pseudotime Bin") +
   ylab("TNNT2") +
   scale_fill_gradient(low="#DEDEDE", high=my_cols[5])
-png('figs/fig3/fig3f.png', width=600, height=300)
-plot(fig3f)
-dev.off()
 ```
 
 Now we perform a similar analysis for our other lineage
 ```{r}
-pseudo <- as_tibble(sc_cf@meta.data[,c("diffday", "type", "pseudotime")], rownames="cell") %>%
+pseudo.cf <- as_tibble(sc_cf@meta.data[,c("diffday", "type", "pseudotime")], rownames="cell") %>%
   rowid_to_column("orig_order") %>%
   arrange(pseudotime) %>%
   rowid_to_column("time_order") %>% 
@@ -143,83 +73,40 @@ pseudo <- as_tibble(sc_cf@meta.data[,c("diffday", "type", "pseudotime")], rownam
   mutate(bin=sapply(bin, function(x){min(x, 14)})) %>%
   mutate(day=as.numeric(str_replace(diffday, "day", ""))) %>%
   arrange(orig_order)
-ggplot(pseudo, aes(x=day, y=pseudotime, fill=day, group=diffday)) +
-  geom_violin(trim=T, scale="width") +
-  theme_classic() +
-  xlab("Differentiation Day") +
-  ylab("Pseudotime") +
-  scale_fill_gradient(low="#DEDEDE", high=my_cols[6]) +
-  theme(legend.position="none")
-ggplot(pseudo, aes(x=bin, y=pseudotime, fill=bin, group=bin)) +
-  geom_violin()+
-  theme_classic() +
-  theme(legend.position="none") +
-  xlab("Pseudotime Bin") +
-  ylab("Pseudotime") +
-  scale_fill_gradient(low="#DEDEDE", high=my_cols[6])
-```
-
-```{r}
-pseudo$COL3A1 <- sc_cf[["SCT"]]@data["COL3A1",]
-ggplot(pseudo, aes(x=day, y=COL3A1, fill=day, group=diffday)) +
-  geom_violin(trim=T, scale="width")+
-  theme_classic() +
-  theme(legend.position="none") +
-  xlab("Differentiation Day") +
-  ylab("COL3A1") +
-  scale_fill_gradient(low="#DEDEDE", high=my_cols[6])
-ggplot(pseudo, aes(x=bin, y=COL3A1, fill=bin, group=bin)) +
-  geom_violin(trim=T, scale="width")+
-  theme_classic() +
-  theme(legend.position="none") +
-  xlab("Pseudotime Bin") +
-  ylab("COL3A1") +
-  scale_fill_gradient(low="#DEDEDE", high=my_cols[6])
+pseudo.cf$COL3A1 <- sc_cf[["SCT"]]@data["COL3A1",]
 ```
 
 
 ```{r include=FALSE}
-fig3h <- ggplot(pseudo, aes(x=day, y=pseudotime, fill=day, group=diffday)) +
-  geom_violin(trim=T, scale="width") +
-  theme_classic() +
-  xlab("Differentiation Day") +
-  ylab("Pseudotime") +
-  scale_fill_gradient(low="#DEDEDE", high=my_cols[6]) +
-  theme(legend.position="none")
-png('figs/fig3/fig3h.png', width=600, height=300)
-plot(fig3h)
-dev.off()
-
-fig3i <- ggplot(pseudo, aes(x=bin, y=pseudotime, fill=bin, group=bin)) +
+fig2e <- ggplot(pseudo.cf, aes(x=day, y=COL3A1, fill=day, group=diffday)) +
   geom_violin(trim=T, scale="width")+
-  theme_classic() +
+  theme_classic(base_size=20) +
   theme(legend.position="none") +
-  xlab("Pseudotime Bin") +
-  ylab("Pseudotime") +
-  scale_fill_gradient(low="#DEDEDE", high=my_cols[6])
-png('figs/fig3/fig3i.png', width=600, height=300)
-plot(fig3i)
-dev.off()
-
-fig3j <- ggplot(pseudo, aes(x=day, y=COL3A1, fill=day, group=diffday)) +
-  geom_violin(trim=T, scale="width")+
-  theme_classic() +
-  theme(legend.position="none") +
-  xlab("Differentiation Day") +
+  xlab("Day") +
   ylab("COL3A1") +
   scale_fill_gradient(low="#DEDEDE", high=my_cols[6])
-png('figs/fig3/fig3j.png', width=600, height=300)
-plot(fig3j)
-dev.off()
 
-fig3k <- ggplot(pseudo, aes(x=bin, y=COL3A1, fill=bin, group=bin)) +
+fig2f <- ggplot(pseudo.cf, aes(x=bin, y=COL3A1, fill=bin, group=bin)) +
   geom_violin(trim=T, scale="width")+
-  theme_classic() +
+  theme_classic(base_size=20) +
   theme(legend.position="none") +
   xlab("Pseudotime Bin") +
   ylab("COL3A1") +
   scale_fill_gradient(low="#DEDEDE", high=my_cols[6])
-png('figs/fig3/fig3k.png', width=600, height=300)
-plot(fig3k)
+```
+
+```{r}
+grid.layout="
+AACC
+AADD
+BBEE
+BBFF
+"
+fig2 <- fig2a + fig2b + fig2c + fig2d + fig2e + fig2f +
+  plot_layout(design=grid.layout)
+
+png('figs/fig2/fig2.png', width=800, height=800)
+plot(fig2)
 dev.off()
 ```
+![](../figs/fig2/fig2.png)

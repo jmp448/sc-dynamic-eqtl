@@ -92,27 +92,55 @@ p1 <- sharing %>% as_tibble() %>%
   ggplot() + 
     geom_tile(aes(x=sample1, y=sample2, fill=rho))
 
-pb.day.mashr <- readRDS("results/eqtl_static/pseudobulk/day/50k-5pcs.mashr.rds")
-sharing.pb <- get_pairwise_sharing(pb.day.mashr)
-p2 <- sharing.pb %>% as_tibble() %>%
-  mutate(sample1=colnames(sharing.pb), .before=1) %>%
+pb.day.mashr <- readRDS("results/eqtl_static/pseudobulk/day/50k-3pcs.mashr.rds")
+sharing.pb.day <- get_pairwise_sharing(pb.day.mashr)
+p2 <- sharing.pb.day %>% as_tibble() %>%
+  mutate(sample1=colnames(sharing.pb.day), .before=1) %>%
   gather(!sample1, key="sample2", value="rho") %>%
   mutate(sample1=factor(sample1, levels=paste0("day", seq(0, 15)))) %>%
   mutate(sample2=factor(sample2, levels=paste0("day", seq(0, 15)))) %>%
   ggplot() + 
-    geom_tile(aes(x=sample1, y=sample2, fill=rho))
+    geom_tile(aes(x=sample1, y=sample2, fill=rho)) +
+    scale_fill_continuous(limits=c(0.95, 1)) +
+    theme_classic(base_size=20) +
+    theme(axis.text.x=element_text(angle=45, hjust=1)) +
+    xlab("Day") + ylab("") + labs(fill="Correlation")
 
-pb.type.mashr <- readRDS("results/eqtl_static/pseudobulk/type/50k-5pcs.mashr.rds")
-sharing.pb <- get_pairwise_sharing(pb.type.mashr)
-cell.types <- c("iPSC","meso", "cardiomes", "prog", "CM", "EPDC", "EMT") 
-p3 <- sharing.pb %>% as_tibble() %>%
-  mutate(sample1=colnames(sharing.pb), .before=1) %>%
+pb.type.mashr <- readRDS("results/eqtl_static/pseudobulk/type/50k-3pcs.mashr.rds")
+sharing.pb.type <- get_pairwise_sharing(pb.type.mashr)
+cell.types <- c("IPSC","MES", "CMES", "PROG", "CM", "CF", "UNK") 
+p3 <- sharing.pb.type %>% as_tibble() %>%
+  mutate(sample1=colnames(sharing.pb.type), .before=1) %>%
   gather(!sample1, key="sample2", value="rho") %>%
   mutate(sample1=factor(sample1, levels=cell.types)) %>%
   mutate(sample2=factor(sample2, levels=cell.types)) %>%
   ggplot() + 
-    geom_tile(aes(x=sample1, y=sample2, fill=rho))
+    geom_tile(aes(x=sample1, y=sample2, fill=rho)) +
+    scale_fill_continuous(limits=c(0.95, 1)) +
+    theme_classic(base_size=20) +
+    theme(axis.text.x=element_text(angle=45, hjust=1)) +
+    xlab("Cell Type") + ylab("") + labs(fill="Correlation")
+
+sharing <- p2 + p3 + plot_layout(guides="collect")
+
+png('figs/supp/mashr.png', width=1000, height=500)
+plot(sharing)
+dev.off()
 ```
+
+How many stable eQTLs do we get from each approach?
+```{r}
+stable.eqtl.pb.day <- sum(get_n_significant_conditions(pb.day.mashr) == 7)
+dynamic.eqtl.pb.day <- sum(get_n_significant_conditions(pb.day.mashr) %in% seq(1, 6))
+stable.eqtl.pb.type <- sum(get_n_significant_conditions(pb.type.mashr) == 7)
+dynamic.eqtl.pb.type <- sum(get_n_significant_conditions(pb.type.mashr) %in% seq(1, 6))
+```
+
+What does the loading on our more recognizable covariance matrices look like?
+```{r}
+
+```
+
 
 <!-- ## Replication of Non-Dynamic eQTLs -->
 <!-- By looking at the $\pi_1$ replication rates, we can determine whether the QTLs we detected in bulk are replicated in pseudobulk -->

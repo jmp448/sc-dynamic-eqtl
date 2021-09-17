@@ -1,5 +1,6 @@
 library(tidyverse)
 library(mashr)
+library(vroom)
 set.seed(1234)
 
 inputArgs <- commandArgs(trailingOnly=T)
@@ -10,7 +11,8 @@ cis.dist <- as.character(inputArgs[3])
 npcs <- as.numeric(inputArgs[4])
 
 get_coefs <- function(t) {
-  results.t <- read_tsv(paste0("../results/eqtl_static/", dataset, "/", agg, "/", t, "/", cis.dist, "-", npcs, "pcs.mtc.tsv"))
+  results.t <- vroom(paste0("../results/eqtl_static/", dataset, "/", agg, "/", t, "/", cis.dist, "-", npcs, "pcs.mtc.tsv")) %>% 
+    bind_rows
   beta.hat <- results.t %>% 
     mutate("{t}":=coefficients) %>%
     mutate(gv=paste(gene, snp, sep="--")) %>%
@@ -19,7 +21,8 @@ get_coefs <- function(t) {
 } 
 
 get_se <- function(t) {
-  results.t <- read_tsv(paste0("../results/eqtl_static/", dataset, "/", agg, "/", t, "/", cis.dist, "-", npcs, "pcs.mtc.tsv"))
+  results.t <- vroom(paste0("../results/eqtl_static/", dataset, "/", agg, "/", t, "/", cis.dist, "-", npcs, "pcs.mtc.tsv")) %>% 
+    bind_rows
   se.hat <- results.t %>% 
     mutate("{t}":=se.adj) %>%
     mutate(gv=paste(gene, snp, sep="--")) %>%
@@ -28,7 +31,8 @@ get_se <- function(t) {
 } 
 
 get_dfs <- function(t) {
-  results.t <- read_tsv(paste0("../results/eqtl_static/", dataset, "/", agg, "/", t, "/", cis.dist, "-", npcs, "pcs.mtc.tsv"))
+  results.t <- vroom(paste0("../results/eqtl_static/", dataset, "/", agg, "/", t, "/", cis.dist, "-", npcs, "pcs.mtc.tsv")) %>% 
+    bind_rows
   df.total <- results.t %>% 
     mutate("{t}":=df.total) %>%
     mutate(gv=paste(gene, snp, sep="--")) %>%
@@ -41,7 +45,7 @@ if (dataset == "bulk") {
 } else if ((dataset == "pseudobulk") & (agg == "day")) {
   days <- paste0("day", c(0, 1, 3, 5, 7, 11, 15))
 } else if ((dataset == "pseudobulk") & (agg == "type")) {
-  days <- c("iPSC", "meso", "EMT", "cardiomes", "prog", "CM", "EPDC")
+  days <- c("IPSC", "MES", "CMES", "PROG", "CM", "CF", "UNK")
 }
 
 beta.hat <- map(days, get_coefs) %>% reduce(inner_join, by="gv") %>%
@@ -60,7 +64,7 @@ top.hits <- beta.hat %>% `/`(se.hat) %>% abs %>%
   filter(!duplicated(gene)) %>%
   .$gv
 
-# identify a random subset of 250000 tests
+# identify a random subset of 250K tests
 random.hits = sample(rownames(beta.hat), min(250000, dim(beta.hat)[1]))
 
 # estimate null correlation
@@ -68,11 +72,11 @@ data.temp = mash_set_data(beta.hat[random.hits,],se.hat[random.hits,])
 Vhat = estimate_null_correlation_simple(data.temp)
 rm(data.temp)
 
-data.random = mash_set_data(beta.hat[random.hits,],se.hat[random.hits,],V=Vhat, df=df.adj[random.hits,])
-data.strong = mash_set_data(beta.hat[top.hits,],se.hat[top.hits,],V=Vhat, df=df.adj[top.hits,])
+data.random = mash_set_data(beta.hat[random.hits,], se.hat[random.hits,], V=Vhat, df=df.adj[random.hits,])
+data.strong = mash_set_data(beta.hat[top.hits,], se.hat[top.hits,], V=Vhat, df=df.adj[top.hits,])
 
 # get data-driven covariances
-U.pca = cov_pca(data.strong,5)
+U.pca = cov_pca(data.strong, 5)
 U.ed = cov_ed(data.strong, U.pca)
 
 # fit mash model
@@ -81,4 +85,4 @@ m = mash(data.random, Ulist = c(U.ed,U.c), outputlevel = 1)
 
 m2 = mash(data.strong, g=get_fitted_g(m), fixg=TRUE)
 
-saveRDS(m2, paste0("../results/eqtl_static/", dataset, "/", agg, "/", cis.dist, "-", npcs, "pcs.mashr.tsv"))
+saveRDS(m2, paste0("../results/eqtl_static/", dataset, "/", agg, "/", cis.dist, "-", npcs, "pcs.mashr.rds"))

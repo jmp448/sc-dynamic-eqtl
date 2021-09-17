@@ -22,7 +22,8 @@ message(paste0("dataset, ", dataset,
                "\naggregate, ", agg,
                "\ntotal chunks, ", chunks_tot))
 
-stopifnot(dataset %in% c("bulk", "bulk7", "pseudobulk", "pseudobulk-cm", "pseudobulk-cf"))
+stopifnot(dataset %in% c("bulk", "bulk7", "pseudobulk", "pseudobulk-cm", "pseudobulk-cf",
+                         "pseudobulk-cm-nodrop", "pseudobulk-cf-nodrop"))
 stopifnot(cis.dist %in% c("10k", "25k", "50k", "100k"))
 stopifnot(n.samp.pcs<=50)
 stopifnot(n.cl.pcs<=10)

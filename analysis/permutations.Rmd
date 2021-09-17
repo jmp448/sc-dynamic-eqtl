@@ -186,3 +186,49 @@ ggsave(
 ![](../figs/hvf.pseudobulk-cm.bin15.png)
 
 ![](../figs/hvf.bulk.day.png)
+
+
+## Permute pseudotime across all cells
+```{r}
+emp.p <- vroom("../results/eqtl_dynamic/linear_dQTL/permuted_cells/pseudobulk-cm/bin16/50k-5clpcs-0pcs-notypes.emp_pvals.tsv")
+
+hist_pooled <- ggplot(tibble("p"=emp.p$pooled), aes(x=p)) +
+  geom_histogram() + 
+  xlab("P") + ggtitle("Empirical Null P-value Distribution with Pooling") +
+  theme_classic(base_size=20)
+
+hist_unpooled <- ggplot(tibble("p"=emp.p$unpooled), aes(x=p)) +
+  geom_histogram() + 
+  xlab("P") + ggtitle("Empirical Null P-value Distribution without Pooling") +
+  theme_classic(base_size=20)
+
+obs.p <- vroom("../results/eqtl_dynamic/linear_dQTL/pseudobulk-cm/bin16/50k-5clpcs-0pcs-notypes.mtc.tsv",
+               col_select=c(p.unadj))
+hist_obs <- ggplot(tibble("p"=obs.p$p.unadj), aes(x=p)) +
+  geom_histogram() + 
+  xlab("P") + ggtitle("Observed P-value Distribution") +
+  theme_classic(base_size=20)
+
+png('figs/supp/permutecells.png', width=1000, height=400)
+hist_pooled + hist_unpooled + hist_obs
+dev.off()
+```
+![](../figs/supp/permutecells.png)
+
+QQ plot
+```{r}
+obs.t <- vroom("../results/eqtl_dynamic/linear_dQTL/pseudobulk-cm/bin16/50k-5clpcs-0pcs-notypes.mtc.tsv",
+               col_select=c(gene, snp, t.unadj)) %>%
+  unite("gv", gene, snp, sep="--") %>%
+  filter(gv %in% paste0(merge_samples$gene, "--", merge_samples$snp))
+
+qq <- tibble(obs=quantile(obs.t$t.unadj, probs=seq(0.01, 0.99, 0.01)),
+             emp=quantile(as.vector(perm_tstats), probs=seq(0.01, 0.99, 0.01)),
+             theor=qt(seq(0.01, 0.99, 0.01), df=300)) %>%
+  pivot_longer(!theor, names_to="dist", values_to="t_obs")
+
+ggplot(qq, aes(x=theor, y=t_obs, color=dist)) +
+  geom_point() +
+  geom_abline(slope=1, intercept=0, linetype="dashed")
+```
+

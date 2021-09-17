@@ -25,5 +25,7 @@ get_filters <- function(dataset, agg, ...) {
 #                               "agg"=c("day", "day", "day", "day", "bin15", "day", "bin15"))
 aggregation_schemes <- tibble("dataset"=rep(c("pseudobulk-cm", "pseudobulk-cf"), each=4),
                               "agg"=paste0("bin", rep(c(7, 16, 25, 30), times=2)))
+aggregation_schemes <- tibble("dataset"=c("pseudobulk-cm-nodrop", "pseudobulk-cf-nodrop"),
+                              "agg"=c("bin16", "bin16"))
 
 pmap(aggregation_schemes, get_filters)

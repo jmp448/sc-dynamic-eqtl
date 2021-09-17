@@ -12,6 +12,7 @@ knitr::knit_hooks$set(webgl = hook_webgl)
 library(RColorBrewer)
 library(ggpubr)
 library(vroom)
+library(limma)
 ```
 
 ## Regular PCA
@@ -90,6 +91,86 @@ s1 <- ps1a + ps1b + ps1c + ps1d + ps1e + ps1f + ps1g + ps1h + plot_layout(ncol=2
 png('figs/supp1/supp1.png', width=600, height=900)
 plot(s1)
 dev.off()
+```
+
+What happens if we do not remove the low-depth samples?
+
+How much of the variance captured by the first two principal components can be explained by pseudotime vs library size?
+```{r}
+cf_svals_before <- read_tsv("data/pseudobulk-cf-nodrop/bin16/logcpm.tsv") %>%
+  column_to_rownames("gene") %>%
+  apply(1, center.scale) %>%
+  svd %>%
+  .$d
+pve_pcs_before <- (cf_svals_before^2) / sum(cf_svals_before^2)
+
+cf_svals_after <- read_tsv("data/pseudobulk-cf/bin16/logcpm.tsv") %>%
+  column_to_rownames("gene") %>%
+  apply(1, center.scale) %>%
+  svd %>%
+  .$d
+pve_pcs_after <- (cf_svals_after^2) / sum(cf_svals_after^2)
+
+bulk_svals <- read_tsv("data/bulk/day/logtpm.tsv") %>%
+  column_to_rownames("gene") %>%
+  apply(1, center.scale) %>%
+  svd %>%
+  .$d
+test <- (bulk_svals^2) / sum(bulk_svals^2)
+
+before_removal <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk-cf-nodrop/bin16/bin_medians.tsv") %>%
+  rename(sample=binind) %>%
+  inner_join(read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk-cf-nodrop/bin16/bin_libsize.tsv"), by="sample") %>%
+  inner_join(read_tsv("data/pseudobulk-cf-nodrop/bin16/pcs.tsv"), by="sample") %>%
+  mutate(day=as.numeric(str_sub(sample, 7)), .after=1)
+
+pve_pc1_before <- anova(lm(PC1~lib.size + t, before_removal))$`Sum Sq`
+# sanity check, make sure order doesn't matter too much
+pve_pc1_before_check <- anova(lm(PC1~t + lib.size, before_removal))$`Sum Sq`
+
+pve_pc2_before <- anova(lm(PC2~lib.size + t, before_removal))$`Sum Sq`
+# sanity check, make sure order doesn't matter too much
+pve_pc2_before_check <- anova(lm(PC2~t + lib.size, before_removal))$`Sum Sq`
+
+after_removal <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk-cf/bin16/bin_medians.tsv") %>%
+  rename(sample=binind) %>%
+  inner_join(read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk-cf/bin16/bin_libsize.tsv"), by="sample") %>%
+  inner_join(read_tsv("data/pseudobulk-cf/bin16/pcs.tsv"), by="sample") %>%
+  mutate(day=as.numeric(str_sub(sample, 7)), .after=1)
+
+pve_pc1_after <- anova(lm(PC1~lib.size + t, after_removal))$`Sum Sq`
+# sanity check, make sure order doesn't matter too much
+pve_pc1_after_check <- anova(lm(PC1~t + lib.size, after_removal))$`Sum Sq`
+
+pve_pc2_after <- anova(lm(PC2~lib.size + t, after_removal))$`Sum Sq`
+# sanity check, make sure order doesn't matter too much
+pve_pc2_after_check <- anova(lm(PC2~t + lib.size, after_removal))$`Sum Sq`
+
+data_viz <- tibble(
+  "PVE"=c(pve_pc1_before*pve_pcs_before[1], pve_pc1_after*pve_pcs_after[1], pve_pc2_before*pve_pcs_before[2], pve_pc2_after*pve_pcs_after[2]),
+  "PC" = factor(rep(c(1, 2), each=6), levels=c(1,2)),
+  "Dropped Samples"=factor(rep(c(rep("Before Subsetting", 3), rep("After Subsetting", 3)), 2), levels=c("Before Subsetting", "After Subsetting")),
+  "Feature"=factor(rep(c("library size", "pseudotime", "other"), 4), levels=c("other", "library size", "pseudotime"))
+)
+
+ggplot(data_viz, aes(x=PC, y=PVE, fill=Feature)) +
+  geom_bar(position="stack", stat="identity") +
+  facet_grid(cols=vars(`Dropped Samples`)) +
+  ylab("Proportion of Variance Explained") +
+  theme_classic()
+```
+
+Now lets visualize the change in PC space
+```{r}
+ggplot(before_removal, aes(x=PC1, y=PC2, color=day)) +
+  geom_point() + theme_classic()
+ggplot(before_removal, aes(x=PC1, y=PC2, color=lib.size)) +
+  geom_point() + theme_classic()
+
+ggplot(after_removal, aes(x=PC1, y=PC2, color=day)) +
+  geom_point() + theme_classic()
+ggplot(after_removal, aes(x=PC1, y=PC2, color=lib.size)) +
+  geom_point() + theme_classic()
 ```
 
 
@@ -434,6 +515,48 @@ ggplot(diff.speed, aes(x=PC_1, y=delay)) +
   xlab("Cell Line PC1") +
   stat_cor(method = "pearson", cor.coef.name="rho", aes(label = ..r.label..))
 ```
+
+## Single Cell PCs
+We got these PCs by scaling the SCTransform Pearson residuals
+```{r}
+pcs <- read_tsv("data/marcc_transfer3/pcs_fulldata.tsv")
+sc.full <- readRDS("data/seurat.clustered.rds")
+meta <- as_tibble(sc.full@meta.data, rownames="cell")
+my_cols_type <- c("#0077BB", "#70d1d0", "#117733", "#E69F00", "#BF0202", "#9640CE", "#949494")
+my_cols_day <- c("#BF0202", "#E69F00", "#117733", "#70d1d0", "#0077BB", "#E08EF3", "#9640CE")
+
+embedding <- inner_join(select(pcs, c(cell, `PC_1`, `PC_2`, `PC_3`)), meta, by="cell")
+p1 <- ggplot(embedding, aes(x=`PC_1`, y=`PC_2`, color=diffday)) +
+  geom_point(size=0.01) +
+  theme_classic(base_size=20) +
+  labs(color="Day") +
+  guides(color = guide_legend(override.aes = list(size=2))) +
+  scale_color_manual(values=my_cols_day)
+p2 <- ggplot(embedding, aes(x=diffday, y=`PC_1`, fill=diffday)) +
+  geom_violin() +
+  theme_classic(base_size=20) +
+  theme(axis.text.x=element_text(angle=45, hjust=1), legend.position="none") +
+  xlab("Day") +
+  scale_fill_manual(values=my_cols_day)
+p3 <- ggplot(embedding, aes(x=`PC_1`, y=`PC_2`, color=type)) +
+  geom_point(size=0.01) +
+  theme_classic(base_size=20) +
+  labs(color="Cell Type") +
+  guides(color = guide_legend(override.aes = list(size=2))) +
+  scale_color_manual(values=my_cols_type)
+p4 <- ggplot(embedding, aes(x=type, y=`PC_2`, fill=type)) +
+  geom_violin() +
+  theme_classic(base_size=20) +
+  theme(axis.text.x=element_text(angle=45, hjust=1), legend.position="none") +
+  xlab("Cell Type") +
+  scale_fill_manual(values=my_cols_type)
+
+figs1 <- (p1 + p3) / p2
+png('figs/supp/sc_pcs.png', width=1000, height=800)
+plot(figs1)
+dev.off()
+```
+![](../figs/supp/sc_pcs.png)
 
 <!-- ## Correlation Analysis -->
 <!-- Looking within each time point, do bulk samples from a specific cell line look more similar to pseudobulk samples from the same cell line than they do others? (Looking across all genes) -->

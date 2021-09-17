@@ -282,11 +282,11 @@ dev.off()
 
 How much overlap is there between CM and CF hits?
 ```{r}
-cm.hits <- read_tsv("results/eqtl_dynamic/ieQTL/bulk/CM/50k-5clpcs-0pcs-notypes.tophits.tsv") %>% filter(qval.unadj<=0.05) %>% .$gene
-cf.hits <- read_tsv("results/eqtl_dynamic/ieQTL/bulk/CF/50k-5clpcs-0pcs-notypes.tophits.tsv") %>% filter(qval.unadj<=0.05) %>% .$gene
+cm.iegenes <- read_tsv("results/eqtl_dynamic/ieQTL/bulk/CM/50k-5clpcs-0pcs-notypes.tophits.tsv") %>% filter(qval.unadj<=0.05) %>% .$gene
+cf.iegenes <- read_tsv("results/eqtl_dynamic/ieQTL/bulk/CF/50k-5clpcs-0pcs-notypes.tophits.tsv") %>% filter(qval.unadj<=0.05) %>% .$gene
 
 venn.diagram(
-  x = list(cm.hits, cf.hits),
+  x = list(cm.iegenes, cf.iegenes),
   category.names = c("CM", "CF"),
   filename = 'figs/intx.cm.cf.overlap.png',
   output=TRUE,
@@ -294,7 +294,8 @@ venn.diagram(
   height = 480 , 
   width = 480 , 
   resolution = 300,
-  compression = "lzw"
+  compression = "lzw",
+  fill=brewer.pal(3, "Pastel2")[1:2]
 )
 ```
 

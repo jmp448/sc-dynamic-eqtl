@@ -72,7 +72,3 @@ ct2 <- function(x) {
     x
   }
 }
-
-counts2cpm <- function(counts, cutoff=5000) {
-  
-}

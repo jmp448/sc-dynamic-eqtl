@@ -177,7 +177,7 @@ pseudobulk.cf.day.clpcs <- cell.line.pca(cf.logcpm.day, npc=10)$cell.line.pcs %>
 pseudobulk.cf.day.pcs <- regular.pca(cf.logcpm.day, 50)$u %>% write_tsv("../data/pseudobulk-cf/day/pcs.tsv")
 
 # bin CF by pseudotime
-nbins <- c(7, 16, 25, 30)
+nbins <- c(16)
 for (nb in nbins) {
   cf.bins <- as_tibble(sc_cf$pseudotime, rownames="cell") %>%
     rename(t=value) %>% arrange(t) %>%
@@ -338,13 +338,13 @@ for (b in unique(cm.logcpm.bin$bin)) {
     filter(bin==b) %>%
     mutate(sample=str_sub(sample, 1, 5)) %>%
     select(!bin) %>%
-    write_tsv(paste0("../data/static/pseudobulk-cm/bin15/bin", b, "/expression.tsv"))
+    write_tsv(paste0("../data/static/pseudobulk-cm/bin16/bin", b, "/expression.tsv"))
   cvrt <- expr %>%
     column_to_rownames("sample") %>%
     t %>% as_tibble(rownames="gene") %>%
     regular.pca %>%
     .$u %>%
-    write_tsv(paste0("../data/static/pseudobulk-cm/bin15/bin", b, "/covariates.tsv"))
+    write_tsv(paste0("../data/static/pseudobulk-cm/bin16/bin", b, "/covariates.tsv"))
 }
 
 cf.logcpm.bin <- cf.logcpm.bin %>%
@@ -356,12 +356,12 @@ for (b in unique(cf.logcpm.bin$bin)) {
     filter(bin==b) %>%
     mutate(sample=str_sub(sample, 1, 5)) %>%
     select(!bin) %>%
-    write_tsv(paste0("../data/static/pseudobulk-cf/bin15/bin", b, "/expression.tsv"))
+    write_tsv(paste0("../data/static/pseudobulk-cf/bin16/bin", b, "/expression.tsv"))
   cvrt <- expr %>%
     column_to_rownames("sample") %>%
     t %>% as_tibble(rownames="gene") %>%
     regular.pca %>%
     .$u %>%
-    write_tsv(paste0("../data/static/pseudobulk-cf/bin15/bin", b, "/covariates.tsv"))
+    write_tsv(paste0("../data/static/pseudobulk-cf/bin16/bin", b, "/covariates.tsv"))
 }
 

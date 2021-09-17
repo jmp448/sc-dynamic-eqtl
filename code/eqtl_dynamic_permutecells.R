@@ -15,6 +15,7 @@ cell.type.reg <- as.logical(inputArgs[5])
 agg <- as.character(inputArgs[6])
 chunk_i <- as.numeric(inputArgs[7])
 chunks_tot <- as.numeric(inputArgs[8])
+perm_sample <- as.numeric(inputArgs[9])
 
 message(paste0("dataset, ", dataset, 
                "\ncis.dist, ", cis.dist, 
@@ -23,20 +24,17 @@ message(paste0("dataset, ", dataset,
                "\ncell types, ", cell.type.reg,
                "\naggregate, ", agg,
                "\nchunk index, ", chunk_i,
-               "\nchunks_tot, ", chunks_tot))
+               "\nchunks_tot, ", chunks_tot,
+               "\npermutation sample, ", perm_sample))
 
-# stopifnot(dataset %in% c("bulk", "bulk7", "pseudobulk", "pseudobulk-cm", "pseudobulk-cf"))
+stopifnot(dataset %in% c("pseudobulk-cm", "pseudobulk-cf"))
 stopifnot(cis.dist %in% c("10k", "25k", "50k", "100k"))
 stopifnot(n.samp.pcs<=50)
 stopifnot(n.cl.pcs<=10)
 
 # load expression, gene-snp combinations
-if (dataset %in% c("bulk", "bulk7")) {
-  expr <- read_tsv(paste0("../data/", dataset, "/", agg, "/logtpm.tsv")) 
-} else {
-  expr <- read_tsv(paste0("../data/", dataset, "/", agg, "/logcpm.tsv")) 
-}
-expr <- expr %>% column_to_rownames("gene") %>% apply(1, center.scale) %>% t %>% as_tibble(rownames="gene") # standardized expression
+expr <- read_tsv(paste0("../data/permuted_cells/", dataset, "/sample-", perm_sample, "/", agg, "/logcpm.tsv")) %>% 
+  column_to_rownames("gene") %>% apply(1, center.scale) %>% t %>% as_tibble(rownames="gene") # standardized expression
 all.tests <- read_tsv(paste0("../data/", dataset, "/", agg, "/filtered_tests.", cis.dist, ".tsv")) %>%
   arrange(snp)
 
@@ -74,14 +72,14 @@ snps <- colnames(genotypes)[-c(1)]
 if (agg == "day") {
   days <- expr %>% select(sample) %>% mutate(day=as.numeric(str_sub(sample, 7)))
 } else {
-  medians <- read_tsv(paste0("../results/eqtl_dynamic/linear_dQTL/", dataset, "/", agg, "/bin_medians.tsv")) %>%
+  medians <- read_tsv(paste0("../data/permuted_cells/", dataset, "/sample-", perm_sample, "/", agg, "/bin_medians.tsv")) %>%
     rename(sample=binind)
   days <- expr %>% select(sample) %>% left_join(medians, by="sample") %>%
     rename(day=t)
 }
 
 # load covariates, expand to match expression
-cvrts <- read_tsv(paste0("../data/", dataset, "/", agg, "/clpcs.tsv")) %>%
+cvrts <- read_tsv(paste0("../data/permuted_cells/", dataset, "/sample-", perm_sample, "/", agg, "/clpcs.tsv")) %>%
   select(1:(n.cl.pcs+1)) %>% mutate(ind=as.character(ind)) %>% 
   right_join(inds, by="ind") %>% select(!ind) %>%
   arrange(sample) %>%
@@ -175,9 +173,9 @@ if (cell.type.reg) {
 } else {
   cell.type.reg <- "notypes"
 }
-coef.file <- paste0("../results/eqtl_dynamic/linear_dQTL/", dataset, "/", agg, "/", cis.dist, "-", n.cl.pcs, "clpcs-", n.samp.pcs, "pcs-", cell.type.reg, "-", chunk_i, ".tsv")
-res.file <- paste0("../results/eqtl_dynamic/linear_dQTL/", dataset, "/", agg, "/", cis.dist, "-", n.cl.pcs, "clpcs-", n.samp.pcs, "pcs-", cell.type.reg, "-", chunk_i, ".resid.tsv")
-mc.file <- paste0("../results/eqtl_dynamic/linear_dQTL/", dataset, "/", agg, "/", cis.dist, "-", n.cl.pcs, "clpcs-", n.samp.pcs, "pcs-", cell.type.reg, "-", chunk_i, ".multicollinear_tests.tsv")
+coef.file <- paste0("../results/eqtl_dynamic/linear_dQTL/permuted_cells/", dataset, "/", agg, "/sample-", perm_sample, "/", cis.dist, "-", n.cl.pcs, "clpcs-", n.samp.pcs, "pcs-", cell.type.reg, "-", chunk_i, ".tsv")
+res.file <- paste0("../results/eqtl_dynamic/linear_dQTL/permuted_cells/", dataset, "/", agg, "/sample-", perm_sample, "/", cis.dist, "-", n.cl.pcs, "clpcs-", n.samp.pcs, "pcs-", cell.type.reg, "-", chunk_i, ".resid.tsv")
+mc.file <- paste0("../results/eqtl_dynamic/linear_dQTL/permuted_cells/", dataset, "/", agg, "/sample-", perm_sample, "/", cis.dist, "-", n.cl.pcs, "clpcs-", n.samp.pcs, "pcs-", cell.type.reg, "-", chunk_i, ".multicollinear_tests.tsv")
 
 if (file.exists(coef.file)) {
   file.remove(coef.file)

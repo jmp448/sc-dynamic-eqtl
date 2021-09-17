@@ -106,4 +106,75 @@ p6 <- VlnPlot(sc.filt, "percent.mito", group.by="individual", pt.size=0) +
 p1 + p2 + p3 + p4 + p5 + p6 + plot_layout(ncol=3)
 ```
 
+How many cells are in each pseudobulk sample?
 
+First, we look at the cardiomyocyte lineage and cardiac fibroblast lineage pseudobulk samples - how many cells are there in each?
+```{r}
+ncells_cm <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk-cm/bin16/bin_ncells.tsv") %>%
+  arrange(desc(n)) %>%
+  mutate(ind=str_sub(binind, 1, 5)) %>%
+  mutate(day=as.numeric(str_extract(binind, "[^_]+$")))
+ggplot(ncells_cm, aes(x=day, y=n, fill=day)) +
+  geom_col() +
+  facet_grid(rows=vars(ind)) +
+  xlab("Pseudotime Quantile Bin") +
+  ylab("Number of Cells")
+
+ncells_cf <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk-cf/bin16/bin_ncells.tsv") %>%
+  arrange(desc(n)) %>%
+  mutate(ind=str_sub(binind, 1, 5)) %>%
+  mutate(day=as.numeric(str_extract(binind, "[^_]+$")))
+ggplot(ncells_cf, aes(x=day, y=n, fill=day)) +
+  geom_col() +
+  facet_grid(rows=vars(ind)) +
+  xlab("Pseudotime Quantile Bin") +
+  ylab("Number of Cells")
+
+ncells_cm <- bind_rows(ncells_cm, tibble("binind"="19125_15", "n"=0, "ind"="19127", "day"=15)) %>%
+  rename("CM Bins"=n)
+ncells_cf <- rename(ncells_cf, "CF Bins"=n)
+
+ncells_comb <- inner_join(ncells_cm, ncells_cf, by=c("binind", "ind", "day")) %>%
+  pivot_longer(c(`CM Bins`, `CF Bins`), values_to="n", names_to="lineage") 
+
+ggplot(ncells_comb, aes(day, n, fill=day)) +
+  geom_col() +
+  facet_grid(rows=vars(ind), cols=vars(lineage)) +
+  xlab("Pseudotime Quantile Bin") +
+  ylab("Number of Cells")
+```
+
+```{r}
+nreads_cm <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk-cm/bin16/bin_libsize.tsv") %>%
+  arrange(desc(lib.size)) %>%
+  mutate(ind=str_sub(sample, 1, 5)) %>%
+  mutate(day=as.numeric(str_extract(sample, "[^_]+$")))
+ggplot(nreads_cm, aes(x=day, y=lib.size, fill=day)) +
+  geom_col() +
+  facet_grid(rows=vars(ind)) +
+  xlab("Pseudotime Quantile Bin") +
+  ylab("Library Size")
+
+nreads_cf <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk-cf/bin16/bin_libsize.tsv") %>%
+  arrange(desc(lib.size)) %>%
+  mutate(ind=str_sub(sample, 1, 5)) %>%
+  mutate(day=as.numeric(str_extract(sample, "[^_]+$")))
+ggplot(nreads_cf, aes(x=day, y=lib.size, fill=day)) +
+  geom_col() +
+  facet_grid(rows=vars(ind)) +
+  xlab("Pseudotime Quantile Bin") +
+  ylab("Library Size")
+
+nreads_cm <- bind_rows(nreads_cm, tibble("sample"="19125_15", "lib.size"=0, "ind"="19127", "day"=15)) %>%
+  rename("CM Bins"=lib.size)
+ncells_cf <- rename(nreads_cf, "CF Bins"=lib.size)
+
+nreads_comb <- inner_join(nreads_cm, ncells_cf, by=c("sample", "ind", "day")) %>%
+  pivot_longer(c(`CM Bins`, `CF Bins`), values_to="libsize", names_to="lineage") 
+
+ggplot(nreads_comb, aes(day, libsize, fill=day)) +
+  geom_col() +
+  facet_grid(rows=vars(ind), cols=vars(lineage)) +
+  xlab("Pseudotime Quantile Bin") +
+  ylab("Library Size")
+```

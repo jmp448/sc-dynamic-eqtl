@@ -8,7 +8,7 @@
 
 declare -a CisDists=("50k")
 declare -a NumSampPCs=(0)
-declare -a NumCLPCs=(5)
+declare -a NumCLPCs=(6 7 8 9 10)
 declare -a Bins=("bin16")
 declare -a Chunks=(1 2 3 4 5 6 7 8 9 10)
 
@@ -17,14 +17,14 @@ for c in ${Chunks[@]}; do
   for cdist in ${CisDists[@]}; do
     for nspc in ${NumSampPCs[@]}; do
       for ncpc in ${NumCLPCs[@]}; do
-        # sbatch --mem=15G -J dyn-$c --error=logs/dynamic-eqtl-calling/bulk-$cdist-$nspc-$ncpc-F-$c.err --output=logs/dynamic-eqtl-calling/bulk-$cdist-$nspc-$ncpc-F-$c.out eqtl_dynamic.sh "bulk" $cdist $nspc $ncpc "F" "day" $c 10 &
+        sbatch --mem=15G -J dyn-$c --error=logs/dynamic-eqtl-calling/bulk-$cdist-$nspc-$ncpc-F-$c.err --output=logs/dynamic-eqtl-calling/bulk-$cdist-$nspc-$ncpc-F-$c.out eqtl_dynamic.sh "bulk" $cdist $nspc $ncpc "F" "day" $c 10 &
 #         sbatch --mem=15G -J dyn-$c --error=logs/dynamic-eqtl-calling/bulk7-$cdist-$nspc-$ncpc-F-$c.err --output=logs/dynamic-eqtl-calling/bulk7-$cdist-$nspc-$ncpc-F-$c.out eqtl_dynamic.sh "bulk7" $cdist $nspc $ncpc "F" "day" $c 10 &
 #         sbatch --mem=15G -J dyn-$c --error=logs/dynamic-eqtl-calling/pb-d-$cdist-$nspc-$ncpc-F-$c.err --output=logs/dynamic-eqtl-calling/pb-d-$cdist-$nspc-$ncpc-F-$c.out eqtl_dynamic.sh "pseudobulk" $cdist $nspc $ncpc "F" "day" $c 10 &
 #         sbatch --mem=15G -J dyn-$c --error=logs/dynamic-eqtl-calling/pb-cm-d-$cdist-$nspc-$ncpc-F-$c.err --output=logs/dynamic-eqtl-calling/pb-cm-d-$cdist-$nspc-$ncpc-F-$c.out eqtl_dynamic.sh "pseudobulk-cm" $cdist $nspc $ncpc "F" "day" $c 10 &
 #         sbatch --mem=15G -J dyn-$c --error=logs/dynamic-eqtl-calling/pb-cf-d-$cdist-$nspc-$ncpc-F-$c.err --output=logs/dynamic-eqtl-calling/pb-cf-d-$cdist-$nspc-$ncpc-F-$c.out eqtl_dynamic.sh "pseudobulk-cf" $cdist $nspc $ncpc "F" "day" $c 10 &
         for b in ${Bins[@]}; do
-          sbatch --mem=15G -J dyn-$c --error=logs/dynamic-eqtl-calling/pb-cm-nodrop-$b-$cdist-$nspc-$ncpc-F-$b-$c.err --output=logs/dynamic-eqtl-calling/pb-cm-nodrop-$b-$cdist-$nspc-$ncpc-F-$c.out eqtl_dynamic.sh "pseudobulk-cm-nodrop" $cdist $nspc $ncpc "F" $b $c 10 &
-          sbatch --mem=15G -J dyn-$c --error=logs/dynamic-eqtl-calling/pb-cf-nodrop-$b-$cdist-$nspc-$ncpc-F-$b-$c.err --output=logs/dynamic-eqtl-calling/pb-cf-nodrop-$b-$cdist-$nspc-$ncpc-F-$c.out eqtl_dynamic.sh "pseudobulk-cf-nodrop" $cdist $nspc $ncpc "F" $b $c 10 &
+          sbatch --mem=15G -J dyn-$c --error=logs/dynamic-eqtl-calling/pb-cm-$b-$cdist-$nspc-$ncpc-F-$b-$c.err --output=logs/dynamic-eqtl-calling/pb-cm-$b-$cdist-$nspc-$ncpc-F-$c.out eqtl_dynamic.sh "pseudobulk-cm" $cdist $nspc $ncpc "F" $b $c 10 &
+          sbatch --mem=15G -J dyn-$c --error=logs/dynamic-eqtl-calling/pb-cf-$b-$cdist-$nspc-$ncpc-F-$b-$c.err --output=logs/dynamic-eqtl-calling/pb-cf-$b-$cdist-$nspc-$ncpc-F-$c.out eqtl_dynamic.sh "pseudobulk-cf" $cdist $nspc $ncpc "F" $b $c 10 &
         done
       done
     done

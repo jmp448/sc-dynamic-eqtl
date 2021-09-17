@@ -12,6 +12,8 @@ library(ggpubr)
 library(vroom)
 library(scales)
 library(Seurat)
+library(VennDiagram)
+library(RColorBrewer)
 source("code/viz_helpers.R")
 ```
 
@@ -250,8 +252,8 @@ ggplot(test, aes(x=day, y=frac, fill=type)) +
   scale_fill_manual(values=my_cols)
 ```
 
-
-Visualize an example dynamic eQTL (CM lineage)
+## Dynamic eQTL Visualization
+### Example dynamic eQTL (CM lineage)
 ```{r}
 cm_nl_dqtl <- vroom("../results/eqtl_dynamic/nonlinear_dQTL/pseudobulk-cm/bin16/t_test/50k-5clpcs-0pcs-notypes.tophits.tsv") %>%
   filter(qval.unadj<0.05) %>%
@@ -261,7 +263,7 @@ vizhit <- cm_nl_dqtl[5,]
 p <- viz_residuals_nonlinear(vizhit$gene, vizhit$snp, "pseudobulk-cm", "bin16")
 ```
 
-GWAS Overlap 
+### GWAS Overlap 
 ```{r}
 hypertension <- "data/gwas/imputed_gwas_hg38_1.1/imputed_UKB_20002_1065_self_reported_hypertension.txt.gz"
 hypertension_gwas <- vroom(hypertension, col_select=c(chromosome, position, pvalue)) 
@@ -279,16 +281,10 @@ evar <- filter(sig_qtl_cf, gene==egene)$snp
 evar.ref <- filter(genodict, snp==evar)$REF
 evar.alt <- filter(genodict, snp==evar)$ALT
 evar.rsid <- filter(genodict, snp==evar)$ID
-p1 <- viz_residuals(egene, evar, "pseudobulk-cf", "bin16", nclpcs=1, ref=evar.ref, alt=evar.alt, rsid=evar.rsid) +
-  scale_fill_manual(values=c("#BF0202", "#9640CE", "#0077BB"))
-"#E08EF3"
-"#9640CE"
-```
-
-```{r}
-png('figs/fig2/fig2a.png', width=600, height=300)
-plot(p1 + scale_fill_manual(values=c("#0077BB", "#E08EF3", "#BF0202")))
-dev.off()
+setwd("code")
+p2a <- viz_residuals(egene, evar, "pseudobulk-cf", "bin16", nclpcs=1, ref=evar.ref, alt=evar.alt, rsid=evar.rsid) +
+  scale_fill_manual(values=c("#0077BB", "#E08EF3", "#BF0202"))
+setwd("..")
 ```
 
 ```{r}
@@ -311,19 +307,14 @@ p2b <- ggplot(manhattan_combined, aes(x=pos, y=log10p, color=assay)) +
   geom_point() +
   facet_grid(rows=vars(assay), scales="free_y") +
   geom_line(aes(x=my.snp)) +
-  theme_classic() +
-  theme(legend.position="none") +
+  theme_classic(base_size=20) +
+  theme(legend.position="none", axis.text.x=element_text(angle=45, hjust=1)) +
   ylab("-Log10(P-value)") +
   xlab("Position (Chromosome 11)") +
   scale_color_manual(values=c("#038EDC", "#E63434"))
 ```
 
-```{r}
-png('figs/fig2/fig2b.png', width=600, height=650)
-plot(p2b)
-dev.off()
-```
-
+### Nonlinear Dynamic eQTL
 ```{r}
 cf_nl_dqtl <- vroom("results/eqtl_dynamic/nonlinear_dQTL/pseudobulk-cf/bin16/t_test/50k-5clpcs-0pcs-notypes.tophits.tsv") %>%
   filter(qval.unadj<0.05) %>%
@@ -334,12 +325,244 @@ evar.ref <- filter(genodict, snp==vizhit$snp)$REF
 evar.alt <- filter(genodict, snp==vizhit$snp)$ALT
 evar.rsid <- filter(genodict, snp==vizhit$snp)$ID
 
+setwd("code")
 p2c <- viz_residuals_nonlinear(vizhit$gene, vizhit$snp, "pseudobulk-cf", "bin16",
-                               ref=evar.ref, alt=evar.alt, rsid=evar.rsid)
+                               ref=evar.ref, alt=evar.alt, rsid=evar.rsid) + 
+  scale_fill_manual(values=c("#0077BB", "#E08EF3", "#BF0202"))
+setwd("..")
 ```
 
 ```{r}
-png('figs/fig2/fig2c.png', width=600, height=300)
-plot(p2c + scale_fill_manual(values=c("#0077BB", "#E08EF3", "#BF0202")))
+png('figs/fig2/fig2.png', width=1000, height=600)
+(p2a / p2c) | p2b
 dev.off()
 ```
+![](../figs/fig2/fig2.png)
+
+
+## Regression Analysis
+Linear dynamic eQTL first
+```{r}
+sig_qtl_cf <- vroom("results/eqtl_dynamic/linear_dQTL/pseudobulk-cf/bin16/50k-5clpcs-0pcs-notypes.tophits.tsv") %>% 
+  filter(qval.unadj<=0.05)
+
+genodict <- vroom("data/YRI.hg38.filtered.tsv", col_select=c("#CHROM", "POS", "REF", "ALT", "ID")) %>%
+  mutate(snp=paste(`#CHROM`, POS, sep="_"), .keep="unused")
+egene <- "ARHGAP42"
+evar <- filter(sig_qtl_cf, gene==egene)$snp
+evar.ref <- filter(genodict, snp==evar)$REF
+evar.alt <- filter(genodict, snp==evar)$ALT
+evar.rsid <- filter(genodict, snp==evar)$ID
+
+setwd("code")
+prev1reg <- viz_partial_regression(egene, evar, "pseudobulk-cf", "bin16",
+                        ref=evar.ref, alt=evar.alt, rsid=evar.rsid) +
+  geom_smooth(method="lm", formula=y~x)
+prev1res <- viz_partial_residuals(egene, evar, "pseudobulk-cf", "bin16",
+                        ref=evar.ref, alt=evar.alt, rsid=evar.rsid) 
+setwd("..")
+```
+
+Nonlinear dynamic eQTL 
+```{r}
+cf_nl_dqtl <- vroom("results/eqtl_dynamic/nonlinear_dQTL/pseudobulk-cf/bin16/t_test/50k-5clpcs-0pcs-notypes.tophits.tsv") %>%
+  filter(qval.unadj<0.05) %>%
+  arrange(bonf.p.unadj)
+
+nl_egene <- "CFC1B"
+nl_evar <- filter(cf_nl_dqtl, gene==nl_egene)$snp
+nl_evar.ref <- filter(genodict, snp==nl_evar)$REF
+nl_evar.alt <- filter(genodict, snp==nl_evar)$ALT
+nl_evar.rsid <- filter(genodict, snp==nl_evar)$ID
+
+setwd("code")
+prev2_reg <- viz_partial_regression_nonlinear(nl_egene, nl_evar, "pseudobulk-cf", "bin16",
+                                         ref=nl_evar.ref, alt=nl_evar.alt, rsid=nl_evar.rsid) +
+  geom_smooth(method="lm", formula=y~x)
+prev2_res <- viz_partial_residuals_nonlinear(nl_egene, nl_evar, "pseudobulk-cf", "bin16",
+                                         ref=nl_evar.ref, alt=nl_evar.alt, rsid=nl_evar.rsid)
+
+setwd("..")
+
+
+# test_egene <- "DIP2C"
+# test_evar <- filter(vroom("results/eqtl_dynamic/nonlinear_dQTL/pseudobulk-cf/bin16/t_test/50k-5clpcs-0pcs-notypes.mtc.tsv"), gene==test_egene)$snp[1]
+# test_evar.ref <- filter(genodict, snp==test_evar)$REF
+# test_evar.alt <- filter(genodict, snp==test_evar)$ALT
+# test_evar.rsid <- filter(genodict, snp==test_evar)$ID
+# setwd("code")
+# ptest <- viz_partial_residuals_nonlinear(test_egene, test_evar, "pseudobulk-cf", "bin16",
+#                                          ref=test_evar.ref, alt=test_evar.alt,
+#                                          rsid=test_evar.rsid) +
+#   geom_smooth(method="lm", formula=y~x)
+# setwd("..")
+
+```
+
+
+## Dynamic eQTL Replication
+How many of the dynamic eQTLs identified in CM, in CF, and in bulk are shared?
+```{r}
+cm.dgenes <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk-cm/bin16/50k-5clpcs-0pcs-notypes.tophits.tsv") %>%
+  filter(qval.unadj<=0.05) %>%
+  .$gene
+
+cf.dgenes <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk-cf/bin16/50k-5clpcs-0pcs-notypes.tophits.tsv") %>%
+  filter(qval.unadj<=0.05) %>%
+  .$gene
+
+bulk.dgenes <- read_tsv("results/eqtl_dynamic/linear_dQTL/bulk/day/50k-5clpcs-0pcs-notypes.tophits.tsv") %>%
+  filter(qval.unadj<=0.05) %>%
+  .$gene
+
+myCol <- brewer.pal(3, "Pastel2")
+
+um <- venn.diagram(
+        x = list(cm.dgenes, cf.dgenes, bulk.dgenes),
+        category.names = c("CM" , "CF" , "Bulk"),
+        filename = 'figs/supp/dgene_overlap.png',
+        output=TRUE,
+        
+        # Output features
+        imagetype="png" ,
+        height = 480 , 
+        width = 480 , 
+        resolution = 300,
+        compression = "lzw",
+        
+        # Circles
+        lwd = 2,
+        lty = 'blank',
+        fill = myCol,
+        
+        # Numbers
+        cex = .6,
+        fontface = "bold",
+        fontfamily = "sans",
+        
+        # Set names
+        cat.cex = 0.6,
+        cat.fontface = "bold",
+        cat.default.pos = "outer",
+        cat.pos = c(-27, 27, 135),
+        cat.dist = c(0.055, 0.055, 0.085),
+        cat.fontfamily = "sans",
+        rotation = 1
+)
+```
+
+![](../figs/supp/dgene_overlap.png)
+
+Now measure the replication rates
+```{r}
+cm.dqtls <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk-cm/bin16/50k-5clpcs-0pcs-notypes.tophits.tsv") %>%
+  filter(qval.unadj<=0.05)
+
+cf.dqtls <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk-cf/bin16/50k-5clpcs-0pcs-notypes.tophits.tsv") %>%
+  filter(qval.unadj<=0.05)
+
+bulk.all_qtls <- vroom("results/eqtl_dynamic/linear_dQTL/bulk/day/50k-5clpcs-0pcs-notypes.mtc.tsv")
+
+cm.pvals.in_bulk <- bulk.all_qtls %>%
+  inner_join(cm.dqtls, by=c("snp", "gene")) %>%
+  .$p.unadj
+cm.p.hist <- hist(qvalue(cm.pvals.in_bulk))
+
+cf.pvals.in_bulk <- bulk.all_qtls %>%
+  inner_join(cf.dqtls, by=c("snp", "gene")) %>%
+  .$p.unadj
+cf.p.hist <- hist(qvalue(cf.pvals.in_bulk))
+
+png('figs/supp/cm_rep_inbulk.png', width=800, height=600)
+plot(cm.p.hist, main="Replication of CM dynamic eQTLs in bulk")
+dev.off()
+
+png('figs/supp/cf_rep_inbulk.png', width=800, height=600)
+plot(cf.p.hist, main="Replication of CF dynamic eQTLs in bulk")
+dev.off()
+```
+![](../figs/supp/dgene_overlap.png)
+
+## Sample Dropping
+```{r}
+cm.dqtls.nodrop <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk-cm-nodrop/bin16/50k-5clpcs-0pcs-notypes.tophits.tsv") %>%
+  filter(qval.unadj<=0.05)
+
+cf.dqtls.nodrop <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk-cf-nodrop/bin16/50k-5clpcs-0pcs-notypes.tophits.tsv") %>%
+  filter(qval.unadj<=0.05)
+
+bulk.all_qtls <- vroom("results/eqtl_dynamic/linear_dQTL/bulk/day/50k-5clpcs-0pcs-notypes.mtc.tsv")
+
+cm.pvals.nodrop.in_bulk <- bulk.all_qtls %>%
+  inner_join(select(cm.dqtls.nodrop, c(snp, gene)), by=c("snp", "gene")) %>%
+  .$p.unadj
+cm.p.nodrop.hist <- hist(qvalue(cm.pvals.nodrop.in_bulk))
+
+cf.pvals.nodrop.in_bulk <- bulk.all_qtls %>%
+  inner_join(select(cf.dqtls.nodrop, c(snp, gene)), by=c("snp", "gene")) %>%
+  .$p.unadj
+cf.p.nodrop.hist <- hist(qvalue(cf.pvals.nodrop.in_bulk))
+```
+
+Look at correlation of p-values with and without sample dropping
+```{r}
+cm.dqtl.hits <- cm.dqtls %>%
+  select(gene, snp, p.unadj) %>%
+  unite("gv", gene, snp, sep="--") %>%
+  mutate(p_drop=-log10(p.unadj), .keep="unused")
+
+cm.all.nodrop <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk-cm-nodrop/bin16/50k-5clpcs-0pcs-notypes.mtc.tsv")
+
+cm.hits.nodrop <- cm.all.nodrop %>%
+  select(gene, snp, p.unadj) %>%
+  unite("gv", gene, snp, sep="--") %>%
+  filter(gv %in% cm.dqtl.hits$gv) %>%
+  mutate(p_nodrop=-log10(p.unadj), .keep="unused")
+
+drop_comp_cm <- inner_join(cm.dqtl.hits, cm.hits.nodrop, by=c("gv"))
+ggplot(drop_comp_cm, aes(x=p_drop, y=p_nodrop)) +
+  geom_point() + theme_classic() +
+  geom_smooth(method="lm", formula=y~x)
+```
+
+```{r}
+cf.dqtl.hits <- cf.dqtls %>%
+  select(gene, snp, p.unadj) %>%
+  unite("gv", gene, snp, sep="--") %>%
+  mutate(p_drop=-log10(p.unadj), .keep="unused")
+
+cf.all.nodrop <- read_tsv("results/eqtl_dynamic/linear_dQTL/pseudobulk-cf-nodrop/bin16/50k-5clpcs-0pcs-notypes.mtc.tsv")
+
+cf.hits.nodrop <- cf.all.nodrop %>%
+  select(gene, snp, p.unadj) %>%
+  unite("gv", gene, snp, sep="--") %>%
+  filter(gv %in% cf.dqtl.hits$gv) %>%
+  mutate(p_nodrop=-log10(p.unadj), .keep="unused")
+
+drop_comp_cf <- inner_join(cf.dqtl.hits, cf.hits.nodrop, by=c("gv"))
+ggplot(drop_comp_cf, aes(x=p_drop, y=p_nodrop)) +
+  geom_point() + theme_classic() +
+  geom_smooth(method="lm", formula=y~x)
+```
+
+How does our linear dynamic eQTL example look without sample dropping
+```{r}
+genodict <- vroom("data/YRI.hg38.filtered.tsv", col_select=c("#CHROM", "POS", "REF", "ALT", "ID")) %>%
+  mutate(snp=paste(`#CHROM`, POS, sep="_"), .keep="unused")
+egene <- "ARHGAP42"
+evar <- filter(cf.dqtls, gene==egene)$snp
+evar.ref <- filter(genodict, snp==evar)$REF
+evar.alt <- filter(genodict, snp==evar)$ALT
+evar.rsid <- filter(genodict, snp==evar)$ID
+
+setwd("code")
+viz_residuals(egene, evar, "pseudobulk-cf-nodrop", "bin16", nclpcs=1, ref=evar.ref, alt=evar.alt, rsid=evar.rsid) +
+  scale_fill_manual(values=c("#0077BB", "#E08EF3", "#BF0202"))
+viz_partial_regression(egene, evar, "pseudobulk-cf-nodrop", "bin16",
+                        ref=evar.ref, alt=evar.alt, rsid=evar.rsid) +
+  geom_smooth(method="lm", formula=y~x)
+viz_partial_residuals(egene, evar, "pseudobulk-cf-nodrop", "bin16",
+                        ref=evar.ref, alt=evar.alt, rsid=evar.rsid) 
+setwd("..")
+```
+
