@@ -13,7 +13,7 @@ Preprint available online at [bioRxiv](https://www.biorxiv.org/content/10.1101/2
   - The (cells x highly variable genes) matrix of pearson residuals produced by this file is available as a .tsv file (`GSE175634_pearson_residuals_sctransform.mtx.gz`)
   
 ## Trajectory Inference
-- Trajectory inference is performed at # TODO
+- Trajectory inference is performed at `analysis/ti.ipynb`
 
 ## Dynamic eQTL Calling
 - Pseudobulk aggregation, normalization, and computation of PC covariates for both pseudobulk and bulk data are done at `code/preprocessing.R`)
