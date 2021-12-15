@@ -285,6 +285,11 @@ setwd("code")
 p2a <- viz_residuals(egene, evar, "pseudobulk-cf", "bin16", nclpcs=1, ref=evar.ref, alt=evar.alt, rsid=evar.rsid) +
   scale_fill_manual(values=c("#0077BB", "#E08EF3", "#BF0202"))
 setwd("..")
+
+setwd("code")
+viz_residuals(sig_qtl_cf$gene[1], sig_qtl_cf$snp[1], "pseudobulk-cf", "bin16", nclpcs=5) +
+  scale_fill_manual(values=c("#0077BB", "#E08EF3", "#BF0202"))
+setwd("..")
 ```
 
 ```{r}
@@ -331,6 +336,46 @@ p2c <- viz_residuals_nonlinear(vizhit$gene, vizhit$snp, "pseudobulk-cf", "bin16"
   scale_fill_manual(values=c("#0077BB", "#E08EF3", "#BF0202"))
 setwd("..")
 ```
+
+transient nonlinear dynamic eQTLs
+```{r}
+cf_nl_dqtl <- vroom("results/eqtl_dynamic/nonlinear_dQTL/pseudobulk-cf/bin16/t_test/50k-5clpcs-0pcs-notypes.tophits.tsv") %>%
+  filter(qval.unadj<0.05) %>%
+  arrange(bonf.p.unadj)
+
+cf_mashr <- readRDS("results/eqtl_static/pseudobulk/type/50k-3pcs.mashr.rds")
+
+get_coefs <- function(t) {
+  results.t <- vroom(paste0("../results/eqtl_static/pseudobulk/type/", t, "/50k-3pcs.mtc.tsv")) %>% 
+    bind_rows
+  beta.hat <- results.t %>% 
+    mutate("{t}":=coefficients) %>%
+    mutate(gv=paste(gene, snp, sep="--")) %>%
+    select(gv, !!t)
+  beta.hat
+} 
+
+get_se <- function(t) {
+  results.t <- vroom(paste0("../results/eqtl_static/", dataset, "/", agg, "/", t, "/", cis.dist, "-", npcs, "pcs.mtc.tsv")) %>% 
+    bind_rows
+  se.hat <- results.t %>% 
+    mutate("{t}":=se.adj) %>%
+    mutate(gv=paste(gene, snp, sep="--")) %>%
+    select(gv, !!t)
+  se.hat
+} 
+
+get_dfs <- function(t) {
+  results.t <- vroom(paste0("../results/eqtl_static/", dataset, "/", agg, "/", t, "/", cis.dist, "-", npcs, "pcs.mtc.tsv")) %>% 
+    bind_rows
+  df.total <- results.t %>% 
+    mutate("{t}":=df.total) %>%
+    mutate(gv=paste(gene, snp, sep="--")) %>%
+    select(gv, !!t)
+  df.total
+} 
+```
+
 
 ```{r}
 png('figs/fig2/fig2.png', width=1000, height=600)
@@ -399,6 +444,120 @@ setwd("..")
 
 ```
 
+```{r}
+grid.layout="
+AABB
+CCDD
+"
+reg_fig <- prev1reg + prev1res + prev2_reg + prev2_res +
+  plot_layout(design=grid.layout)
+
+png('figs/supp/regression_analysis.png', width=1000, height=800)
+plot(reg_fig)
+dev.off()
+```
+![](../figs/supp/regression_analysis.png)
+
+### Transient nonlinear dynamic eQTLs
+Load all nonlinear dynamic eQTLs (fibroblast lineage)
+```{r}
+cf_nl_dqtl <- vroom("results/eqtl_dynamic/nonlinear_dQTL/pseudobulk-cf/bin16/t_test/50k-5clpcs-0pcs-notypes.tophits.tsv") %>%
+  filter(qval.unadj<0.05) %>%
+  arrange(bonf.p.unadj)
+```
+
+Load the results from static eQTL calling by cell type
+```{r}
+get_coefs <- function(t) {
+  results.t <- vroom(paste0("../results/eqtl_static/pseudobulk/type/", t, "/50k-5pcs.mtc.tsv")) %>% 
+    bind_rows
+  beta.hat <- results.t %>% 
+    mutate("{t}":=coefficients) %>%
+    mutate(gv=paste(gene, snp, sep="--")) %>%
+    select(gv, !!t)
+  beta.hat
+} 
+
+get_se <- function(t) {
+  results.t <- vroom(paste0("../results/eqtl_static/pseudobulk/type/", t, "/50k-5pcs.mtc.tsv")) %>% 
+    bind_rows
+  se.hat <- results.t %>% 
+    mutate("{t}":=se.adj) %>%
+    mutate(gv=paste(gene, snp, sep="--")) %>%
+    select(gv, !!t)
+  se.hat
+} 
+
+get_dfs <- function(t) {
+  results.t <- vroom(paste0("../results/eqtl_static/pseudobulk/type/", t, "/50k-5pcs.mtc.tsv")) %>% 
+    bind_rows
+  df.total <- results.t %>% 
+    mutate("{t}":=df.total) %>%
+    mutate(gv=paste(gene, snp, sep="--")) %>%
+    select(gv, !!t)
+  df.total
+} 
+ 
+days <- c("IPSC", "MES", "CMES", "PROG", "CM", "CF", "UNK")
+
+beta.hat <- map(days, get_coefs) %>% reduce(inner_join, by="gv") %>%
+  column_to_rownames("gv") %>% as.matrix
+se.hat <- map(days, get_se) %>% reduce(inner_join, by="gv") %>%
+  column_to_rownames("gv") %>% as.matrix
+df.adj <- map(days, get_dfs) %>% reduce(inner_join, by="gv") %>%
+  column_to_rownames("gv") %>% as.matrix
+
+saveRDS(beta.hat, "../results/eqtl_static/pseudobulk/type/all_betas.rds")
+saveRDS(se.hat, "../results/eqtl_static/pseudobulk/type/all_ses.rds")
+saveRDS(df.adj, "../results/eqtl_static/pseudobulk/type/all_dfs.rds")
+
+m <- readRDS("../results/eqtl_static/pseudobulk/type/50k-5pcs.mashr.rds")
+g <- get_fitted_g(m)
+```
+
+Check the overlap
+```{r}
+cf_nl_dqtl <- unite(cf_nl_dqtl, gv, gene, snp, sep="--", remove=F)
+beta.nldqtl <- beta.hat[rownames(beta.hat) %in% cf_nl_dqtl$gv,]
+se.nldqtl <- se.hat[rownames(se.hat) %in% cf_nl_dqtl$gv,]
+df.nldqtl <- beta.hat[rownames(df.adj) %in% cf_nl_dqtl$gv,]
+
+data.dqtl <- mash_set_data(Bhat=beta.nldqtl, Shat=se.nldqtl, df=15)
+m2 <- mash(data.dqtl, g=g, fixg=T)
+```
+
+Mash analysis isn't helpful here, since we're underpowered it just says everything is insignificant at the ends of the trajectory
+```{r}
+t.nldqtl <- beta.nldqtl / se.nldqtl
+endpoints <- tibble("endpoint_magnitude"=apply(abs(t.nldqtl[,c("IPSC", "CF")]), 1, mean)) %>%
+  rowid_to_column() %>%
+  arrange(endpoint_magnitude) %>%
+  slice_head(n=50)
+
+setwd("code")
+viz_residuals_nonlinear(cf_nl_dqtl$gene[106], cf_nl_dqtl$snp[106], "pseudobulk-cf", "bin16")
+setwd("..")
+```
+
+Look at the CM lineage
+```{r}
+cm_nl_dqtl <- vroom("results/eqtl_dynamic/nonlinear_dQTL/pseudobulk-cm/bin16/t_test/50k-5clpcs-0pcs-notypes.tophits.tsv") %>%
+  filter(qval.unadj<0.05) %>%
+  arrange(bonf.p.unadj) %>%
+  unite(gv, gene, snp, sep="--", remove=F)
+
+beta.nldqtl <- beta.hat[rownames(beta.hat) %in% cm_nl_dqtl$gv,]
+se.nldqtl <- se.hat[rownames(se.hat) %in% cm_nl_dqtl$gv,]
+t.nldqtl <- beta.nldqtl / se.nldqtl
+endpoints <- tibble("endpoint_magnitude"=apply(abs(t.nldqtl[,c("IPSC", "CM")]), 1, mean)) %>%
+  rowid_to_column() %>%
+  arrange(endpoint_magnitude) %>%
+  slice_head(n=35)
+
+setwd("code")
+viz_residuals_nonlinear(cm_nl_dqtl$gene[57], cm_nl_dqtl$snp[57], "pseudobulk-cm", "bin16")
+setwd("..")
+```
 
 ## Dynamic eQTL Replication
 How many of the dynamic eQTLs identified in CM, in CF, and in bulk are shared?

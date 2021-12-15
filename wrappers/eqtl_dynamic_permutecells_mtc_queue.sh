@@ -15,8 +15,8 @@ for cdist in ${CisDists[@]}; do
   for nspc in ${NumSampPCs[@]}; do
     for ncpc in ${NumCLPCs[@]}; do
       for b in ${Bins[@]}; do
-        sbatch --mem=15G -J p_mtc --error=logs/dynamic-eqtl-permutecells/pb-cm-$b-$cdist-$nspc-$ncpc-F-mtc.err --output=logs/dynamic-eqtl-permutecells/pb-cm-$b-$cdist-$nspc-$ncpc-F-mtc.out eqtl_dynamic_permutecells_mtc.sh "pseudobulk-cm" $cdist $nspc $ncpc "F" $b 10 100 &
-        # sbatch --mem=15G -J dyn-$c --error=logs/dynamic-eqtl-permutecells/pb-cf-$b-$cdist-$nspc-$ncpc-F-$c-$s.err --output=logs/dynamic-eqtl-permutecells/pb-cf-$b-$cdist-$nspc-$ncpc-F-$c-$s.out eqtl_dynamic_permutecells.sh "pseudobulk-cf" $cdist $nspc $ncpc "F" $b $c 10 $s &
+        # sbatch --mem=15G -J p_mtc --error=logs/dynamic-eqtl-permutecells/pb-cm-$b-$cdist-$nspc-$ncpc-F-mtc.err --output=logs/dynamic-eqtl-permutecells/pb-cm-$b-$cdist-$nspc-$ncpc-F-mtc.out eqtl_dynamic_permutecells_mtc.sh "pseudobulk-cm" $cdist $nspc $ncpc "F" $b 10 100 &
+        sbatch --mem=100G -J p_mtc --error=logs/dynamic-eqtl-permutecells/pb-cf-$b-$cdist-$nspc-$ncpc-F-mtc.err --output=logs/dynamic-eqtl-permutecells/pb-cf-$b-$cdist-$nspc-$ncpc-F-mtc.out eqtl_dynamic_permutecells_mtc.sh "pseudobulk-cf" $cdist $nspc $ncpc "F" $b 10 100 &
       done
     done
   done

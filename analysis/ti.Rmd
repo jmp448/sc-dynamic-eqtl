@@ -9,6 +9,8 @@ output:
 suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(Seurat))
 suppressPackageStartupMessages(library(scales))
+suppressPackageStartupMessages(library(cowplot))
+suppressPackageStartupMessages(library(patchwork))
 ```
 
 ```{r}
@@ -18,7 +20,7 @@ sc_cf <- readRDS("data/seurat.cf.rds")
 ```
 
 ```{r}
-my_cols <- c("#0077BB", "#70d1d0", "#117733", "#BF0202", "#9640CE")
+my_cols <- c("#0077BB", "#70d1d0", "#117733", "#E69F00", "#BF0202", "#9640CE")
 ```
 
 Visualize the distribution of pseudotime across our data
@@ -27,9 +29,15 @@ fig2a <- DimPlot(sc_cardiac, group.by="type", reduction="fa", cols=my_cols) +
   theme(title=element_text(size=0), axis.title=element_text(size=20), 
         legend.text=element_text(size=15), legend.title=element_text(size=20))
 
-fig2b <- FeaturePlot(sc_cardiac, "pseudotime", reduction="fa", cols=viridis_pal()(100)) + 
-  theme(title=element_text(size=0), axis.title=element_text(size=20), 
-        legend.text=element_text(size=15), legend.title=element_text(size=20))
+fa <- as_tibble(sc_cardiac@reductions$fa@cell.embeddings) %>%
+  mutate(pseudotime=sc_cardiac$pseudotime) %>%
+  mutate(log_pseudotime=log2(pseudotime+1))
+
+fig2b <- ggplot(fa, aes(x=`FA_1`, y=`FA_2`, color=`log_pseudotime`)) +
+  geom_point(size=0.01, alpha=0.5) +
+  theme_classic(base_size=20) +
+  labs(color="log2(pseudotime)") +
+  scale_color_gradient(low="#949494", high="#AA2168")
 ```
 
 Look at the distribution of pseudotime within each day, cell type, and pseudotime bin
@@ -105,7 +113,7 @@ BBFF
 fig2 <- fig2a + fig2b + fig2c + fig2d + fig2e + fig2f +
   plot_layout(design=grid.layout)
 
-png('figs/fig2/fig2.png', width=800, height=800)
+png('figs/fig2/fig2.png', width=1000, height=800)
 plot(fig2)
 dev.off()
 ```

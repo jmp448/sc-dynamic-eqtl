@@ -12,7 +12,7 @@ declare -a NumCLPCs=(5)
 declare -a Bins=("bin16")
 declare -a Chunks=(1 2 3 4 5 6 7 8 9 10)
 
-for s in {41..90}; do
+for s in {91..100}; do
   for c in ${Chunks[@]}; do
     for cdist in ${CisDists[@]}; do
       for nspc in ${NumSampPCs[@]}; do

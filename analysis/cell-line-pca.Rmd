@@ -399,6 +399,8 @@ dev.off()
 
 ## Cell Line PCA
 ```{r clpca, warning=FALSE, message=FALSE, echo=FALSE}
+bulk <- read_tsv("data/bulk/day/logtpm.tsv")
+
 bulk.clpca <- cell.line.pca(bulk)
 pseudobulk.clpca <- cell.line.pca(pseudobulk)
 ```
@@ -413,7 +415,7 @@ plot(pseudobulk.clpca$pve, main="Pseudobulk Cell Line PVE", ylab="PVE", xlab="Ce
 We see that the first bulk cell line PC appears to sort cell lines by differentiation speed
 ```{r bulk_deconv_order, fig.width=15, fig.height=10, warning=FALSE, message=FALSE, echo=FALSE}
 bulk.clpc1.order <- bulk.clpca$cell.line.pcs %>% select(c(ind, PC_1)) %>% arrange(PC_1) %>% .$ind
-cell.types <- c("iPSC", "meso", "EMT", "cardiomes", "prog", "CM", "EPDC")
+cell.types <- c("IPSC", "MES", "CMES", "PROG", "CM", "CF", "UNK")
 bulk.props <- read_tsv("results/cibersort/bulk.inferred.tsv") %>% 
   select(!c(`P-value`, Correlation, RMSE)) %>%
   rename(sample=Mixture) %>%
@@ -424,10 +426,15 @@ bulk.props <- read_tsv("results/cibersort/bulk.inferred.tsv") %>%
   mutate(day=as.numeric(day)) %>%
   mutate(ind=factor(ind, levels=bulk.clpc1.order)) %>%
   mutate(exp="bulk")
-ggplot(bulk.props, aes(x=day, y=frac, fill=type)) +
-  geom_area(alpha=0.6 , size=1, colour="black") +
+p_clpc1 <- ggplot(bulk.props, aes(x=day, y=frac, fill=type)) +
+  geom_area(alpha=0.6, size=1, colour="black") +
   facet_grid(rows=vars(ind)) +
-  theme_classic() + theme(axis.ticks.y = element_blank(), axis.text.y=element_blank())
+  theme_classic() + theme(axis.ticks.y = element_blank(), axis.text.y=element_blank(),
+                          strip.background = element_blank(), strip.text=element_blank()) +
+  xlab("Differentiation Day") +
+  ylab("Cell Type Proportion") +
+  labs(fill="Cell Type") +
+  scale_fill_manual(values=my_cols)
 ```
 
 ```{r bulk_diffspeed_cor, echo=FALSE, warning=FALSE, message=FALSE}
@@ -435,10 +442,10 @@ ct.proportions <- read_tsv("results/cibersort/bulk.inferred.tsv") %>%
   rename(sample=Mixture)
 
 diff.speed <- ct.proportions %>% 
-  mutate(early=iPSC+meso) %>%
+  mutate(early=IPSC+MES) %>%
   mutate(ind=substr(sample, 1, 5)) %>%
   group_by(ind) %>%
-  summarize(delay=sum(early), epdc=sum(EPDC), cm=sum(CM), emt=sum(EMT)) %>%
+  summarize(delay=sum(early), cf=sum(CF), cm=sum(CM)) %>%
   right_join(bulk.clpca$cell.line.pcs, by="ind")
 
 ggplot(diff.speed, aes(x=PC_1, y=delay)) +
@@ -481,14 +488,21 @@ terminal.cell.type <- ct.proportions %>%
   slice(which.max(frac)) %>%
   select(!frac) %>%
   left_join(bulk.clpca$cell.line.pcs) %>%
-  mutate(type=factor(type, levels=c("CM", "EPDC", "EMT"))) %>%
+  mutate(type=factor(type, levels=c("CM", "CF"))) %>%
+  drop_na %>%
   gather(!c(ind, type), key="covariate", value="value") %>%
-  mutate(covariate=factor(covariate, levels=paste0("PC_", seq(1, 5))))
+  mutate(covariate=factor(covariate, levels=paste0("PC_", seq(1, 5)))) %>%
+  filter(covariate %in% c("PC_1", "PC_2"))
 
-ggplot(terminal.cell.type, aes(x=covariate, fill=type, y=value)) +
-  geom_boxplot() + theme_classic() + xlab("Cell Line PC")
+p_clpc2 <- ggplot(terminal.cell.type, aes(x=covariate, fill=type, y=value)) +
+  geom_boxplot() + theme_classic(base_size=13) + xlab("Cell Line PC") +
+  ylab("PC Score") + labs(fill="Primary Cell Type, Days 10-15")
+
+png("figs/supp/clpc_explainer.png", width=600, height=800)
+p_clpc1 | p_clpc2 / guide_area() + plot_layout(guides="collect")
+dev.off()
 ```
-
+![](../figs/supp/clpc_explainer.png)
 ## Cell Line PCA of Pseudotime-Aggregated Pseudobulk Data
 If cell line PCA is primarily picking up on differences in differentiation speed and trajectory preference between cell lines, it is not immediately apparent that it would be necessary to apply cell line PCA to some of our other models, like dynamic eQTL calling on pseudobulk data aggregated by cell type. 
 ```{r cmbin_clpca, echo=FALSE, warning=FALSE, message=FALSE}
@@ -523,7 +537,8 @@ pcs <- read_tsv("data/marcc_transfer3/pcs_fulldata.tsv")
 sc.full <- readRDS("data/seurat.clustered.rds")
 meta <- as_tibble(sc.full@meta.data, rownames="cell")
 my_cols_type <- c("#0077BB", "#70d1d0", "#117733", "#E69F00", "#BF0202", "#9640CE", "#949494")
-my_cols_day <- c("#BF0202", "#E69F00", "#117733", "#70d1d0", "#0077BB", "#E08EF3", "#9640CE")
+my_cols_day <- c("#949494", "#98818D", "#9B6E85", "#9F5B7E", "#A34777",
+                 "#A6346F", "#AA2168")
 
 embedding <- inner_join(select(pcs, c(cell, `PC_1`, `PC_2`, `PC_3`)), meta, by="cell")
 p1 <- ggplot(embedding, aes(x=`PC_1`, y=`PC_2`, color=diffday)) +

@@ -6,7 +6,8 @@ output: html_notebook
 ```{r}
 suppressPackageStartupMessages(
 c(library("tidyverse"),
-library("vroom"))
+library("vroom"),
+library("patchwork"))
 )
 ```
 
@@ -66,15 +67,15 @@ ggsave(
 )
 ```
 
-![](../figs/supp/perm1_cm.png)
+# ![](../figs/supp/perm1_cm.png)
 
-![](../figs/perm1.bulk7.day.png)
+# ![](../figs/perm1.bulk7.day.png)
 
-![](../figs/perm1.pseudobulk.day.png)
+# ![](../figs/perm1.pseudobulk.day.png)
 
-![](../figs/perm1.pseudobulk-cf.bin15.png)
+# ![](../figs/perm1.pseudobulk-cf.bin15.png)
 
-![](../figs/perm1.pseudobulk-cm.bin15.png)
+# ![](../figs/perm1.pseudobulk-cm.bin15.png)
 
 ```{r echo=FALSE, warning=FALSE, message=FALSE}
 dataset<-"pseudobulk-cm"
@@ -110,11 +111,11 @@ ggsave(
   dpi = 800
 )
 ```
-![](../figs/perm2.bulk.day.png)
+# ![](../figs/perm2.bulk.day.png)
 
-![](../figs/perm2.pseudobulk-cf.bin15.png)
+# ![](../figs/perm2.pseudobulk-cf.bin15.png)
 
-![](../figs/perm2.pseudobulk-cm.bin15.png)
+# ![](../figs/perm2.pseudobulk-cm.bin15.png)
 
 ```{r}
 dataset<-"pseudobulk-cf"
@@ -150,9 +151,9 @@ ggsave(
   dpi = 800
 )
 ```
-![](../figs/perm3.pseudobulk-cm.bin15.png)
+# ![](../figs/perm3.pseudobulk-cm.bin15.png)
 
-![](../figs/perm3.pseudobulk-cf.bin15.png)
+# ![](../figs/perm3.pseudobulk-cf.bin15.png)
 
 Do we get more hits from highly variable features? This could be due to cell type specific expression of those genes, but could also potentially indicate that we're running into double dipping issues since they're used to compute pseudotime
 ```{r}
@@ -183,9 +184,9 @@ ggsave(
 )
 ```
 
-![](../figs/hvf.pseudobulk-cm.bin15.png)
+# ![](../figs/hvf.pseudobulk-cm.bin15.png)
 
-![](../figs/hvf.bulk.day.png)
+# ![](../figs/hvf.bulk.day.png)
 
 
 ## Permute pseudotime across all cells
@@ -213,7 +214,7 @@ png('figs/supp/permutecells.png', width=1000, height=400)
 hist_pooled + hist_unpooled + hist_obs
 dev.off()
 ```
-![](../figs/supp/permutecells.png)
+# ![](../figs/supp/permutecells.png)
 
 QQ plot
 ```{r}
@@ -230,5 +231,77 @@ qq <- tibble(obs=quantile(obs.t$t.unadj, probs=seq(0.01, 0.99, 0.01)),
 ggplot(qq, aes(x=theor, y=t_obs, color=dist)) +
   geom_point() +
   geom_abline(slope=1, intercept=0, linetype="dashed")
+```
+
+Look at some of the key parameters that will influence $\textrm{var}(\hat{\beta}_{G*t})$
+```{r}
+t_bulk <- read_tsv("../data/bulk/day/logtpm.tsv", n_max=0) %>%
+  column_to_rownames("gene") %>%
+  t %>% as_tibble(rownames="binind") %>%
+  mutate(t=as.numeric(str_extract(binind, "[^_]+$")))
+
+cm_drop <- read_tsv("../data/pseudobulk-cm/bin16/dropped_samples.tsv")
+t_cm <- read_tsv("../results/eqtl_dynamic/linear_dQTL/pseudobulk-cm/bin16/bin_medians.tsv") %>%
+  filter(!binind %in% cm_drop$sample)
+
+cf_drop <- read_tsv("../data/pseudobulk-cf/bin16/dropped_samples.tsv")
+t_cf <- read_tsv("../results/eqtl_dynamic/linear_dQTL/pseudobulk-cf/bin16/bin_medians.tsv") %>%
+  filter(!binind %in% cf_drop$sample)
+```
+
+Visualize the cumulative distributions for the different approaches to hypothesis testing 
+```{r}
+cm_results_permute <- vroom("../results/eqtl_dynamic/linear_dQTL/permuted_cells/pseudobulk-cm/bin16/50k-5clpcs-0pcs-notypes.mtc.tsv") %>%
+  unite(gv, gene, snp, sep="--", remove=F)
+cf_results_permute <- vroom("../results/eqtl_dynamic/linear_dQTL/permuted_cells/pseudobulk-cf/bin16/50k-5clpcs-0pcs-notypes.mtc.tsv") %>%
+  unite(gv, gene, snp, sep="--", remove=F)
+
+cm_pcomp <- ggplot(sample_n(cm_results_permute, 100000), aes(x=-log10(p.unadj), y=-log10(emp.pvals))) +
+  geom_point() +
+  theme_classic(base_size=14) +
+  xlab("-log10(p.nominal)") + ylab("-log10(p.empirical)") +
+  xlim(c(0, 5)) +
+  geom_abline(aes(slope=1, intercept=0), linetype="dashed", color="red") +
+  ggtitle("Cardiomyocyte lineage")
+# cm_hist1 <- ggplot(cm_results_permute, aes(x=emp.pvals)) +
+#   geom_histogram(bins=20) +
+#   theme_classic(base_size=14) +
+#   xlab("p.empirical")
+# cm_hist2 <- ggplot(cm_results_permute, aes(x=p.unadj)) +
+#   geom_histogram(bins=20) +
+#   theme_classic(base_size=14) +
+#   xlab("p.nominal")
+# 
+cf_pcomp <- ggplot(sample_n(cf_results_permute, 100000), aes(x=-log10(p.unadj), y=-log10(emp.pvals))) +
+  geom_point() +
+  theme_classic(base_size=14) +
+  xlim(c(0, 5)) +
+  xlab("-log10(p.nominal)") + ylab("-log10(p.empirical)") +
+  geom_abline(aes(slope=1, intercept=0), linetype="dashed", color="red") +
+  ggtitle("Cardiac fibroblast lineage")
+# cf_hist1 <- ggplot(cf_results_permute, aes(x=emp.pvals)) +
+#   geom_histogram(bins=100) +
+#   theme_classic(base_size=14) +
+#   xlab("p.empirical")
+# cf_hist2 <- ggplot(cf_results_permute, aes(x=p.unadj)) +
+#   geom_histogram(bins=100) +
+#   theme_classic(base_size=14) +
+#   xlab("p.nominal")
+
+png('../figs/supp/permutation_pvals.png', width=1000, height=600)
+cm_pcomp | cf_pcomp
+dev.off()
+```
+![](../figs/supp/permutation_pvals.png)
+
+Compare the number of hits
+```{r}
+cm_hits_orig <- vroom("../results/eqtl_dynamic/linear_dQTL/pseudobulk-cm/bin16/50k-5clpcs-0pcs-notypes.tophits.tsv") %>%
+  filter(qval.unadj<=0.05) %>%
+  unite(gv, gene, snp, sep="--", remove=F)
+cm_hits_permute <- vroom("../results/eqtl_dynamic/linear_dQTL/permuted_cells/pseudobulk-cm/bin16/50k-5clpcs-0pcs-notypes.tophits.tsv") %>%
+  unite(gv, gene, snp, sep="--", remove=F)
+
+tibble("original"=sum(cm_hits_permute$qval.unadj<=0.05))
 ```
 
